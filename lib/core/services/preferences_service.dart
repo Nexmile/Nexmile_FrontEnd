@@ -7,6 +7,8 @@ class PreferencesService {
   static const String _languageCodeKey = 'nexmile.language_code';
   static const String _languageChosenKey = 'nexmile.language_chosen';
   static const String _sessionKey = 'nexmile.session';
+  static const String _permissionsAskedKey = 'nexmile.permissions_asked';
+  static const String _recentPlacesKey = 'nexmile.recent_places';
 
   final SharedPreferences _prefs;
 
@@ -43,4 +45,19 @@ class PreferencesService {
       _prefs.setString(_sessionKey, encodedUser);
 
   Future<void> clearSession() => _prefs.remove(_sessionKey);
+
+  /// True once the first-run permission pages have been shown. They are not
+  /// shown again: after that, each feature asks at the moment it needs to.
+  bool get permissionsAsked => _prefs.getBool(_permissionsAskedKey) ?? false;
+
+  Future<void> markPermissionsAsked() =>
+      _prefs.setBool(_permissionsAskedKey, true);
+
+  /// Places the customer recently searched for or picked, newest first, as
+  /// stored JSON. Kept on the phone only: they are a typing shortcut, not
+  /// account data.
+  String? get recentPlacesJson => _prefs.getString(_recentPlacesKey);
+
+  Future<void> saveRecentPlacesJson(String json) =>
+      _prefs.setString(_recentPlacesKey, json);
 }

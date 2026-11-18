@@ -272,6 +272,30 @@ abstract class AppLocalizations {
   /// **'Enter a valid email address or 10-digit mobile number'**
   String get invalidEmailOrPhone;
 
+  /// Big line on the login screen, under the illustration.
+  ///
+  /// In en, this message translates to:
+  /// **'Hot food from shops near you, delivered fast'**
+  String get loginHeadline;
+
+  /// Small heading over the login field. The same field serves new and returning customers.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in or sign up'**
+  String get loginOrSignUp;
+
+  /// Hint inside the login field.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address'**
+  String get loginEmailHint;
+
+  /// Error under the login field when the text is not an email address.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get invalidEmail;
+
   /// Primary button on the sign-in screen.
   ///
   /// In en, this message translates to:
@@ -896,6 +920,78 @@ abstract class AppLocalizations {
   /// **'We could not get a location fix. Please place the pin yourself.'**
   String get locationUnavailable;
 
+  /// Progress on the first-run permission pages, e.g. '1 of 2'.
+  ///
+  /// In en, this message translates to:
+  /// **'{step} of {total}'**
+  String permStepCount(int step, int total);
+
+  /// Skips one first-run permission page without asking.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get permNotNow;
+
+  /// Title of the first-run page that asks for location.
+  ///
+  /// In en, this message translates to:
+  /// **'Find food near you'**
+  String get permLocationTitle;
+
+  /// Title of the first-run page that asks for notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Never miss an order update'**
+  String get permNotifyTitle;
+
+  /// Why the app asks for notifications, under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications to know when your order is accepted, picked up and at your door.'**
+  String get permNotifyBody;
+
+  /// First reason for notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Live order updates'**
+  String get permNotifyLiveTitle;
+
+  /// Supporting line for the first reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted, cooking, picked up, delivered.'**
+  String get permNotifyLiveBody;
+
+  /// Second reason for notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Rider at your door'**
+  String get permNotifyRiderTitle;
+
+  /// Supporting line for the second reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Know when to step out, without watching the app.'**
+  String get permNotifyRiderBody;
+
+  /// Third reason: the customer can switch notifications off.
+  ///
+  /// In en, this message translates to:
+  /// **'You stay in control'**
+  String get permNotifyControlTitle;
+
+  /// Supporting line for the third reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn notifications off any time in your phone\'s Settings.'**
+  String get permNotifyControlBody;
+
+  /// Button that shows the system notification prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications'**
+  String get permNotifyAllow;
+
   /// Opens the OS settings page so the customer can grant location.
   ///
   /// In en, this message translates to:
@@ -1201,6 +1297,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More dishes'**
   String get moreDishesTitle;
+
+  /// Hint in the search field on a restaurant's menu. It searches only this restaurant's dishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for dishes'**
+  String get menuSearchHint;
+
+  /// Short label on the chip that opens the menu's filter and sort sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filtersShort;
+
+  /// Menu filter chip: vegetarian dishes with no egg. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Veg'**
+  String get dietVeg;
+
+  /// Menu filter chip: dishes that contain egg. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg'**
+  String get dietEgg;
+
+  /// Menu filter chip: non-vegetarian dishes. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-veg'**
+  String get dietNonVeg;
+
+  /// Menu filter chip for the restaurant's most ordered dishes. Normal case, unlike the BESTSELLER badge on a dish.
+  ///
+  /// In en, this message translates to:
+  /// **'Bestseller'**
+  String get menuBestsellerChip;
+
+  /// Heading over the Veg, Egg and Non-veg choices in the menu filter sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Food type'**
+  String get menuFoodType;
+
+  /// Heading over the Bestseller, Rated and Offers choices in the menu filter sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Show only'**
+  String get menuShowOnly;
+
+  /// How many dishes are left after searching or filtering a menu.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dish} other{{count} dishes}}'**
+  String menuMatchCount(int count);
+
+  /// Button that applies the menu filter sheet, with how many dishes it will show.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dishes} =1{Show 1 dish} other{Show {count} dishes}}'**
+  String menuShowDishes(int count);
+
+  /// Shown under 'Nothing matched' when a menu search or filter leaves no dishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another dish name, or remove a filter.'**
+  String get menuNoMatchSubtitle;
+
+  /// Floating button on a restaurant page that lists the menu sections to jump to. Must stay very short.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get menuBrowse;
 
   /// Tiny label under ADD on a dish with add-on choices. Space is very tight.
   ///
@@ -2042,6 +2210,210 @@ abstract class AppLocalizations {
   /// **'Search area, street or landmark'**
   String get searchAddressHint;
 
+  /// Title of the screen that picks where to deliver: current location, a saved address, or a new one.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a location'**
+  String get selectLocationTitle;
+
+  /// Row and map button that uses where the phone is.
+  ///
+  /// In en, this message translates to:
+  /// **'Use current location'**
+  String get useCurrentLocation;
+
+  /// Shown under 'Use current location' while the phone finds its position.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding where you are…'**
+  String get locatingYou;
+
+  /// Shown under 'Use current location' when location is off or not allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location access to use this'**
+  String get locationOffHint;
+
+  /// Heading over the customer's saved addresses. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved addresses'**
+  String get savedAddressesHeading;
+
+  /// Heading over places the customer recently searched for. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent locations'**
+  String get recentLocationsHeading;
+
+  /// Precedes the Google name under address search results, as Google requires. Keep lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'powered by'**
+  String get poweredBy;
+
+  /// Title of the map where the customer places the delivery pin.
+  ///
+  /// In en, this message translates to:
+  /// **'Select delivery location'**
+  String get selectDeliveryLocationTitle;
+
+  /// Hint above the pin on the delivery map.
+  ///
+  /// In en, this message translates to:
+  /// **'Move pin to your exact delivery location'**
+  String get movePinTooltip;
+
+  /// Shown while the pin's position is turned into an address.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding the address…'**
+  String get locatingPin;
+
+  /// Heading over the area the pin is in, on the delivery map.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery details'**
+  String get deliveryDetailsHeading;
+
+  /// Label of the house, flat and floor field. The asterisk marks it as required.
+  ///
+  /// In en, this message translates to:
+  /// **'Address details*'**
+  String get addressDetailsLabel;
+
+  /// Help text under the address details field.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. Floor, House no.'**
+  String get addressDetailsHint;
+
+  /// Shown when the city, state or PIN code could not be found for the pin.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read the full address for this pin. Please fill in the rest.'**
+  String get missingAreaHint;
+
+  /// Question over the Myself / Someone else choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Who should we contact for this delivery?'**
+  String get whoToContact;
+
+  /// The customer receives the delivery themselves.
+  ///
+  /// In en, this message translates to:
+  /// **'Myself'**
+  String get contactMyself;
+
+  /// Another person receives the delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else'**
+  String get contactSomeoneElse;
+
+  /// Heading over the receiver's name and number.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver details for this address'**
+  String get receiverDetailsHeading;
+
+  /// Shown when no receiver is filled in yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the receiver\'s name and number'**
+  String get receiverAddPrompt;
+
+  /// Title of the sheet that edits the receiver's name and number.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver details'**
+  String get receiverSheetTitle;
+
+  /// Heading over the optional photo of the door or building.
+  ///
+  /// In en, this message translates to:
+  /// **'Door/building image (optional)'**
+  String get doorPhotoHeading;
+
+  /// Button that adds a photo of the door or building.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an image'**
+  String get doorPhotoAdd;
+
+  /// Why a door photo helps.
+  ///
+  /// In en, this message translates to:
+  /// **'This helps our delivery partners find your exact location faster'**
+  String get doorPhotoBody;
+
+  /// Replaces the chosen door photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get doorPhotoChange;
+
+  /// Drops the chosen door photo before saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get doorPhotoRemove;
+
+  /// Picks a door photo with the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get photoFromCamera;
+
+  /// Picks a door photo from the phone's photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get photoFromGallery;
+
+  /// Confirmation after a door photo uploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo added'**
+  String get photoUploaded;
+
+  /// Shown when a door photo fails to upload.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo couldn\'t be uploaded. Please try again later.'**
+  String get photoUploadFailed;
+
+  /// Shown when the address saved but its photo did not.
+  ///
+  /// In en, this message translates to:
+  /// **'Address saved. The photo couldn\'t be uploaded.'**
+  String get addressSavedPhotoFailed;
+
+  /// Takes the door photo off a saved address.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhotoLabel;
+
+  /// Confirmation after the door photo is taken off.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo removed'**
+  String get photoRemoved;
+
+  /// Shares a saved address.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareLabel;
+
+  /// Adds or replaces the photo of a saved address's door.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a door photo'**
+  String get addDoorPhotoLabel;
+
   /// Shown when an address search returns nothing.
   ///
   /// In en, this message translates to:
@@ -2161,6 +2533,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Electric scooter'**
   String get vehicleElectric;
+
+  /// Title of the dialog shown when back is pressed on the main screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Nexmile?'**
+  String get exitTitle;
+
+  /// Body of the exit confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to exit the app?'**
+  String get exitBody;
+
+  /// Button that closes the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exitConfirm;
 }
 
 class _AppLocalizationsDelegate

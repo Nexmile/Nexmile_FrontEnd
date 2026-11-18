@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../features/address/data/address.dart';
 import '../../features/address/data/location_service.dart';
 import '../../features/address/presentation/address_book_screen.dart';
-import '../../features/address/presentation/address_form_screen.dart';
 import '../../features/address/presentation/address_map_screen.dart';
 import '../../features/address/presentation/location_permission_screen.dart';
 import '../../features/auth/data/login_identifier.dart';
@@ -18,6 +17,8 @@ import '../../features/catalogue/presentation/reviews_screen.dart';
 import '../../features/catalogue/presentation/restaurant_screen.dart';
 import '../../features/catalogue/presentation/search_tab.dart';
 import '../../features/language/language_screen.dart';
+import '../../features/permissions/permission_onboarding.dart';
+import '../../features/permissions/permissions_screen.dart';
 import '../../features/profile/devices_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/shell/app_shell.dart';
@@ -29,6 +30,9 @@ class AppRoutes {
 
   static const String splash = '/';
   static const String language = '/language';
+
+  /// First-run permission pages, between choosing a language and signing in.
+  static const String permissions = '/permissions';
 
   // Customer auth is two screens. The API offers no registration, password
   // recovery or password reset for customers — an account is created on the
@@ -66,7 +70,6 @@ class AppRoutes {
   // mandatory, so the pin step is not skippable — only the GPS part is.
   static const String locationPermission = '/location';
   static const String addressMap = '/address/map';
-  static const String addressForm = '/address/form';
   static const String addressBook = '/addresses';
 }
 
@@ -88,42 +91,35 @@ class AddressMapArgs {
     this.longitude,
     this.isFirstAddress = true,
     this.editing,
+    this.place,
   });
 
-  /// A GPS fix to open on. Null when the customer declined location — the map
-  /// falls back to a city-level centre and they drag from there.
+  /// Where to open. Null when the customer declined location: the map falls
+  /// back to a city-level centre and they search or drag from there.
   final double? latitude;
   final double? longitude;
+
+  /// Onboarding: saving goes on to the storefront. Otherwise the screen pops
+  /// with the saved address, for whoever asked for one.
   final bool isFirstAddress;
 
   /// Set when correcting a saved address, so the pin opens where it already is
   /// and saving issues a PATCH rather than a POST.
   final Address? editing;
+
+  /// The searched place the map opens on, so its name shows while the pin's
+  /// own address is still being looked up.
+  final PlaceSuggestion? place;
 }
 
-/// Argument bundle for [AppRoutes.addressForm].
+/// Argument bundle for [AppRoutes.addressBook].
 @immutable
-class AddressFormArgs {
-  const AddressFormArgs({
-    required this.latitude,
-    required this.longitude,
-    this.prefill,
-    this.isFirstAddress = true,
-    this.editing,
-  });
+class AddressBookArgs {
+  const AddressBookArgs({this.managing = false});
 
-  /// The address being corrected, or null when adding a new one.
-  final Address? editing;
-
-  /// Set on the map and not editable in the form — the API computes the 1 km
-  /// radius from these.
-  final double latitude;
-  final double longitude;
-
-  /// Reverse-geocoded starting point for the text fields.
-  final ResolvedPlace? prefill;
-
-  final bool isFirstAddress;
+  /// From the profile: a list to edit, rather than a choice of where to
+  /// deliver. No "use current location", and a tap edits.
+  final bool managing;
 }
 
 /// Argument bundle for [AppRoutes.search]. Optional — the route works without
@@ -179,6 +175,19 @@ class OrderArgs {
   final int orderId;
 }
 
+/// Argument bundle for [AppRoutes.permissions].
+@immutable
+class PermissionsArgs {
+  const PermissionsArgs({required this.steps, required this.next});
+
+  /// The pages to show, in order. Never empty: with nothing to ask the route
+  /// is not pushed at all.
+  final List<AppPermission> steps;
+
+  /// Where to go after the last page.
+  final String next;
+}
+
 /// Argument bundle for [AppRoutes.otpVerification].
 @immutable
 class OtpArgs {
@@ -206,6 +215,13 @@ class AppRouter {
           LanguageScreen(isInitialSetup: isInitialSetup),
           settings,
         );
+
+      case AppRoutes.permissions:
+        final Object? args = settings.arguments;
+        if (args is! PermissionsArgs || args.steps.isEmpty) {
+          return _misroute(settings);
+        }
+        return _fadeRoute(PermissionsScreen(args: args), settings);
 
       case AppRoutes.login:
         return _fadeRoute(const LoginScreen(), settings);
@@ -246,13 +262,16 @@ class AppRouter {
           settings,
         );
 
-      case AppRoutes.addressForm:
-        final Object? args = settings.arguments;
-        if (args is! AddressFormArgs) return _misroute(settings);
-        return _slideRoute(AddressFormScreen(args: args), settings);
 
       case AppRoutes.addressBook:
-        return _slideRoute(const AddressBookScreen(), settings);
+        final Object? args = settings.arguments;
+        final AddressBookArgs book =
+            args is AddressBookArgs ? args : const AddressBookArgs();
+        // Choosing where to deliver rises over the storefront and closes back
+        // down onto it; managing the list from the profile is a normal page.
+        return book.managing
+            ? _slideRoute(AddressBookScreen(args: book), settings)
+            : _riseRoute(AddressBookScreen(args: book), settings);
 
       case AppRoutes.restaurant:
         final Object? args = settings.arguments;
@@ -322,4 +341,33 @@ class AppRouter {
   /// mirrors automatically in the right-to-left languages.
   static PageRoute<T> _slideRoute<T>(Widget page, RouteSettings settings) =>
       MaterialPageRoute<T>(settings: settings, builder: (_) => page);
+
+  /// Slides up from the bottom and closes downward, for a screen that is a
+  /// choice laid over the one beneath it.
+  static PageRoute<T> _riseRoute<T>(Widget page, RouteSettings settings) =>
+      PageRouteBuilder<T>(
+        settings: settings,
+        transitionDuration: const Duration(milliseconds: 320),
+        reverseTransitionDuration: const Duration(milliseconds: 260),
+        pageBuilder: (_, __, ___) => page,
+        transitionsBuilder: (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondary,
+          Widget child,
+        ) =>
+            SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            ),
+          ),
+          child: child,
+        ),
+      );
 }

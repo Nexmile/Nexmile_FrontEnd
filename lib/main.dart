@@ -11,6 +11,7 @@ import 'core/push/push_service.dart';
 import 'core/services/preferences_service.dart';
 import 'features/address/data/address_repository.dart';
 import 'features/address/data/location_service.dart';
+import 'features/address/data/google_places.dart';
 import 'features/address/state/address_controller.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/auth_session.dart';
@@ -87,7 +88,8 @@ Future<void> main() async {
       addressController: AddressController(
         repository: ApiAddressRepository(apiClient),
       ),
-      locationService: const GeolocatorLocationService(),
+      // Google's type-ahead for address search, on the app's own Maps key.
+      locationService: GeolocatorLocationService(places: GooglePlaces()),
       storefrontRepository: ApiStorefrontRepository(apiClient),
       walletRepository: ApiWalletRepository(apiClient),
       pushService: pushService,

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -18,11 +19,13 @@ import 'package:nexmile/core/push/push_service.dart';
 import 'package:nexmile/core/router/app_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nexmile/core/services/preferences_service.dart';
+import 'package:nexmile/core/widgets/gradient_button.dart';
 import 'package:nexmile/features/address/data/address.dart';
 import 'package:nexmile/features/address/data/address_repository.dart';
 import 'package:nexmile/features/address/data/location_service.dart';
 import 'package:nexmile/features/address/presentation/address_book_screen.dart';
-import 'package:nexmile/features/address/presentation/address_form_screen.dart';
+import 'package:nexmile/features/address/presentation/widgets/address_sheets.dart';
+import 'package:image_picker/image_picker.dart' show ImageSource;
 import 'package:nexmile/features/address/presentation/address_map_screen.dart';
 import 'package:nexmile/features/address/presentation/location_permission_screen.dart';
 import 'package:nexmile/features/address/state/address_controller.dart';
@@ -110,8 +113,16 @@ class FakePushService implements PushService {
   @override
   Future<bool> requestPermission() async {
     permissionAsked = true;
+    if (_token != null) access = NotificationAccess.granted;
     return _token != null;
   }
+
+  /// Granted by default, so the first-run permission pages stay out of the
+  /// way of tests about something else.
+  NotificationAccess access = NotificationAccess.granted;
+
+  @override
+  Future<NotificationAccess> notificationAccess() async => access;
 
   @override
   Future<void> ensureChannel() async => channelCreated = true;
@@ -325,6 +336,68 @@ class FakeAddressRepository implements AddressRepository {
   Future<void> delete(int id) async =>
       _addresses.removeWhere((Address a) => a.id == id);
 
+  /// Uploads seen, and what the next one does.
+  final List<(int, int, String)> uploads = <(int, int, String)>[];
+  ApiException? uploadError;
+  final List<int> photoDeletes = <int>[];
+
+  @override
+  Future<Address> deletePhoto(int id) async {
+    photoDeletes.add(id);
+    final int index = _addresses.indexWhere((Address a) => a.id == id);
+    final Address updated = _withPhoto(_addresses[index], null);
+    _addresses[index] = updated;
+    return updated;
+  }
+
+  static Address _withPhoto(Address a, String? url) => Address(
+        id: a.id,
+        label: a.label,
+        line1: a.line1,
+        line2: a.line2,
+        landmark: a.landmark,
+        city: a.city,
+        state: a.state,
+        pincode: a.pincode,
+        latitude: a.latitude,
+        longitude: a.longitude,
+        isDefault: a.isDefault,
+        contactName: a.contactName,
+        contactPhone: a.contactPhone,
+        photoUrl: url,
+      );
+
+  @override
+  Future<Address> uploadPhoto(
+    int id, {
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    uploads.add((id, bytes.length, filename));
+    final ApiException? error = uploadError;
+    if (error != null) throw error;
+    final int index = _addresses.indexWhere((Address a) => a.id == id);
+    final Address a = _addresses[index];
+    final Address updated = Address(
+      id: a.id,
+      label: a.label,
+      line1: a.line1,
+      line2: a.line2,
+      landmark: a.landmark,
+      city: a.city,
+      state: a.state,
+      pincode: a.pincode,
+      latitude: a.latitude,
+      longitude: a.longitude,
+      isDefault: a.isDefault,
+      contactName: a.contactName,
+      contactPhone: a.contactPhone,
+      photoUrl: 'https://cdn.example/address-$id.jpg',
+    );
+    _addresses[index] = updated;
+    return updated;
+  }
+
   @override
   Future<Address> makeDefault(int id) async {
     _clearDefaults();
@@ -397,9 +470,22 @@ class FakeLocationService implements LocationService {
   int requestCount = 0;
   int settingsCount = 0;
 
+  /// Allowed by default, so only the permission tests meet the first-run
+  /// pages.
+  LocationPermission permission = LocationPermission.whileInUse;
+
+  /// What the system prompt answers when [requestPermission] shows it.
+  LocationPermission answer = LocationPermission.whileInUse;
+  int promptCount = 0;
+
   @override
-  Future<LocationPermission> currentPermission() async =>
-      LocationPermission.whileInUse;
+  Future<LocationPermission> currentPermission() async => permission;
+
+  @override
+  Future<LocationPermission> requestPermission() async {
+    promptCount++;
+    return permission = answer;
+  }
 
   @override
   Future<LocationFix> requestFix() async {
@@ -424,12 +510,38 @@ class FakeLocationService implements LocationService {
   ];
 
   @override
-  Future<List<PlaceSuggestion>> search(String query) async =>
-      query.trim().length < 3 ? const <PlaceSuggestion>[] : suggestions;
+  Future<List<PlaceSuggestion>> search(
+    String query, {
+    double? nearLatitude,
+    double? nearLongitude,
+    String? language,
+  }) async {
+    lastSearchNear = nearLatitude == null ? null : (nearLatitude, nearLongitude!);
+    return query.trim().length < 3 ? const <PlaceSuggestion>[] : suggestions;
+  }
+
+  /// Where the last search was ranked from, if anywhere.
+  (double, double)? lastSearchNear;
+
+  /// Coordinates for a suggestion that came without them, as a Google one
+  /// does. Null means Google could not say where it is.
+  LatLngPair? resolveTo = (13.0850, 80.2101);
+  int resolveCount = 0;
+
+  @override
+  Future<PlaceSuggestion?> resolve(PlaceSuggestion suggestion) async {
+    resolveCount++;
+    if (suggestion.isResolved) return suggestion;
+    final LatLngPair? to = resolveTo;
+    if (to == null) return null;
+    return suggestion.copyWith(latitude: to.$1, longitude: to.$2);
+  }
 
   @override
   Future<void> openSettings() async => settingsCount++;
 }
+
+typedef LatLngPair = (double, double);
 
 const Address _testAddress = Address(
   id: 1,
@@ -480,6 +592,7 @@ Future<void> _pumpApp(
   FakeLocationService? locationService,
   FakeStorefrontRepository? storefrontRepository,
   FakeWalletRepository? walletRepository,
+  PushService pushService = const NoopPushService(),
 }) async {
   final PreferencesService preferences = await _prefs(seed);
   _authRepo = repository ?? FakeAuthRepository();
@@ -505,6 +618,7 @@ Future<void> _pumpApp(
       storefrontRepository: _storefrontRepo,
       walletRepository: walletRepository ?? FakeWalletRepository(),
       paymentGateway: FakePaymentGateway(),
+      pushService: pushService,
     ),
   );
 }
@@ -542,6 +656,80 @@ NavigatorState _nav(WidgetTester tester) =>
 /// The default 800x600 test surface is shorter than a real phone. Auth screens
 /// are short enough to fit, but the dashboard and OTP screen benefit from a
 /// realistic viewport.
+/// Three sections with one of everything the chips look at. Starters is
+/// long enough that Desserts starts below the fold.
+Map<String, dynamic> _filterMenu() => <String, dynamic>{
+      'menu': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 1,
+          'name': 'Starters',
+          'items': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 11,
+              'name': 'Paneer Tikka',
+              'price': '220',
+              'is_veg': true,
+              'rating': '4.5',
+              'rating_count': 40,
+              'is_bestseller': true,
+            },
+            <String, dynamic>{
+              'id': 12,
+              'name': 'Chicken 65',
+              'price': '260',
+              'is_veg': false,
+            },
+            <String, dynamic>{
+              'id': 13,
+              'name': 'Egg Bonda',
+              'price': '90',
+              'is_veg': false,
+              'contains_egg': true,
+            },
+            for (int i = 1; i <= 4; i++)
+              <String, dynamic>{
+                'id': 100 + i,
+                'name': 'Kebab $i',
+                'price': '${200 + i}',
+                'is_veg': false,
+              },
+          ],
+        },
+        <String, dynamic>{
+          'id': 2,
+          'name': 'Biryani',
+          'items': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 21,
+              'name': 'Hyderabadi Dum',
+              'price': '320',
+              'compare_at_price': '380',
+              'is_veg': false,
+            },
+            <String, dynamic>{
+              'id': 22,
+              'name': 'Veg Pulao',
+              'description': 'Basmati rice with paneer and peas',
+              'price': '180',
+              'is_veg': true,
+            },
+          ],
+        },
+        <String, dynamic>{
+          'id': 3,
+          'name': 'Desserts',
+          'items': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 31,
+              'name': 'Gulab Jamun',
+              'price': '80',
+              'is_veg': true,
+            },
+          ],
+        },
+      ],
+    };
+
 void _useTallPhone(WidgetTester tester) {
   tester.view.physicalSize = const Size(400, 1000);
   tester.view.devicePixelRatio = 1.0;
@@ -879,7 +1067,7 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('splash hand-off', () {
-    testWidgets('fresh install lands on the language screen',
+    testWidgets('a fresh install goes straight to login, in English',
         (WidgetTester tester) async {
       await _pumpApp(tester);
       await tester.pump();
@@ -889,7 +1077,11 @@ void main() {
       expect(find.image(const AssetImage(AppAssets.wordmark)), findsOneWidget);
 
       await _settleSplash(tester);
-      expect(find.byType(LanguageScreen), findsOneWidget);
+      // No language screen to get past first: English until changed.
+      expect(find.byType(LanguageScreen), findsNothing);
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
+      expect(find.text('Change language'), findsOneWidget);
     });
 
     testWidgets('language chosen, no session -> login',
@@ -922,35 +1114,172 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'frame $i');
       }
       await tester.pumpAndSettle();
-      expect(find.byType(LanguageScreen), findsOneWidget);
+      expect(find.byType(LoginScreen), findsOneWidget);
     });
   });
 
   // -------------------------------------------------------------------------
   group('language screen', () {
-    testWidgets('continues into login', (WidgetTester tester) async {
+    testWidgets('change language on login opens the picker, and back is free',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
       await _pumpApp(tester);
       await _settleSplash(tester);
 
-      expect(find.text('Choose your language'), findsOneWidget);
-      await tester.tap(find.text('Continue'));
+      await tester.tap(find.text('Change language'));
       await tester.pumpAndSettle();
+      expect(find.text('Choose your language'), findsOneWidget);
 
+      // Not first-run setup: there is a way back without choosing.
+      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await tester.pumpAndSettle();
       expect(find.byType(LoginScreen), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
     });
 
-    testWidgets('picking Tamil carries through to login',
+    testWidgets('picking Tamil from login switches the login to Tamil',
         (WidgetTester tester) async {
+      _useTallPhone(tester);
       await _pumpApp(tester);
       await _settleSplash(tester);
 
+      await tester.tap(find.text('Change language'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('தமிழ்'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('தொடரவும்'));
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.text('Nexmile-இல் உள்நுழையவும்'), findsOneWidget);
+      // The language row and the button are now in Tamil.
+      expect(find.text('தமிழ்'), findsOneWidget);
+      expect(find.text('தொடரவும்'), findsOneWidget);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('nexmile.language_code'), 'ta');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  group('first-run permissions', () {
+    FakeLocationService deniedLocation() =>
+        FakeLocationService()..permission = LocationPermission.denied;
+
+    FakePushService askablePush() =>
+        FakePushService(initial: 'token-1')..access = NotificationAccess.askable;
+
+    testWidgets('a fresh install is asked for location, then notifications',
+        (WidgetTester tester) async {
+      final FakeLocationService location = deniedLocation();
+      final FakePushService push = askablePush();
+      _useTallPhone(tester);
+      await _pumpApp(tester, locationService: location, pushService: push);
+      await _settleSplash(tester);
+
+      // Straight after the splash: no language screen in front of them.
+      expect(find.text('Find food near you'), findsOneWidget);
+      expect(find.text('1 of 2'), findsOneWidget);
+      // The reasons come before the system prompt, not after it.
+      expect(find.text('Shops within 1 km'), findsOneWidget);
+      expect(location.promptCount, 0);
+
+      await tester.tap(find.text('Allow location'));
+      await tester.pumpAndSettle();
+      expect(location.promptCount, 1);
+
+      expect(find.text('Never miss an order update'), findsOneWidget);
+      expect(find.text('2 of 2'), findsOneWidget);
+      await tester.tap(find.text('Turn on notifications'));
+      await tester.pumpAndSettle();
+      expect(push.permissionAsked, isTrue);
+
+      expect(find.byType(LoginScreen), findsOneWidget);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('nexmile.permissions_asked'), isTrue);
+    });
+
+    testWidgets('not now skips without a prompt, and the pages show once',
+        (WidgetTester tester) async {
+      final FakeLocationService location = deniedLocation();
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, locationService: location);
+      await _settleSplash(tester);
+
+      // Location only: this build has no push to ask about, and one page
+      // needs no "1 of 1".
+      expect(find.text('Find food near you'), findsOneWidget);
+      expect(find.text('1 of 1'), findsNothing);
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      expect(location.promptCount, 0);
+      expect(find.byType(LoginScreen), findsOneWidget);
+
+      // The next launch goes straight past them, though nothing was allowed.
+      await _pumpApp(
+        tester,
+        seed: <String, Object>{
+          ..._languageChosen,
+          'nexmile.permissions_asked': true,
+        },
+        locationService: location,
+      );
+      await _settleSplash(tester);
+      expect(find.text('Find food near you'), findsNothing);
+      expect(find.byType(LoginScreen), findsOneWidget);
+    });
+
+    testWidgets('a permission only Settings can change is not asked for',
+        (WidgetTester tester) async {
+      // The system prompt would never appear, so the page would be a dead end.
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        locationService: FakeLocationService()
+          ..permission = LocationPermission.deniedForever,
+        pushService: FakePushService()..access = NotificationAccess.blocked,
+      );
+      await _settleSplash(tester);
+
+      expect(find.text('Find food near you'), findsNothing);
+      expect(find.text('Never miss an order update'), findsNothing);
+      expect(find.byType(LoginScreen), findsOneWidget);
+    });
+
+    testWidgets('back goes to the previous page before it leaves',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        locationService: deniedLocation(),
+        pushService: askablePush(),
+      );
+      await _settleSplash(tester);
+
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      expect(find.text('Never miss an order update'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('Find food near you'), findsOneWidget);
+      // Stepping back is not leaving the app.
+      expect(find.text('Exit Nexmile?'), findsNothing);
+    });
+
+    testWidgets('a signed-in customer carries on to the storefront',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        locationService: deniedLocation(),
+      );
+      await _settleSplash(tester);
+
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AppShell), findsOneWidget);
     });
   });
 
@@ -963,7 +1292,7 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField), 'priya@example.com');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
       expect(find.byType(OtpVerificationScreen), findsOneWidget);
@@ -979,7 +1308,7 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField), '+91 98765 43210');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
       expect(repo.lastIdentifier?.isPhone, isTrue);
@@ -995,13 +1324,10 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField), 'not-valid');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Enter a valid email address or 10-digit mobile number'),
-        findsWidgets,
-      );
+      expect(find.text('Enter a valid email address'), findsWidgets);
       expect(repo.requestCount, 0);
       expect(find.byType(OtpVerificationScreen), findsNothing);
     });
@@ -1018,7 +1344,8 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField), '9876543210');
-      await tester.tap(find.text('குறியீட்டை அனுப்பு'));
+      // "Continue", in Tamil.
+      await tester.tap(find.text('தொடரவும்'));
       await tester.pumpAndSettle();
 
       expect(
@@ -1039,7 +1366,7 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField), '9876543210');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
       expect(
@@ -1055,7 +1382,7 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField), '9876543210');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
       expect(
@@ -1077,7 +1404,7 @@ void main() {
       await _pumpApp(tester, seed: seed, repository: repo);
       await _settleSplash(tester);
       await tester.enterText(find.byType(TextFormField), identifier);
-      await tester.tap(find.byType(InkWell).last);
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       return repo;
     }
@@ -1170,6 +1497,79 @@ void main() {
 
       expect(find.byType(LoginScreen), findsWidgets);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  group('back button', () {
+    Future<List<String>> onHome(WidgetTester tester) async {
+      _useTallScreen(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+      // Records the app closing instead of closing the test.
+      final List<String> calls = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          calls.add(call.method);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+      return calls;
+    }
+
+    testWidgets('back on Home asks before closing the app',
+        (WidgetTester tester) async {
+      final List<String> calls = await onHome(tester);
+
+      await tester.binding.handlePopRoute();
+      await _pumpFrames(tester);
+      expect(find.text('Exit Nexmile?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await _pumpFrames(tester);
+      expect(find.text('Exit Nexmile?'), findsNothing);
+      expect(find.byType(AppShell), findsOneWidget);
+      expect(calls, isNot(contains('SystemNavigator.pop')));
+
+      await tester.binding.handlePopRoute();
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Exit'));
+      await _pumpFrames(tester);
+      expect(calls, contains('SystemNavigator.pop'));
+    });
+
+    testWidgets('back from another tab goes Home first',
+        (WidgetTester tester) async {
+      await onHome(tester);
+      await tester.tap(find.text('Orders').last);
+      await _pumpFrames(tester);
+
+      await tester.binding.handlePopRoute();
+      await _pumpFrames(tester);
+
+      // Home again, and no exit question yet.
+      expect(find.text('Exit Nexmile?'), findsNothing);
+      await tester.binding.handlePopRoute();
+      await _pumpFrames(tester);
+      expect(find.text('Exit Nexmile?'), findsOneWidget);
+    });
+
+    testWidgets('back inside the app still just goes back',
+        (WidgetTester tester) async {
+      await onHome(tester);
+      _nav(tester).pushNamed(AppRoutes.profile);
+      await _pumpFrames(tester);
+
+      await tester.binding.handlePopRoute();
+      await _pumpFrames(tester);
+
+      expect(find.byType(ProfileScreen), findsNothing);
+      expect(find.text('Exit Nexmile?'), findsNothing);
     });
   });
 
@@ -2263,6 +2663,57 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
+  group('pickup code', () {
+    Future<void> openOrder(WidgetTester tester, String fulfilment) async {
+      _useTallScreen(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..orderStatus = 'preparing'
+        ..orderExtra = <String, dynamic>{
+          'fulfilment_type': fulfilment,
+          'pickup_code': '4821',
+        };
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.orderStatus,
+        arguments: const OrderArgs(orderId: 1),
+      );
+      await _pumpFrames(tester);
+    }
+
+    testWidgets('a delivery order never shows the rider\'s pickup code',
+        (WidgetTester tester) async {
+      await openOrder(tester, 'delivery');
+
+      // The code collects the food at the counter. On a delivery it belongs
+      // to the rider, and anyone holding the customer's phone could use it.
+      expect(find.text('Pickup code'), findsNothing);
+      expect(find.text('4821'), findsNothing);
+      Provider.of<OrdersController>(
+        tester.element(find.byType(MaterialApp)),
+        listen: false,
+      ).stopPolling();
+    });
+
+    testWidgets('a takeaway order shows it, for the customer to collect',
+        (WidgetTester tester) async {
+      await openOrder(tester, 'pickup');
+
+      expect(find.text('Pickup code'), findsOneWidget);
+      expect(find.text('4821'), findsOneWidget);
+      Provider.of<OrdersController>(
+        tester.element(find.byType(MaterialApp)),
+        listen: false,
+      ).stopPolling();
+    });
+  });
+
+  // -------------------------------------------------------------------------
   group('live tracking', () {
     Future<OrdersController> openTracking(
       WidgetTester tester,
@@ -2797,6 +3248,19 @@ void main() {
       expect((destination!.arguments! as OrderArgs).orderId, 7);
     });
 
+    test('signing in does not prompt for notifications put off at first run',
+        () async {
+      // "Not now" on the first-run page is an answer. A system prompt the
+      // moment they sign in would overrule it with no reasons beside it.
+      final FakePushService push = FakePushService()
+        ..access = NotificationAccess.askable;
+      final DeviceRegistrar registrar =
+          DeviceRegistrar(push: push, repository: FakeDeviceRepository());
+
+      await registrar.register();
+      expect(push.permissionAsked, isFalse);
+    });
+
     test('signing in registers the device, signing out withdraws it', () async {
       final FakePushService push = FakePushService(initial: 'token-1');
       final FakeDeviceRepository devices = FakeDeviceRepository();
@@ -3021,6 +3485,195 @@ void main() {
     });
   });
 
+  group('restaurant menu filters', () {
+    Future<FakeStorefrontRepository> openMenu(
+      WidgetTester tester, {
+      Map<String, dynamic>? menu,
+    }) async {
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..menuPayload = menu ?? _filterMenu();
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      await tester.tap(find.text('Anjappar Chettinad').first);
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('the veg chip narrows the menu, and a second tap restores it',
+        (WidgetTester tester) async {
+      await openMenu(tester);
+      expect(find.text('Chicken 65'), findsOneWidget);
+
+      await tester.tap(find.text('Veg'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Paneer Tikka'), findsOneWidget);
+      expect(find.text('Chicken 65', skipOffstage: false), findsNothing);
+      expect(find.text('Egg Bonda', skipOffstage: false), findsNothing);
+      // Paneer Tikka, Veg Pulao and Gulab Jamun.
+      expect(find.text('3 dishes'), findsOneWidget);
+
+      await tester.tap(find.text('Veg'));
+      await tester.pumpAndSettle();
+      expect(find.text('Chicken 65'), findsOneWidget);
+      expect(find.text('3 dishes'), findsNothing);
+    });
+
+    testWidgets('search finds dishes by name and description, and clears',
+        (WidgetTester tester) async {
+      await openMenu(tester);
+
+      await tester.enterText(find.byType(TextField), 'paneer');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Paneer Tikka'), findsOneWidget);
+      // Matched on its description, not its name.
+      expect(find.text('Veg Pulao'), findsOneWidget);
+      expect(find.text('Chicken 65', skipOffstage: false), findsNothing);
+      expect(find.text('2 dishes'), findsOneWidget);
+
+      await tester.tap(find.text('Clear all'));
+      await tester.pumpAndSettle();
+      expect(find.text('Chicken 65', skipOffstage: false), findsOneWidget);
+      expect(find.text('paneer'), findsNothing);
+    });
+
+    testWidgets('a search that matches nothing says so, with a way back',
+        (WidgetTester tester) async {
+      await openMenu(tester);
+
+      await tester.enterText(find.byType(TextField), 'pizza');
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing matched'), findsOneWidget);
+      expect(find.text('Try another dish name, or remove a filter.'),
+          findsOneWidget);
+
+      // The empty state's own button, not the one on the results line.
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Clear all'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing matched'), findsNothing);
+      expect(find.text('Paneer Tikka', skipOffstage: false), findsOneWidget);
+    });
+
+    testWidgets('the Menu button jumps to a section below the fold',
+        (WidgetTester tester) async {
+      await openMenu(tester);
+      // Below the fold to begin with.
+      expect(find.text('Desserts'), findsNothing);
+
+      await tester.tap(find.text('Menu'));
+      await tester.pumpAndSettle();
+      final Finder sheet = find.byType(BottomSheet);
+      expect(find.descendant(of: sheet, matching: find.text('Starters')),
+          findsOneWidget);
+      // Each section lists how many dishes it has.
+      expect(find.descendant(of: sheet, matching: find.text('7')),
+          findsOneWidget);
+
+      await tester.tap(find.descendant(of: sheet, matching: find.text('Desserts')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.text('Desserts'), findsOneWidget);
+      // Below the pinned bars rather than hidden under them.
+      final double barsBottom =
+          tester.getBottomLeft(find.byType(TextField)).dy;
+      expect(tester.getTopLeft(find.text('Desserts')).dy,
+          greaterThan(barsBottom));
+    });
+
+    testWidgets('the filter sheet sorts by price and counts what it will show',
+        (WidgetTester tester) async {
+      await openMenu(tester);
+
+      await tester.tap(find.text('Filters'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sort by'), findsOneWidget);
+      expect(find.text('Food type'), findsOneWidget);
+      expect(find.text('Show 10 dishes'), findsOneWidget);
+
+      // Picking a diet in the sheet updates the count before applying.
+      final Finder sheet = find.byType(BottomSheet);
+      await tester.tap(find.descendant(of: sheet, matching: find.text('Veg')));
+      await tester.pumpAndSettle();
+      expect(find.text('Show 3 dishes'), findsOneWidget);
+      await tester.tap(find.descendant(of: sheet, matching: find.text('Veg')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Cost: low to high'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show 10 dishes'));
+      await tester.pumpAndSettle();
+
+      // The cheapest starter now leads, and Paneer Tikka, which led before,
+      // has moved down below the fold.
+      expect(
+        tester.getTopLeft(find.text('Egg Bonda')).dy,
+        lessThan(tester.getTopLeft(find.text('Kebab 1')).dy),
+      );
+      expect(find.text('Paneer Tikka'), findsNothing);
+    });
+
+    testWidgets('a bestseller wears the badge, and gets a chip',
+        (WidgetTester tester) async {
+      await openMenu(tester);
+      expect(find.text('BESTSELLER'), findsOneWidget);
+
+      // The row scrolls sideways; the diet chips come first.
+      await tester.dragUntilVisible(
+        find.text('Bestseller'),
+        find.byKey(const Key('menu-chips')),
+        const Offset(-120, 0),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bestseller'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 dish'), findsOneWidget);
+      expect(find.text('Paneer Tikka'), findsOneWidget);
+    });
+
+    testWidgets('chips that would change nothing are not offered',
+        (WidgetTester tester) async {
+      // Two non-veg biryanis, unrated and full price: Non-veg would keep both,
+      // and every other chip would keep neither.
+      await openMenu(
+        tester,
+        menu: <String, dynamic>{
+          'menu': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 1,
+              'name': 'Biryani',
+              'items': <Map<String, dynamic>>[
+                <String, dynamic>{'id': 1, 'name': 'Mutton Biryani'},
+                <String, dynamic>{'id': 2, 'name': 'Chicken Biryani'},
+              ],
+            },
+          ],
+        },
+      );
+
+      expect(find.text('Filters'), findsOneWidget);
+      for (final String chip in <String>[
+        'Veg',
+        'Egg',
+        'Non-veg',
+        'Bestseller',
+        'Rated 4.0+',
+        'Offers',
+      ]) {
+        expect(find.text(chip), findsNothing, reason: chip);
+      }
+      // One section needs no Menu button.
+      expect(find.text('Menu'), findsNothing);
+    });
+  });
+
   group('address', () {
     test('a draft sends coordinates as numbers and drops empty optionals', () {
       const AddressDraft draft = AddressDraft(
@@ -3081,7 +3734,7 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField).first, '9876543210');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await _pumpFrames(tester);
       await tester.enterText(find.byType(TextField).first, '123456');
       await _pumpFrames(tester);
@@ -3100,7 +3753,7 @@ void main() {
       await _settleSplash(tester);
 
       await tester.enterText(find.byType(TextFormField).first, '9876543210');
-      await tester.tap(find.text('Send code'));
+      await tester.tap(find.text('Continue'));
       await _pumpFrames(tester);
       await tester.enterText(find.byType(TextField).first, '123456');
       await _pumpFrames(tester);
@@ -3187,85 +3840,163 @@ void main() {
       expect(_location.settingsCount, 1);
     });
 
-    testWidgets('the form prefills from the pin and saves with coordinates',
-        (WidgetTester tester) async {
+    /// Opens the delivery map on a pin, as the add flow does.
+    Future<void> openMap(
+      WidgetTester tester, {
+      FakeAddressRepository? repository,
+      FakeLocationService? location,
+    }) async {
       _useTallScreen(tester);
       await _pumpApp(
         tester,
         seed: _languageChosen,
         session: _testSession(),
-        addressRepository: FakeAddressRepository(),
+        addressRepository: repository ?? FakeAddressRepository(),
+        locationService: location,
       );
       await _settleSplash(tester);
-
       _nav(tester).pushNamed(
-        AppRoutes.addressForm,
-        arguments: const AddressFormArgs(
+        AppRoutes.addressMap,
+        arguments: const AddressMapArgs(
           latitude: 13.05,
           longitude: 80.21,
-          prefill: ResolvedPlace(
-            line1: '12A Green Residency',
-            city: 'Chennai',
-            state: 'Tamil Nadu',
-            pincode: '600040',
-          ),
+          isFirstAddress: false,
         ),
       );
       await _pumpFrames(tester);
+    }
 
-      expect(find.byType(AddressFormScreen), findsOneWidget);
-      // Reverse geocoding gave the customer a head start.
-      expect(find.text('12A Green Residency'), findsOneWidget);
-      expect(find.text('Chennai'), findsOneWidget);
-      // Coordinates are shown but not editable.
-      expect(find.textContaining('13.05000'), findsOneWidget);
+    Finder detailsField() => find.widgetWithText(TextFormField, 'Address details*');
 
+    testWidgets('the map saves the pin with the details typed under it',
+        (WidgetTester tester) async {
+      await openMap(tester);
+
+      expect(find.byType(AddressMapScreen), findsOneWidget);
+      expect(find.text('Select delivery location'), findsOneWidget);
+      expect(find.text('Move pin to your exact delivery location'),
+          findsOneWidget);
+      expect(find.text('Use current location'), findsOneWidget);
+      // The pin's area, from the geocoder: the neighbourhood leads.
+      expect(find.textContaining('Near the bus stop'), findsOneWidget);
+      // "Myself" is the default receiver, from the profile.
+      expect(find.textContaining('9876543210'), findsOneWidget);
+
+      await tester.enterText(detailsField(), 'Flat 3B, 2nd floor');
+      await tester.tap(find.text('Work'));
       await tester.tap(find.text('Save address'));
       await _pumpFrames(tester);
 
-      expect(_addressRepo.lastDraft, isNotNull);
-      expect(_addressRepo.lastDraft!.latitude, 13.05);
-      expect(_addressRepo.lastDraft!.longitude, 80.21);
-      expect(_addressRepo.lastDraft!.pincode, '600040');
+      final AddressDraft draft = _addressRepo.lastDraft!;
+      expect(draft.line1, 'Flat 3B, 2nd floor');
+      // What the map knew about the spot, without the customer typing it.
+      expect(draft.line2, '12A Green Residency');
+      expect(draft.city, 'Chennai');
+      expect(draft.pincode, '600040');
+      expect(draft.latitude, 13.05);
+      expect(draft.longitude, 80.21);
+      expect(draft.label, AddressLabel.work);
+      expect(draft.contactName, 'Priya Kumar');
+      expect(draft.contactPhone, '9876543210');
+      // A new address is where delivery goes now.
+      expect(draft.isDefault, isTrue);
+      expect(find.byType(AddressMapScreen), findsNothing);
     });
 
-    testWidgets('a bad pincode is caught before the request',
+    testWidgets('address details are required before anything is sent',
         (WidgetTester tester) async {
-      _useTallScreen(tester);
-      await _pumpApp(
-        tester,
-        seed: _languageChosen,
-        session: _testSession(),
-        addressRepository: FakeAddressRepository(),
-      );
-      await _settleSplash(tester);
-      _nav(tester).pushNamed(
-        AppRoutes.addressForm,
-        arguments: const AddressFormArgs(latitude: 13.05, longitude: 80.21),
-      );
-      await _pumpFrames(tester);
+      await openMap(tester);
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'Flat 1');
-      await tester.enterText(find.byType(TextFormField).at(3), 'Chennai');
-      await tester.enterText(find.byType(TextFormField).at(4), 'Tamil Nadu');
-      // Indian PIN codes cannot start with 0.
-      await tester.enterText(find.byType(TextFormField).at(5), '012345');
-      await _pumpFrames(tester);
       await tester.tap(find.text('Save address'));
       await _pumpFrames(tester);
 
+      expect(find.text('This field is required'), findsOneWidget);
+      expect(_addressRepo.lastDraft, isNull);
+    });
+
+    testWidgets('someone else is asked for their name and number',
+        (WidgetTester tester) async {
+      await openMap(tester);
+      await tester.enterText(detailsField(), 'Flat 3B');
+
+      await tester.tap(find.text('Someone else'));
+      await _pumpFrames(tester);
+      expect(find.text('Receiver details'), findsOneWidget);
+
+      final Finder sheet = find.byType(BottomSheet);
+      await tester.enterText(
+        find.descendant(of: sheet, matching: find.byType(TextFormField)).at(0),
+        'Arun',
+      );
+      // Not a mobile number: refused before the sheet closes.
+      await tester.enterText(
+        find.descendant(of: sheet, matching: find.byType(TextFormField)).at(1),
+        '12345',
+      );
+      await tester.tap(find.text('Save changes'));
+      await _pumpFrames(tester);
+      expect(find.text('Enter a valid 10-digit mobile number'), findsOneWidget);
+
+      await tester.enterText(
+        find.descendant(of: sheet, matching: find.byType(TextFormField)).at(1),
+        '9123456780',
+      );
+      await tester.tap(find.text('Save changes'));
+      await _pumpFrames(tester);
+      expect(find.textContaining('9123456780'), findsOneWidget);
+
+      await tester.tap(find.text('Save address'));
+      await _pumpFrames(tester);
+      expect(_addressRepo.lastDraft!.contactName, 'Arun');
+      expect(_addressRepo.lastDraft!.contactPhone, '9123456780');
+    });
+
+    testWidgets('a pin with no PIN code asks for it, and checks it',
+        (WidgetTester tester) async {
+      await openMap(
+        tester,
+        location: FakeLocationService(
+          place: const ResolvedPlace(
+            line1: 'Gandhi Street',
+            landmark: 'K L K S Nagar',
+            city: 'Pudukkottai',
+            state: 'Tamil Nadu',
+          ),
+        ),
+      );
+
+      expect(
+        find.text(
+          "We couldn't read the full address for this pin. Please fill in the rest.",
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(detailsField(), 'House 4');
+      // Indian PIN codes cannot start with 0.
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'PIN code'),
+        '012345',
+      );
+      await tester.tap(find.text('Save address'));
+      await _pumpFrames(tester);
       expect(find.text('Enter a valid 6-digit PIN code'), findsOneWidget);
-      expect(_addressRepo.lastDraft, isNull, reason: 'never reached the API');
+      expect(_addressRepo.lastDraft, isNull);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'PIN code'),
+        '622001',
+      );
+      await tester.tap(find.text('Save address'));
+      await _pumpFrames(tester);
+      expect(_addressRepo.lastDraft!.pincode, '622001');
+      expect(_addressRepo.lastDraft!.landmark, 'K L K S Nagar');
     });
 
     testWidgets('server field errors land under the right input',
         (WidgetTester tester) async {
-      _useTallScreen(tester);
-      await _pumpApp(
+      await openMap(
         tester,
-        seed: _languageChosen,
-        session: _testSession(),
-        addressRepository: FakeAddressRepository()
+        repository: FakeAddressRepository()
           ..saveError = const ApiException(
             kind: ApiErrorKind.validation,
             statusCode: 422,
@@ -3274,162 +4005,398 @@ void main() {
             },
           ),
       );
-      await _settleSplash(tester);
-      _nav(tester).pushNamed(
-        AppRoutes.addressForm,
-        arguments: const AddressFormArgs(
-          latitude: 13.05,
-          longitude: 80.21,
-          prefill: ResolvedPlace(
-            line1: 'Flat 1',
-            city: 'Chennai',
-            state: 'Tamil Nadu',
-            pincode: '600040',
-          ),
-        ),
-      );
+      await tester.enterText(detailsField(), 'Flat 1');
+      await tester.tap(find.text('Save address'));
       await _pumpFrames(tester);
+
+      // The PIN code was filled in from the pin, so it was hidden. The
+      // server's objection brings it out, with the message under it.
+      expect(find.text('We do not deliver to this pincode yet.'),
+          findsOneWidget);
+      expect(find.byType(AddressMapScreen), findsOneWidget);
+    });
+
+    testWidgets('a door photo uploads once the address is saved',
+        (WidgetTester tester) async {
+      debugPickPhoto = (ImageSource source) async => PickedPhoto(
+            bytes: Uint8List.fromList(<int>[1, 2, 3, 4]),
+            filename: 'door.jpg',
+          );
+      addTearDown(() => debugPickPhoto = null);
+      await openMap(tester);
+      await tester.enterText(detailsField(), 'Flat 3B');
+
+      await tester.tap(find.text('Add an image'));
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Take a photo'));
+      await _pumpFrames(tester);
+      // The photo is shown, with a way to change it.
+      expect(find.text('Change'), findsOneWidget);
 
       await tester.tap(find.text('Save address'));
       await _pumpFrames(tester);
 
-      expect(
-        find.text('We do not deliver to this pincode yet.'),
-        findsOneWidget,
-      );
+      expect(_addressRepo.uploads.single.$2, 4);
+      expect(_addressRepo.uploads.single.$3, 'door.jpg');
+      expect(_addresses.lastSaved?.photoUrl, isNotNull);
     });
 
-    testWidgets('the address book lists, defaults and deletes',
+    testWidgets('a failed photo upload still keeps the address',
         (WidgetTester tester) async {
-      _useTallScreen(tester);
-      final FakeAddressRepository repo = FakeAddressRepository(
-        seed: <Address>[
-          _testAddress,
-          const Address(
-            id: 2,
-            label: AddressLabel.work,
-            line1: 'Tidel Park',
-            city: 'Chennai',
-            state: 'Tamil Nadu',
-            pincode: '600113',
-            latitude: 12.98,
-            longitude: 80.24,
-            isDefault: false,
+      debugPickPhoto = (ImageSource source) async => PickedPhoto(
+            bytes: Uint8List.fromList(<int>[1, 2, 3]),
+            filename: 'door.jpg',
+          );
+      addTearDown(() => debugPickPhoto = null);
+      await openMap(
+        tester,
+        repository: FakeAddressRepository()
+          ..uploadError = const ApiException(
+            kind: ApiErrorKind.server,
+            statusCode: 404,
           ),
-        ],
       );
+      await tester.enterText(detailsField(), 'Flat 3B');
+      await tester.tap(find.text('Add an image'));
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Choose from gallery'));
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Save address'));
+      await _pumpFrames(tester);
+
+      expect(_addressRepo.lastDraft, isNotNull);
+      expect(find.text("Address saved. The photo couldn't be uploaded."),
+          findsOneWidget);
+    });
+
+    /// Two saved addresses: home, the default, and work.
+    FakeAddressRepository twoAddresses() => FakeAddressRepository(
+          seed: <Address>[
+            _testAddress,
+            const Address(
+              id: 2,
+              label: AddressLabel.work,
+              line1: 'Tidel Park',
+              city: 'Chennai',
+              state: 'Tamil Nadu',
+              pincode: '600113',
+              latitude: 12.98,
+              longitude: 80.24,
+              isDefault: false,
+            ),
+          ],
+        );
+
+    Future<void> openPicker(
+      WidgetTester tester, {
+      FakeAddressRepository? repository,
+      FakeLocationService? location,
+      bool managing = false,
+    }) async {
+      _useTallScreen(tester);
       await _pumpApp(
         tester,
         seed: _languageChosen,
         session: _testSession(),
-        addressRepository: repo,
+        addressRepository: repository ?? twoAddresses(),
+        locationService: location,
       );
-      await _settleSplash(tester);
-      _nav(tester).pushNamed(AppRoutes.addressBook);
-      await _pumpFrames(tester);
-
-      expect(find.byType(AddressBookScreen), findsOneWidget);
-      expect(find.textContaining('12A Green Residency'), findsOneWidget);
-      expect(find.textContaining('Tidel Park'), findsOneWidget);
-      // Only the non-default row offers the action.
-      expect(find.text('Set as default'), findsOneWidget);
-
-      await tester.tap(find.text('Set as default'));
-      await _pumpFrames(tester);
-      expect(_addresses.defaultAddress?.id, 2);
-
-      await tester.tap(find.text('Delete').first);
-      await _pumpFrames(tester);
-      await tester.tap(find.text('Delete').last);
-      await _pumpFrames(tester);
-      expect(_addresses.addresses.length, 1);
-    });
-
-    testWidgets('searching for a place returns to the pin map',
-        (WidgetTester tester) async {
-      _useTallScreen(tester);
-      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
       await _settleSplash(tester);
       _nav(tester).pushNamed(
-        AppRoutes.addressMap,
-        arguments: const AddressMapArgs(isFirstAddress: false),
+        AppRoutes.addressBook,
+        arguments: AddressBookArgs(managing: managing),
       );
       await _pumpFrames(tester);
+    }
 
-      await tester.tap(find.text('Search area, street or landmark'));
+    testWidgets('select a location lists saved addresses with their distance',
+        (WidgetTester tester) async {
+      await openPicker(tester);
+
+      expect(find.byType(AddressBookScreen), findsOneWidget);
+      expect(find.text('Select a location'), findsOneWidget);
+      expect(find.text('Use current location'), findsOneWidget);
+      expect(find.text('Add address'), findsOneWidget);
+      expect(find.text('SAVED ADDRESSES'), findsOneWidget);
+      // The cards. "Use current location" names the same street, so the
+      // whole line is matched.
+      expect(find.text('12A Green Residency, Chennai, 600040'), findsOneWidget);
+      expect(find.textContaining('Tidel Park'), findsOneWidget);
+      // Distances from the phone's fix, which only a granted permission
+      // gives: home is where the phone is, work is across the city.
+      expect(find.text('0 m'), findsOneWidget);
+      expect(find.text('12 km'), findsOneWidget);
+      // The delivery address is marked.
+      expect(find.text('Selected'), findsOneWidget);
+    });
+
+    testWidgets('picking a saved address delivers there and reloads the shops',
+        (WidgetTester tester) async {
+      _useTallScreen(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        addressRepository: twoAddresses(),
+      );
+      await _settleSplash(tester);
+      expect(_storefrontRepo.lastNearby?['address_id'], 1);
+
+      _nav(tester).pushNamed(AppRoutes.addressBook);
+      await _pumpFrames(tester);
+      await tester.tap(find.textContaining('Tidel Park'));
       await _pumpFrames(tester);
 
-      // Two letters is too short to send to the geocoder.
-      await tester.enterText(find.byType(TextField), 'an');
+      expect(find.byType(AddressBookScreen), findsNothing);
+      expect(_addresses.deliveryAddress?.id, 2);
+      // The storefront looked again, for the new address.
+      expect(_storefrontRepo.lastNearby?['address_id'], 2);
+    });
+
+    testWidgets('use current location delivers to where the phone is',
+        (WidgetTester tester) async {
+      await openPicker(tester);
+
+      await tester.tap(find.text('Use current location'));
+      await _pumpFrames(tester);
+
+      expect(find.byType(AddressBookScreen), findsNothing);
+      expect(_addresses.deliversToCurrentLocation, isTrue);
+      // Nothing was saved or changed on the server.
+      expect(_addressRepo.lastDraft, isNull);
+      expect(_addresses.defaultAddress?.id, 1);
+      // The storefront now follows the phone.
+      expect(_storefrontRepo.lastNearby?['address_id'], isNull);
+      expect(_storefrontRepo.lastNearby?['latitude'], 13.0827);
+    });
+
+    testWidgets('the card menu edits, reading the address again first',
+        (WidgetTester tester) async {
+      final FakeAddressRepository repo = twoAddresses();
+      await openPicker(tester, repository: repo);
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded).first);
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Edit'));
+      await _pumpFrames(tester);
+
+      // Fresh read before editing, not the possibly stale list copy.
+      expect(repo.showCount, 1);
+      expect(find.byType(AddressMapScreen), findsOneWidget);
+      // What the customer typed last time.
+      expect(find.text('12A Green Residency'), findsOneWidget);
+
+      await tester.tap(find.text('Save address'));
+      await _pumpFrames(tester);
+      expect(repo.lastUpdatedId, _testAddress.id, reason: 'PATCH, not POST');
+      expect(find.byType(AddressBookScreen), findsOneWidget);
+    });
+
+    testWidgets('the card menu deletes after asking',
+        (WidgetTester tester) async {
+      await openPicker(tester);
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded).last);
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Delete'));
+      await _pumpFrames(tester);
+      expect(find.text('Delete this address?'), findsOneWidget);
+      await tester.tap(find.text('Delete').last);
+      await _pumpFrames(tester);
+
+      expect(_addresses.addresses.length, 1);
+      expect(find.textContaining('Tidel Park'), findsNothing);
+    });
+
+    testWidgets('a card can add a door photo to a saved address',
+        (WidgetTester tester) async {
+      debugPickPhoto = (ImageSource source) async => PickedPhoto(
+            bytes: Uint8List.fromList(<int>[9, 9]),
+            filename: 'gate.jpg',
+          );
+      addTearDown(() => debugPickPhoto = null);
+      final FakeAddressRepository repo = twoAddresses();
+      await openPicker(tester, repository: repo);
+
+      await tester.tap(find.byIcon(Icons.add_a_photo_outlined).first);
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Take a photo'));
+      await _pumpFrames(tester);
+
+      expect(repo.uploads.single.$1, 1);
+      expect(find.text('Photo added'), findsOneWidget);
+    });
+
+    /// The home address, with a door photo already on it.
+    FakeAddressRepository withPhoto() => FakeAddressRepository(
+          seed: <Address>[
+            const Address(
+              id: 1,
+              label: AddressLabel.home,
+              line1: '12A Green Residency',
+              city: 'Chennai',
+              state: 'Tamil Nadu',
+              pincode: '600040',
+              latitude: 13.0827,
+              longitude: 80.2707,
+              isDefault: true,
+              photoUrl: 'https://cdn.example/address-1.jpg',
+            ),
+          ],
+        );
+
+    testWidgets('a saved photo can be taken off from its card',
+        (WidgetTester tester) async {
+      final FakeAddressRepository repo = withPhoto();
+      await openPicker(tester, repository: repo);
+
+      // An address with a photo shows a different camera icon.
+      await tester.tap(find.byIcon(Icons.photo_camera_back_outlined));
+      await _pumpFrames(tester);
+      await tester.tap(find.text('Remove photo'));
+      await _pumpFrames(tester);
+
+      expect(repo.photoDeletes, <int>[1]);
+      expect(find.text('Photo removed'), findsOneWidget);
+      expect(_addresses.addresses.single.photoUrl, isNull);
+    });
+
+    testWidgets('the remove choice is only offered when there is a photo',
+        (WidgetTester tester) async {
+      await openPicker(tester);
+
+      await tester.tap(find.byIcon(Icons.add_a_photo_outlined).first);
+      await _pumpFrames(tester);
+      expect(find.text('Take a photo'), findsOneWidget);
+      expect(find.text('Remove photo'), findsNothing);
+    });
+
+    testWidgets('editing can take the door photo off, on save',
+        (WidgetTester tester) async {
+      final FakeAddressRepository repo = withPhoto();
+      await openPicker(tester, repository: repo, managing: true);
+
+      await tester.tap(find.textContaining('12A Green Residency'));
+      await _pumpFrames(tester);
+      expect(find.byType(AddressMapScreen), findsOneWidget);
+
+      await tester.tap(find.text('Remove'));
+      await _pumpFrames(tester);
+      // Back to the invitation, and nothing sent yet.
+      expect(find.text('Add an image'), findsOneWidget);
+      expect(repo.photoDeletes, isEmpty);
+
+      await tester.tap(find.text('Save address'));
+      await _pumpFrames(tester);
+      expect(repo.photoDeletes, <int>[1]);
+    });
+
+    test('a photo is labelled with a type the server accepts', () {
+      expect(ApiAddressRepository.photoContentType('door.jpg'), 'image/jpeg');
+      expect(ApiAddressRepository.photoContentType('DOOR.PNG'), 'image/png');
+      expect(ApiAddressRepository.photoContentType('gate.webp'), 'image/webp');
+      // Anything else the picker hands back has been re-encoded as JPEG.
+      expect(ApiAddressRepository.photoContentType('scaled_1234'), 'image/jpeg');
+    });
+
+    testWidgets('search finds a place and opens the map on it',
+        (WidgetTester tester) async {
+      final FakeLocationService location = FakeLocationService()
+        ..suggestions = const <PlaceSuggestion>[
+          // As Google sends it: a place id, no coordinates yet.
+          PlaceSuggestion(
+            title: 'Anna Nagar',
+            subtitle: 'Chennai, Tamil Nadu',
+            placeId: 'abc',
+            distanceMetres: 2400,
+          ),
+        ];
+      await openPicker(tester, location: location);
+
+      // Two letters is too short to search.
+      await tester.enterText(find.byType(TextField).first, 'an');
       await _pumpFrames(tester);
       expect(find.text('Anna Nagar'), findsNothing);
 
-      await tester.enterText(find.byType(TextField), 'anna nagar');
+      await tester.enterText(find.byType(TextField).first, 'anna nagar');
       await _pumpFrames(tester);
       expect(find.text('Anna Nagar'), findsOneWidget);
+      expect(find.text('2.4 km'), findsOneWidget);
+      expect(find.textContaining('powered by'), findsOneWidget);
+      // Ranked from where the phone is.
+      expect(location.lastSearchNear, (13.0827, 80.2707));
 
       await tester.tap(find.text('Anna Nagar'));
       await _pumpFrames(tester);
+      expect(location.resolveCount, 1);
       expect(find.byType(AddressMapScreen), findsOneWidget);
-      expect(find.text('Anna Nagar'), findsNothing);
+      // Shown while the pin's own address is looked up.
+      expect(find.textContaining('Near the bus stop'), findsOneWidget);
     });
 
     testWidgets('a search with no match says what to try instead',
         (WidgetTester tester) async {
-      _useTallScreen(tester);
       final FakeLocationService location = FakeLocationService()
         ..suggestions = const <PlaceSuggestion>[];
-      await _pumpApp(
-        tester,
-        seed: _languageChosen,
-        session: _testSession(),
-        locationService: location,
-      );
-      await _settleSplash(tester);
-      _nav(tester).pushNamed(AppRoutes.addressMap);
-      await _pumpFrames(tester);
+      await openPicker(tester, location: location);
 
-      await tester.tap(find.text('Search area, street or landmark'));
-      await _pumpFrames(tester);
-      await tester.enterText(find.byType(TextField), 'zzzz');
+      await tester.enterText(find.byType(TextField).first, 'zzzz');
       await _pumpFrames(tester);
 
       expect(find.textContaining('No places found'), findsOneWidget);
     });
 
-    testWidgets('editing re-reads the address and saves with PATCH',
+    testWidgets('add address remembers the places picked in it',
         (WidgetTester tester) async {
-      _useTallScreen(tester);
-      final FakeAddressRepository repo =
-          FakeAddressRepository(seed: <Address>[_testAddress]);
-      await _pumpApp(
-        tester,
-        seed: _languageChosen,
-        session: _testSession(),
-        addressRepository: repo,
+      final FakeLocationService location = FakeLocationService()
+        ..suggestions = const <PlaceSuggestion>[
+          PlaceSuggestion(
+            title: 'Anna Nagar',
+            subtitle: 'Chennai, Tamil Nadu',
+            latitude: 13.085,
+            longitude: 80.21,
+          ),
+        ];
+      await openPicker(tester, location: location);
+
+      await tester.tap(find.text('Add address'));
+      await _pumpFrames(tester);
+      final Finder sheet = find.byType(BottomSheet);
+      expect(
+        find.descendant(of: sheet, matching: find.text('Use current location')),
+        findsOneWidget,
       );
-      await _settleSplash(tester);
-      _nav(tester).pushNamed(AppRoutes.addressBook);
-      await _pumpFrames(tester);
+      expect(find.text('RECENT LOCATIONS'), findsNothing);
 
-      await tester.tap(find.text('Edit'));
+      await tester.enterText(
+        find.descendant(of: sheet, matching: find.byType(TextField)),
+        'anna',
+      );
       await _pumpFrames(tester);
-
-      // Fresh read before editing, not the possibly-stale list copy.
-      expect(repo.showCount, 1);
+      await tester.tap(find.text('Anna Nagar'));
+      await _pumpFrames(tester);
       expect(find.byType(AddressMapScreen), findsOneWidget);
 
-      await tester.tap(find.text('Confirm location'));
+      // Back out of the map, and open the sheet again.
+      _nav(tester).pop();
       await _pumpFrames(tester);
-
-      // The form opens on what the customer typed last time.
-      expect(find.byType(AddressFormScreen), findsOneWidget);
-      expect(find.text('12A Green Residency'), findsOneWidget);
-
-      await tester.tap(find.text('Save address'));
+      await tester.tap(find.text('Add address'));
       await _pumpFrames(tester);
+      expect(find.text('RECENT LOCATIONS'), findsOneWidget);
+      expect(find.text('Anna Nagar'), findsOneWidget);
+    });
 
-      expect(repo.lastUpdatedId, _testAddress.id, reason: 'PATCH, not POST');
+    testWidgets('from the profile the list is for editing, not choosing',
+        (WidgetTester tester) async {
+      await openPicker(tester, managing: true);
+
+      expect(find.text('Delivery addresses'), findsOneWidget);
+      expect(find.text('Use current location'), findsNothing);
+
+      await tester.tap(find.textContaining('Tidel Park'));
+      await _pumpFrames(tester);
+      expect(find.byType(AddressMapScreen), findsOneWidget);
+      expect(_addresses.defaultAddress?.id, 1, reason: 'not chosen');
     });
 
     test('deleting the default re-reads, because the server promotes another',
@@ -3520,7 +4487,9 @@ void main() {
       expect(find.text('No addresses yet'), findsOneWidget);
       await tester.tap(find.text('Add address'));
       await _pumpFrames(tester);
-      expect(find.byType(LocationPermissionScreen), findsOneWidget);
+      // The add sheet: search, current location, recent places.
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(find.textContaining('powered by'), findsOneWidget);
     });
   });
 
@@ -3534,6 +4503,8 @@ void main() {
         (WidgetTester tester) async {
       _useTallPhone(tester);
       for (final AppLanguage language in AppLanguages.all) {
+        // A fresh tree, or the app keeps the first language for every run.
+        await tester.pumpWidget(const SizedBox.shrink());
         await _pumpApp(tester, seed: _languageChosenAs(language.code));
         await _settleSplash(tester);
 
@@ -3560,6 +4531,8 @@ void main() {
         (WidgetTester tester) async {
       _useTallPhone(tester);
       for (final AppLanguage language in AppLanguages.all) {
+        // A fresh tree, or the app keeps the first language for every run.
+        await tester.pumpWidget(const SizedBox.shrink());
         await _pumpApp(
           tester,
           seed: _languageChosenAs(language.code),
@@ -3580,12 +4553,18 @@ void main() {
     testWidgets('the language screen lays out cleanly in every locale',
         (WidgetTester tester) async {
       for (final AppLanguage language in AppLanguages.all) {
+        // A fresh tree, or the app keeps the first language for every run.
+        await tester.pumpWidget(const SizedBox.shrink());
         await _pumpApp(
           tester,
           seed: <String, Object>{'nexmile.language_code': language.code},
         );
         await _settleSplash(tester);
 
+        // Reached from the login screen now, by its translate icon, since
+        // the label is in whichever language this run is in.
+        await tester.tap(find.byIcon(Icons.translate_rounded));
+        await tester.pumpAndSettle();
         expect(find.byType(LanguageScreen), findsOneWidget);
         expect(tester.takeException(), isNull,
             reason: '${language.englishName} overflowed');
@@ -3630,6 +4609,85 @@ void main() {
 
       expect(find.byType(AppShell), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a restaurant menu holds up on 320x568 at maximum text scale',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1.0;
+      tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+
+      // Malayalam for long words, Urdu for right to left.
+      for (final String code in <String>['ml', 'ur']) {
+        // A fresh tree: re-pumping the app over itself keeps the screen and
+        // the language of the run before.
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _pumpApp(
+          tester,
+          seed: _languageChosenAs(code),
+          session: _testSession(),
+          storefrontRepository: FakeStorefrontRepository()
+            ..menuPayload = _filterMenu(),
+        );
+        await _settleSplash(tester);
+        await tester.tap(find.text('Anjappar Chettinad').first);
+        await tester.pumpAndSettle();
+
+        // Pinned, with the menu scrolling under it.
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+        await tester.pumpAndSettle();
+        expect(find.byType(TextField), findsOneWidget, reason: code);
+        expect(tester.takeException(), isNull, reason: code);
+
+        await tester.tap(find.byIcon(Icons.tune_rounded));
+        await tester.pumpAndSettle();
+        expect(find.byType(BottomSheet), findsOneWidget, reason: code);
+        expect(tester.takeException(), isNull, reason: code);
+      }
+    });
+
+    testWidgets('the permission pages hold up on 320x568 at maximum text scale',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1.0;
+      tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+
+      for (final String code in <String>['ml', 'ur']) {
+        // A fresh tree: re-pumping the app over itself keeps the screen and
+        // the language of the run before.
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _pumpApp(
+          tester,
+          seed: _languageChosenAs(code),
+          locationService: FakeLocationService()
+            ..permission = LocationPermission.denied,
+          pushService: FakePushService()..access = NotificationAccess.askable,
+        );
+        await _settleSplash(tester);
+        expect(
+          tester.widget<Directionality>(find.byType(Directionality).first)
+              .textDirection,
+          code == 'ur' ? TextDirection.rtl : TextDirection.ltr,
+        );
+        expect(find.byType(GradientButton), findsOneWidget, reason: code);
+        expect(tester.takeException(), isNull, reason: code);
+
+        // On to the notifications page.
+        await tester.tap(find.byType(TextButton).last);
+        await tester.pumpAndSettle();
+        expect(find.byType(GradientButton), findsOneWidget, reason: code);
+        expect(tester.takeException(), isNull, reason: code);
+      }
     });
 
     testWidgets('right-to-left languages flip the layout',
@@ -3917,9 +4975,12 @@ class FakeStorefrontRepository implements StorefrontRepository {
         },
       );
 
+  /// Served by `menu` when set, in place of the two-biryani default.
+  Map<String, dynamic>? menuPayload;
+
   @override
   Future<RestaurantMenu> menu(String restaurantId) async =>
-      RestaurantMenu.fromJson(<String, dynamic>{
+      RestaurantMenu.fromJson(menuPayload ?? <String, dynamic>{
         'menu': <Map<String, dynamic>>[
           <String, dynamic>{
             'name': 'Biryani',

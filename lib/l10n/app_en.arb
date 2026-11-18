@@ -115,6 +115,18 @@
     "description": "Validation error when the sign-in field is neither a valid email nor a valid Indian mobile number."
   },
 
+  "loginHeadline": "Hot food from shops near you, delivered fast",
+  "@loginHeadline": {"description":"Big line on the login screen, under the illustration."},
+
+  "loginOrSignUp": "Log in or sign up",
+  "@loginOrSignUp": {"description":"Small heading over the login field. The same field serves new and returning customers."},
+
+  "loginEmailHint": "Enter your email address",
+  "@loginEmailHint": {"description":"Hint inside the login field."},
+
+  "invalidEmail": "Enter a valid email address",
+  "@invalidEmail": {"description":"Error under the login field when the text is not an email address."},
+
   "sendCode": "Send code",
   "@sendCode": {
     "description": "Primary button on the sign-in screen."
@@ -525,6 +537,42 @@
   "locationUnavailable": "We could not get a location fix. Please place the pin yourself.",
   "@locationUnavailable": { "description": "Shown when the fix timed out or failed." },
 
+  "permStepCount": "{step} of {total}",
+  "@permStepCount": {"description":"Progress on the first-run permission pages, e.g. '1 of 2'.","placeholders":{"step":{"type":"int"},"total":{"type":"int"}}},
+
+  "permNotNow": "Not now",
+  "@permNotNow": {"description":"Skips one first-run permission page without asking."},
+
+  "permLocationTitle": "Find food near you",
+  "@permLocationTitle": {"description":"Title of the first-run page that asks for location."},
+
+  "permNotifyTitle": "Never miss an order update",
+  "@permNotifyTitle": {"description":"Title of the first-run page that asks for notifications."},
+
+  "permNotifyBody": "Turn on notifications to know when your order is accepted, picked up and at your door.",
+  "@permNotifyBody": {"description":"Why the app asks for notifications, under the title."},
+
+  "permNotifyLiveTitle": "Live order updates",
+  "@permNotifyLiveTitle": {"description":"First reason for notifications."},
+
+  "permNotifyLiveBody": "Accepted, cooking, picked up, delivered.",
+  "@permNotifyLiveBody": {"description":"Supporting line for the first reason."},
+
+  "permNotifyRiderTitle": "Rider at your door",
+  "@permNotifyRiderTitle": {"description":"Second reason for notifications."},
+
+  "permNotifyRiderBody": "Know when to step out, without watching the app.",
+  "@permNotifyRiderBody": {"description":"Supporting line for the second reason."},
+
+  "permNotifyControlTitle": "You stay in control",
+  "@permNotifyControlTitle": {"description":"Third reason: the customer can switch notifications off."},
+
+  "permNotifyControlBody": "Turn notifications off any time in your phone's Settings.",
+  "@permNotifyControlBody": {"description":"Supporting line for the third reason."},
+
+  "permNotifyAllow": "Turn on notifications",
+  "@permNotifyAllow": {"description":"Button that shows the system notification prompt."},
+
   "openSettings": "Settings",
   "@openSettings": { "description": "Opens the OS settings page so the customer can grant location." },
 
@@ -679,6 +727,42 @@
 
   "moreDishesTitle": "More dishes",
   "@moreDishesTitle": {"description":"Section heading for dishes the restaurant filed under no category."},
+
+  "menuSearchHint": "Search for dishes",
+  "@menuSearchHint": {"description":"Hint in the search field on a restaurant's menu. It searches only this restaurant's dishes."},
+
+  "filtersShort": "Filters",
+  "@filtersShort": {"description":"Short label on the chip that opens the menu's filter and sort sheet."},
+
+  "dietVeg": "Veg",
+  "@dietVeg": {"description":"Menu filter chip: vegetarian dishes with no egg. Must stay short."},
+
+  "dietEgg": "Egg",
+  "@dietEgg": {"description":"Menu filter chip: dishes that contain egg. Must stay short."},
+
+  "dietNonVeg": "Non-veg",
+  "@dietNonVeg": {"description":"Menu filter chip: non-vegetarian dishes. Must stay short."},
+
+  "menuBestsellerChip": "Bestseller",
+  "@menuBestsellerChip": {"description":"Menu filter chip for the restaurant's most ordered dishes. Normal case, unlike the BESTSELLER badge on a dish."},
+
+  "menuFoodType": "Food type",
+  "@menuFoodType": {"description":"Heading over the Veg, Egg and Non-veg choices in the menu filter sheet."},
+
+  "menuShowOnly": "Show only",
+  "@menuShowOnly": {"description":"Heading over the Bestseller, Rated and Offers choices in the menu filter sheet."},
+
+  "menuMatchCount": "{count, plural, =1{1 dish} other{{count} dishes}}",
+  "@menuMatchCount": {"description":"How many dishes are left after searching or filtering a menu.","placeholders":{"count":{"type":"int"}}},
+
+  "menuShowDishes": "{count, plural, =0{No dishes} =1{Show 1 dish} other{Show {count} dishes}}",
+  "@menuShowDishes": {"description":"Button that applies the menu filter sheet, with how many dishes it will show.","placeholders":{"count":{"type":"int"}}},
+
+  "menuNoMatchSubtitle": "Try another dish name, or remove a filter.",
+  "@menuNoMatchSubtitle": {"description":"Shown under 'Nothing matched' when a menu search or filter leaves no dishes."},
+
+  "menuBrowse": "Menu",
+  "@menuBrowse": {"description":"Floating button on a restaurant page that lists the menu sections to jump to. Must stay very short."},
 
   "customisable": "Customisable",
   "@customisable": {"description":"Tiny label under ADD on a dish with add-on choices. Space is very tight."},
@@ -1119,6 +1203,108 @@
   "searchAddressHint": "Search area, street or landmark",
   "@searchAddressHint": {"description": "Search bar on the pin map, and the hint in the search field it opens."},
 
+  "selectLocationTitle": "Select a location",
+  "@selectLocationTitle": {"description":"Title of the screen that picks where to deliver: current location, a saved address, or a new one."},
+
+  "useCurrentLocation": "Use current location",
+  "@useCurrentLocation": {"description":"Row and map button that uses where the phone is."},
+
+  "locatingYou": "Finding where you are…",
+  "@locatingYou": {"description":"Shown under 'Use current location' while the phone finds its position."},
+
+  "locationOffHint": "Allow location access to use this",
+  "@locationOffHint": {"description":"Shown under 'Use current location' when location is off or not allowed."},
+
+  "savedAddressesHeading": "Saved addresses",
+  "@savedAddressesHeading": {"description":"Heading over the customer's saved addresses. Shown in capitals."},
+
+  "recentLocationsHeading": "Recent locations",
+  "@recentLocationsHeading": {"description":"Heading over places the customer recently searched for. Shown in capitals."},
+
+  "poweredBy": "powered by",
+  "@poweredBy": {"description":"Precedes the Google name under address search results, as Google requires. Keep lower case."},
+
+  "selectDeliveryLocationTitle": "Select delivery location",
+  "@selectDeliveryLocationTitle": {"description":"Title of the map where the customer places the delivery pin."},
+
+  "movePinTooltip": "Move pin to your exact delivery location",
+  "@movePinTooltip": {"description":"Hint above the pin on the delivery map."},
+
+  "locatingPin": "Finding the address…",
+  "@locatingPin": {"description":"Shown while the pin's position is turned into an address."},
+
+  "deliveryDetailsHeading": "Delivery details",
+  "@deliveryDetailsHeading": {"description":"Heading over the area the pin is in, on the delivery map."},
+
+  "addressDetailsLabel": "Address details*",
+  "@addressDetailsLabel": {"description":"Label of the house, flat and floor field. The asterisk marks it as required."},
+
+  "addressDetailsHint": "E.g. Floor, House no.",
+  "@addressDetailsHint": {"description":"Help text under the address details field."},
+
+  "missingAreaHint": "We couldn't read the full address for this pin. Please fill in the rest.",
+  "@missingAreaHint": {"description":"Shown when the city, state or PIN code could not be found for the pin."},
+
+  "whoToContact": "Who should we contact for this delivery?",
+  "@whoToContact": {"description":"Question over the Myself / Someone else choice."},
+
+  "contactMyself": "Myself",
+  "@contactMyself": {"description":"The customer receives the delivery themselves."},
+
+  "contactSomeoneElse": "Someone else",
+  "@contactSomeoneElse": {"description":"Another person receives the delivery."},
+
+  "receiverDetailsHeading": "Receiver details for this address",
+  "@receiverDetailsHeading": {"description":"Heading over the receiver's name and number."},
+
+  "receiverAddPrompt": "Add the receiver's name and number",
+  "@receiverAddPrompt": {"description":"Shown when no receiver is filled in yet."},
+
+  "receiverSheetTitle": "Receiver details",
+  "@receiverSheetTitle": {"description":"Title of the sheet that edits the receiver's name and number."},
+
+  "doorPhotoHeading": "Door/building image (optional)",
+  "@doorPhotoHeading": {"description":"Heading over the optional photo of the door or building."},
+
+  "doorPhotoAdd": "Add an image",
+  "@doorPhotoAdd": {"description":"Button that adds a photo of the door or building."},
+
+  "doorPhotoBody": "This helps our delivery partners find your exact location faster",
+  "@doorPhotoBody": {"description":"Why a door photo helps."},
+
+  "doorPhotoChange": "Change",
+  "@doorPhotoChange": {"description":"Replaces the chosen door photo."},
+
+  "doorPhotoRemove": "Remove",
+  "@doorPhotoRemove": {"description":"Drops the chosen door photo before saving."},
+
+  "photoFromCamera": "Take a photo",
+  "@photoFromCamera": {"description":"Picks a door photo with the camera."},
+
+  "photoFromGallery": "Choose from gallery",
+  "@photoFromGallery": {"description":"Picks a door photo from the phone's photos."},
+
+  "photoUploaded": "Photo added",
+  "@photoUploaded": {"description":"Confirmation after a door photo uploads."},
+
+  "photoUploadFailed": "The photo couldn't be uploaded. Please try again later.",
+  "@photoUploadFailed": {"description":"Shown when a door photo fails to upload."},
+
+  "addressSavedPhotoFailed": "Address saved. The photo couldn't be uploaded.",
+  "@addressSavedPhotoFailed": {"description":"Shown when the address saved but its photo did not."},
+
+  "removePhotoLabel": "Remove photo",
+  "@removePhotoLabel": {"description":"Takes the door photo off a saved address."},
+
+  "photoRemoved": "Photo removed",
+  "@photoRemoved": {"description":"Confirmation after the door photo is taken off."},
+
+  "shareLabel": "Share",
+  "@shareLabel": {"description":"Shares a saved address."},
+
+  "addDoorPhotoLabel": "Add a door photo",
+  "@addDoorPhotoLabel": {"description":"Adds or replaces the photo of a saved address's door."},
+
   "searchAddressNoResults": "No places found. Try a nearby landmark, area name or pincode.",
   "@searchAddressNoResults": {"description": "Shown when an address search returns nothing."},
 
@@ -1177,5 +1363,14 @@
   "@vehicleBicycle": {"description": "Rider vehicle type on the tracking card."},
 
   "vehicleElectric": "Electric scooter",
-  "@vehicleElectric": {"description": "Rider vehicle type on the tracking card."}
+  "@vehicleElectric": {"description": "Rider vehicle type on the tracking card."},
+
+  "exitTitle": "Exit Nexmile?",
+  "@exitTitle": {"description": "Title of the dialog shown when back is pressed on the main screen."},
+
+  "exitBody": "Are you sure you want to exit the app?",
+  "@exitBody": {"description": "Body of the exit confirmation dialog."},
+
+  "exitConfirm": "Exit",
+  "@exitConfirm": {"description": "Button that closes the app."}
 }

@@ -31,7 +31,7 @@ class FilterBar extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: <Widget>[
-          _Chip(
+          FilterPill(
             label: filters.activeCount > 0
                 ? '${l10n.filtersAndSorting} · ${filters.activeCount}'
                 : l10n.filtersAndSorting,
@@ -48,7 +48,7 @@ class FilterBar extends StatelessWidget {
             },
           ),
           const SizedBox(width: 8),
-          _Chip(
+          FilterPill(
             label: l10n.nearAndFast,
             icon: Icons.bolt_rounded,
             selected: filters.nearAndFast,
@@ -57,7 +57,7 @@ class FilterBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _Chip(
+          FilterPill(
             label: l10n.noPackagingCharges,
             selected: filters.noPackagingFee,
             onTap: () => onChanged(
@@ -65,7 +65,7 @@ class FilterBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _Chip(
+          FilterPill(
             label: l10n.freeDelivery,
             icon: Icons.delivery_dining_rounded,
             selected: filters.freeDelivery,
@@ -152,12 +152,18 @@ class VegToggle extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({
+/// One rounded filter chip: outlined when off, tinted green when on.
+///
+/// Shared by the home list and the restaurant menu, so a filter looks and
+/// behaves the same wherever the customer meets one.
+class FilterPill extends StatelessWidget {
+  const FilterPill({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,
     this.icon,
+    this.leading,
     this.trailingIcon,
   });
 
@@ -165,67 +171,99 @@ class _Chip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final IconData? icon;
+
+  /// Drawn in place of [icon], for marks that are not icons, such as the veg
+  /// and non-veg squares.
+  final Widget? leading;
+
   final IconData? trailingIcon;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
 
+    // One node per chip, so a screen reader says which ones are on. Centred
+    // vertically only: across, it is as wide as its label, so it also sits
+    // in a Wrap.
     return Center(
-      child: Material(
-        color: selected
-            ? AppColors.greenDeep.withValues(alpha: 0.10)
-            : theme.colorScheme.surfaceContainerLow,
+      widthFactor: 1,
+      child: Semantics(
+        container: true,
+        button: true,
+        selected: selected,
+        child: _pill(theme),
+      ),
+    );
+  }
+
+  Widget _pill(ThemeData theme) {
+    return Material(
+      color: selected
+          ? AppColors.greenDeep.withValues(alpha: 0.10)
+          : theme.colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
-          child: Ink(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color:
-                    selected ? AppColors.greenDeep : theme.colorScheme.outline,
-                width: selected ? 1.5 : 1,
-              ),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color:
+                  selected ? AppColors.greenDeep : theme.colorScheme.outline,
+              width: selected ? 1.5 : 1,
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  if (icon != null) ...<Widget>[
-                    Icon(
-                      icon,
-                      size: 16,
-                      color: selected
-                          ? AppColors.greenDeep
-                          : theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 5),
-                  ],
-                  Text(
-                    label,
-                    maxLines: 1,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight:
-                          selected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                  if (trailingIcon != null) ...<Widget>[
-                    const SizedBox(width: 3),
-                    Icon(
-                      trailingIcon,
-                      size: 17,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ],
-                ],
-              ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints box) =>
+                  _content(theme, bounded: box.hasBoundedWidth),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// In a sideways-scrolling row the chip is as wide as its label. Where its
+  /// width is capped, as in a Wrap on a narrow phone, a long translated label
+  /// ends in "…" rather than running past the edge.
+  Widget _content(ThemeData theme, {required bool bounded}) {
+    final Widget text = Text(
+      label,
+      maxLines: 1,
+      overflow: bounded ? TextOverflow.ellipsis : null,
+      style: theme.textTheme.labelLarge?.copyWith(
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+      ),
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        if (leading != null) ...<Widget>[
+          leading!,
+          const SizedBox(width: 6),
+        ] else if (icon != null) ...<Widget>[
+          Icon(
+            icon,
+            size: 16,
+            color: selected
+                ? AppColors.greenDeep
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 5),
+        ],
+        if (bounded) Flexible(child: text) else text,
+        if (trailingIcon != null) ...<Widget>[
+          const SizedBox(width: 3),
+          Icon(
+            trailingIcon,
+            size: 17,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ],
     );
   }
 }

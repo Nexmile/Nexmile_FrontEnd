@@ -59,10 +59,9 @@ class _AppShellState extends State<AppShell> {
   /// A tab implies somewhere you go and stay; searching is a thing you do and
   /// come back from, and the header field is where every customer reaches for
   /// it anyway.
-  void _openSearch({bool voice = false}) => Navigator.of(context).pushNamed(
-        AppRoutes.search,
-        arguments: SearchArgs(startWithVoice: voice),
-      );
+  void _openSearch({bool voice = false}) => Navigator.of(
+    context,
+  ).pushNamed(AppRoutes.search, arguments: SearchArgs(startWithVoice: voice));
 
   void _openHome() => _select(0);
 
@@ -87,48 +86,56 @@ class _AppShellState extends State<AppShell> {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final bool isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: <Widget>[for (int i = 0; i < 3; i++) _tab(i)],
-      ),
-      // The unfinished-basket bar rides above the navigation bar on the
-      // browsing tabs; the orders and profile tabs have their own actions.
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          if (_index == 0) const _OpenCartBar(),
-          NavigationBar(
-            selectedIndex: _index,
-            onDestinationSelected: _select,
-            destinations: <Widget>[
-              NavigationDestination(
-                icon: const Icon(Icons.home_outlined),
-                selectedIcon: Icon(
-                  Icons.home_rounded,
-                  color: isDark ? AppColors.greenLight : AppColors.greenDeep,
+    // Back from any other tab goes Home first, the way delivery apps behave;
+    // only back from Home reaches the exit question.
+    return PopScope<Object?>(
+      canPop: _index == 0,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (!didPop && _index != 0) _select(0);
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _index,
+          children: <Widget>[for (int i = 0; i < 3; i++) _tab(i)],
+        ),
+        // The unfinished-basket bar rides above the navigation bar on the
+        // browsing tabs; the orders and profile tabs have their own actions.
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (_index == 0) const _OpenCartBar(),
+            NavigationBar(
+              selectedIndex: _index,
+              onDestinationSelected: _select,
+              destinations: <Widget>[
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: Icon(
+                    Icons.home_rounded,
+                    color: isDark ? AppColors.greenLight : AppColors.greenDeep,
+                  ),
+                  label: l10n.navHome,
                 ),
-                label: l10n.navHome,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.receipt_long_outlined),
-                selectedIcon: Icon(
-                  Icons.receipt_long_rounded,
-                  color: isDark ? AppColors.greenLight : AppColors.greenDeep,
+                NavigationDestination(
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  selectedIcon: Icon(
+                    Icons.receipt_long_rounded,
+                    color: isDark ? AppColors.greenLight : AppColors.greenDeep,
+                  ),
+                  label: l10n.navOrders,
                 ),
-                label: l10n.navOrders,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.person_outline_rounded),
-                selectedIcon: Icon(
-                  Icons.person_rounded,
-                  color: isDark ? AppColors.greenLight : AppColors.greenDeep,
+                NavigationDestination(
+                  icon: const Icon(Icons.person_outline_rounded),
+                  selectedIcon: Icon(
+                    Icons.person_rounded,
+                    color: isDark ? AppColors.greenLight : AppColors.greenDeep,
+                  ),
+                  label: l10n.profileTitle,
                 ),
-                label: l10n.profileTitle,
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

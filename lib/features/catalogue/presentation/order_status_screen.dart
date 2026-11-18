@@ -166,7 +166,13 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         : order.statusLabel;
     final OrderStatus status = tracking?.status ?? order.status;
     final int? eta = tracking?.estimatedMinutes ?? order.estimatedPrepMinutes;
-    final String? pickupCode = tracking?.pickupCode ?? order.pickupCode;
+    // The pickup code is what hands the food over at the counter. On a
+    // takeaway order that is the customer, so they need it; on a delivery it
+    // is the rider's, and showing it here would let anyone holding the
+    // customer's phone collect the order.
+    final String? pickupCode = order.fulfilmentType == FulfilmentType.pickup
+        ? tracking?.pickupCode ?? order.pickupCode
+        : null;
     final String? cancellationReason =
         tracking?.cancellationReason ?? order.cancellationReason;
 

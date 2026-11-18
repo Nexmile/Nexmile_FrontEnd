@@ -52,6 +52,14 @@ class _HomeTabState extends State<HomeTab> {
   /// Nearby is resolved from the saved default address when there is one. The
   /// API prefers that over a fresh GPS read, and it is the same pin checkout
   /// will validate the 1 km radius against.
+  /// The delivery location the storefront was last loaded for: an address
+  /// id, or "here". When the customer picks another, [build] notices the
+  /// difference and loads again.
+  String? _loadedFor;
+
+  static String _deliveryKey(AddressController addresses) =>
+      addresses.deliveryAddress?.id.toString() ?? 'here';
+
   Future<void> _load() async {
     if (!mounted) return;
     final AddressController addresses = context.read<AddressController>();
@@ -63,8 +71,11 @@ class _HomeTabState extends State<HomeTab> {
     // address" and the nearby search runs with no origin at all.
     if (!addresses.hasLoaded) await addresses.load();
     if (!mounted) return;
+    _loadedFor = _deliveryKey(addresses);
 
-    final Address? address = addresses.defaultAddress;
+    // The chosen saved address, or none while delivering to wherever the
+    // phone is ("Use current location", or nothing saved yet).
+    final Address? address = addresses.deliveryAddress;
     if (address != null) {
       if (_currentArea != null) setState(() => _currentArea = null);
       // Both, in parallel: /home carries the curated rails, /restaurants backs
@@ -307,8 +318,17 @@ class _HomeTabState extends State<HomeTab> {
 
     // Watched here rather than inside the header: that widget is built during
     // layout now, which is no place to be subscribing to a controller.
-    final Address? address = context.watch<AddressController>().defaultAddress;
+    final AddressController addresses = context.watch<AddressController>();
+    final Address? address = addresses.deliveryAddress;
     final String? name = context.watch<AuthController>().user?.firstName;
+
+    // Picked another address, or "Use current location": the restaurants
+    // listed were for somewhere else, so look again.
+    final String key = _deliveryKey(addresses);
+    if (_loadedFor != null && key != _loadedFor && addresses.hasLoaded) {
+      _loadedFor = key;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    }
 
     // The header is measured rather than guessed, because every one of these
     // pieces grows with the text scale and the pinned bar has to be exactly

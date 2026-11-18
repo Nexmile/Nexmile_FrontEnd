@@ -83,6 +83,18 @@ class AppLocalizationsKs extends AppLocalizations {
       'صحیح ای میل پتہٕ یا 10 ہندسن ہُند موبائل نمبر لیٚکھِو';
 
   @override
+  String get loginHeadline => 'Hot food from shops near you, delivered fast';
+
+  @override
+  String get loginOrSignUp => 'Log in or sign up';
+
+  @override
+  String get loginEmailHint => 'Enter your email address';
+
+  @override
+  String get invalidEmail => 'Enter a valid email address';
+
+  @override
   String get sendCode => 'کوڈ سوزِو';
 
   @override
@@ -461,6 +473,47 @@ class AppLocalizationsKs extends AppLocalizations {
       'جاے نہ لبنہٕ آیہ۔ مہربٲنی کٔرِتھ پِن پانہٕ ٹھٲوِو۔';
 
   @override
+  String permStepCount(int step, int total) {
+    return '$step of $total';
+  }
+
+  @override
+  String get permNotNow => 'Not now';
+
+  @override
+  String get permLocationTitle => 'Find food near you';
+
+  @override
+  String get permNotifyTitle => 'Never miss an order update';
+
+  @override
+  String get permNotifyBody =>
+      'Turn on notifications to know when your order is accepted, picked up and at your door.';
+
+  @override
+  String get permNotifyLiveTitle => 'Live order updates';
+
+  @override
+  String get permNotifyLiveBody => 'Accepted, cooking, picked up, delivered.';
+
+  @override
+  String get permNotifyRiderTitle => 'Rider at your door';
+
+  @override
+  String get permNotifyRiderBody =>
+      'Know when to step out, without watching the app.';
+
+  @override
+  String get permNotifyControlTitle => 'You stay in control';
+
+  @override
+  String get permNotifyControlBody =>
+      'Turn notifications off any time in your phone\'s Settings.';
+
+  @override
+  String get permNotifyAllow => 'Turn on notifications';
+
+  @override
   String get openSettings => 'سیٹِنگز';
 
   @override
@@ -620,6 +673,60 @@ class AppLocalizationsKs extends AppLocalizations {
 
   @override
   String get moreDishesTitle => 'زیادٕ کھانہٕ';
+
+  @override
+  String get menuSearchHint => 'Search for dishes';
+
+  @override
+  String get filtersShort => 'Filters';
+
+  @override
+  String get dietVeg => 'Veg';
+
+  @override
+  String get dietEgg => 'Egg';
+
+  @override
+  String get dietNonVeg => 'Non-veg';
+
+  @override
+  String get menuBestsellerChip => 'Bestseller';
+
+  @override
+  String get menuFoodType => 'Food type';
+
+  @override
+  String get menuShowOnly => 'Show only';
+
+  @override
+  String menuMatchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dishes',
+      one: '1 dish',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String menuShowDishes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count dishes',
+      one: 'Show 1 dish',
+      zero: 'No dishes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get menuNoMatchSubtitle =>
+      'Try another dish name, or remove a filter.';
+
+  @override
+  String get menuBrowse => 'Menu';
 
   @override
   String get customisable => 'پننِس پسندٕ مطابق';
@@ -1093,6 +1200,112 @@ class AppLocalizationsKs extends AppLocalizations {
   String get searchAddressHint => 'Search area, street or landmark';
 
   @override
+  String get selectLocationTitle => 'Select a location';
+
+  @override
+  String get useCurrentLocation => 'Use current location';
+
+  @override
+  String get locatingYou => 'Finding where you are…';
+
+  @override
+  String get locationOffHint => 'Allow location access to use this';
+
+  @override
+  String get savedAddressesHeading => 'Saved addresses';
+
+  @override
+  String get recentLocationsHeading => 'Recent locations';
+
+  @override
+  String get poweredBy => 'powered by';
+
+  @override
+  String get selectDeliveryLocationTitle => 'Select delivery location';
+
+  @override
+  String get movePinTooltip => 'Move pin to your exact delivery location';
+
+  @override
+  String get locatingPin => 'Finding the address…';
+
+  @override
+  String get deliveryDetailsHeading => 'Delivery details';
+
+  @override
+  String get addressDetailsLabel => 'Address details*';
+
+  @override
+  String get addressDetailsHint => 'E.g. Floor, House no.';
+
+  @override
+  String get missingAreaHint =>
+      'We couldn\'t read the full address for this pin. Please fill in the rest.';
+
+  @override
+  String get whoToContact => 'Who should we contact for this delivery?';
+
+  @override
+  String get contactMyself => 'Myself';
+
+  @override
+  String get contactSomeoneElse => 'Someone else';
+
+  @override
+  String get receiverDetailsHeading => 'Receiver details for this address';
+
+  @override
+  String get receiverAddPrompt => 'Add the receiver\'s name and number';
+
+  @override
+  String get receiverSheetTitle => 'Receiver details';
+
+  @override
+  String get doorPhotoHeading => 'Door/building image (optional)';
+
+  @override
+  String get doorPhotoAdd => 'Add an image';
+
+  @override
+  String get doorPhotoBody =>
+      'This helps our delivery partners find your exact location faster';
+
+  @override
+  String get doorPhotoChange => 'Change';
+
+  @override
+  String get doorPhotoRemove => 'Remove';
+
+  @override
+  String get photoFromCamera => 'Take a photo';
+
+  @override
+  String get photoFromGallery => 'Choose from gallery';
+
+  @override
+  String get photoUploaded => 'Photo added';
+
+  @override
+  String get photoUploadFailed =>
+      'The photo couldn\'t be uploaded. Please try again later.';
+
+  @override
+  String get addressSavedPhotoFailed =>
+      'Address saved. The photo couldn\'t be uploaded.';
+
+  @override
+  String get removePhotoLabel => 'Remove photo';
+
+  @override
+  String get photoRemoved => 'Photo removed';
+
+  @override
+  String get shareLabel => 'Share';
+
+  @override
+  String get addDoorPhotoLabel => 'Add a door photo';
+
+  @override
   String get searchAddressNoResults =>
       'No places found. Try a nearby landmark, area name or pincode.';
 
@@ -1158,4 +1371,13 @@ class AppLocalizationsKs extends AppLocalizations {
 
   @override
   String get vehicleElectric => 'Electric scooter';
+
+  @override
+  String get exitTitle => 'Exit Nexmile?';
+
+  @override
+  String get exitBody => 'Are you sure you want to exit the app?';
+
+  @override
+  String get exitConfirm => 'Exit';
 }

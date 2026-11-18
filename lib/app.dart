@@ -13,6 +13,7 @@ import 'core/push/push_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_typography.dart';
+import 'core/widgets/exit_dialog.dart';
 import 'features/address/data/location_service.dart';
 import 'features/address/state/address_controller.dart';
 import 'features/auth/state/auth_controller.dart';
@@ -67,7 +68,7 @@ class NexmileApp extends StatefulWidget {
   State<NexmileApp> createState() => _NexmileAppState();
 }
 
-class _NexmileAppState extends State<NexmileApp> {
+class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
   /// Needed because a notification tap has no `BuildContext` of its own — it
   /// arrives from a stream, not from a widget.
   final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
@@ -78,10 +79,37 @@ class _NexmileAppState extends State<NexmileApp> {
   void initState() {
     super.initState();
     _taps = widget.pushService.onTap.listen(_follow);
+    // Added before the app's own navigator observer, so system back reaches
+    // [didPopRoute] here first.
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  bool _confirmingExit = false;
+
+  /// System back. Anything a screen can go back from goes back as before —
+  /// including the screens that decide back for themselves. Only when there
+  /// is nowhere left does it ask before closing the app.
+  @override
+  Future<bool> didPopRoute() async {
+    final NavigatorState? navigator = _navigator.currentState;
+    if (navigator == null) return false;
+    if (await navigator.maybePop()) return true;
+    final BuildContext? context = _navigator.currentContext;
+    if (context == null || !context.mounted) return false;
+    // Not awaited: the back press is handled the moment the question is up.
+    // A second back while it is open pops the dialog, through maybePop above.
+    if (!_confirmingExit) {
+      _confirmingExit = true;
+      unawaited(
+        confirmExit(context).whenComplete(() => _confirmingExit = false),
+      );
+    }
+    return true;
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _taps?.cancel();
     super.dispose();
   }
@@ -118,6 +146,8 @@ class _NexmileAppState extends State<NexmileApp> {
         ChangeNotifierProvider<AddressController>.value(
           value: addressController,
         ),
+        Provider<PreferencesService>.value(value: preferences),
+        Provider<PushService>.value(value: widget.pushService),
         Provider<LocationService>.value(value: locationService),
         Provider<StorefrontRepository>.value(value: storefrontRepository),
         // Storefront state. The cart and the order history both live on the
@@ -132,10 +162,11 @@ class _NexmileAppState extends State<NexmileApp> {
           create: (_) => OrdersController(repository: storefrontRepository),
         ),
         ChangeNotifierProvider<WalletController>(
-          create: (_) => WalletController(
-            repository: widget.walletRepository,
-            gateway: widget.paymentGateway,
-          ),
+          create:
+              (_) => WalletController(
+                repository: widget.walletRepository,
+                gateway: widget.paymentGateway,
+              ),
         ),
       ],
       child: Consumer<LocaleController>(

@@ -10,6 +10,23 @@ import 'package:flutter/foundation.dart';
 /// sign-in.
 const String kOrdersChannelId = 'nexmile_orders';
 
+/// Where notification permission stands.
+enum NotificationAccess {
+  /// Allowed, or allowed quietly (iOS provisional).
+  granted,
+
+  /// Not allowed, and asking shows the system prompt. Android 13 and later
+  /// reports "not asked yet" and "refused once" the same way, and prompts
+  /// again after one refusal, so both land here.
+  askable,
+
+  /// Refused in a way only Settings can undo, which on iOS is any refusal.
+  blocked,
+
+  /// No push transport in this build, so there is nothing to ask for.
+  unavailable,
+}
+
 /// The push transport, behind an interface.
 ///
 /// Everything above this line — registering the device, routing a tap — is
@@ -31,6 +48,9 @@ abstract class PushService {
   /// Asks the customer. Returns false when they say no — which is a normal
   /// outcome, not an error.
   Future<bool> requestPermission();
+
+  /// Where permission stands, without prompting.
+  Future<NotificationAccess> notificationAccess();
 
   /// Creates [kOrdersChannelId] on Android. A no-op elsewhere.
   Future<void> ensureChannel();
@@ -56,6 +76,10 @@ class NoopPushService implements PushService {
 
   @override
   Future<bool> requestPermission() async => false;
+
+  @override
+  Future<NotificationAccess> notificationAccess() async =>
+      NotificationAccess.unavailable;
 
   @override
   Future<void> ensureChannel() async {}

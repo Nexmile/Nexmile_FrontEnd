@@ -47,16 +47,35 @@ code. A `429` surfaces as "Too many attempts"; a `403` means the account is susp
 ## 2. Address book
 
 Delivery is limited to 1 km, so latitude and longitude are mandatory on every write and the
-map-pin step is not skippable. All six endpoints are used.
+map-pin step is not skippable. All six endpoints are used, plus one new one for the door photo.
 
 | Method | Path | Called from | Notes |
 |---|---|---|---|
 | `GET` | `/v1/addresses` | [address_book_screen.dart](../lib/features/address/presentation/address_book_screen.dart) | Also read by the cart, so checkout has an address to offer. |
 | `GET` | `/v1/addresses/{id}` | [address_controller.dart](../lib/features/address/state/address_controller.dart) | Single re-read after a delete promotes a new default. |
-| `POST` | `/v1/addresses` | [address_form_screen.dart](../lib/features/address/presentation/address_form_screen.dart) | Coordinates are sent as numbers, not strings. Empty optional fields are dropped rather than sent blank. |
-| `PATCH` | `/v1/addresses/{id}` | [address_form_screen.dart](../lib/features/address/presentation/address_form_screen.dart) | Same payload, used when correcting a saved address. |
+| `POST` | `/v1/addresses` | [address_map_screen.dart](../lib/features/address/presentation/address_map_screen.dart) | Coordinates are sent as numbers, not strings. Empty optional fields are dropped rather than sent blank. `line1` is what the customer types (flat, floor, house number); `line2`, `landmark`, `city`, `state` and `pincode` come from the pin's reverse geocode. `contact_name` and `contact_phone` are the receiver: the customer themselves by default, or someone else. A new address is sent with `is_default: true`, because it is where the customer just chose to deliver. |
+| `PATCH` | `/v1/addresses/{id}` | [address_map_screen.dart](../lib/features/address/presentation/address_map_screen.dart) | Same payload, used when correcting a saved address. |
 | `DELETE` | `/v1/addresses/{id}` | [address_book_screen.dart](../lib/features/address/presentation/address_book_screen.dart) | When the deleted one was the default, the list is re-read — the server promotes another and the app must not be left with none. |
-| `POST` | `/v1/addresses/{id}/default` | [address_book_screen.dart](../lib/features/address/presentation/address_book_screen.dart) | The default is what `GET /v1/restaurants` is anchored on. |
+| `POST` | `/v1/addresses/{id}/default` | [address_book_screen.dart](../lib/features/address/presentation/address_book_screen.dart) | The default is what `GET /v1/restaurants` is anchored on. Picking a saved address in "Select a location" calls this. |
+| `POST` | `/v1/addresses/{id}/photo` | [address_map_screen.dart](../lib/features/address/presentation/address_map_screen.dart), [address_book_screen.dart](../lib/features/address/presentation/address_book_screen.dart) | `multipart/form-data`, one file in field `photo`: jpg, jpeg, png or webp, up to 4 MB (the app sends at most 1600 px a side, usually 150–500 KB). **Must send `Accept: application/json`**, or a failed validation is a 302 redirect instead of a `422` with `errors.photo`; `ApiClient.upload` does. Answers with the address, `photo_url` filled in. A second upload replaces the first. Sent after the address saves; if it fails, the address stays saved and the customer is told the photo did not upload. |
+| `DELETE` | `/v1/addresses/{id}/photo` | [address_book_screen.dart](../lib/features/address/presentation/address_book_screen.dart), [address_map_screen.dart](../lib/features/address/presentation/address_map_screen.dart) | Takes the photo off. Answers with the address, `photo_url` null. From a saved card's camera button, or "Remove" while editing (sent on save). |
+
+Every address resource carries `photo_url`, null when there is none. It is a signed link that
+**lasts 3 hours** (dish photos last 24), on purpose: with the coordinates beside it, it says
+where someone lives. Never store the URL; refetch the address or the order for a fresh one.
+`contact_name` and `contact_phone` are validated server-side with `^[6-9]\d{9}$`, the same rule
+the app uses, and are snapshotted onto each order.
+
+"Use current location" on "Select a location" saves nothing: the storefront queries
+`GET /v1/restaurants` by `latitude`/`longitude` instead of `address_id`, and checkout asks
+for a saved address before an order can be placed.
+
+**Address search** calls Google Places (New) directly from the app, not through this API:
+`POST https://places.googleapis.com/v1/places:autocomplete` while typing, then
+`GET https://places.googleapis.com/v1/places/{placeId}` for the one picked, under one
+session token so a search is billed once. It uses the app's own Maps key, read at run time
+from the native config, so **Places API (New)** must be enabled in Google Cloud and allowed
+on the Android and iOS Maps keys. Without it the app falls back to the phone's own geocoder.
 
 A `422` here comes back as `errors.<field>[0]` and is shown under the field that caused it,
 verbatim — the server's wording is more accurate than anything the app could invent.
@@ -70,7 +89,7 @@ verbatim — the server's wording is more accurate than anything the app could i
 | `GET` | `/v1/restaurants` | [home_tab.dart](../lib/features/catalogue/presentation/home_tab.dart), [search_tab.dart](../lib/features/catalogue/presentation/search_tab.dart) | Query: `address_id` **or** `latitude`+`longitude`, plus optional `search` and `service_category`. The saved address wins — the API knows that pin better than a fresh GPS read, and it is the one checkout validates the 1 km radius against. |
 | `GET` | `/v1/restaurants/deals` | [home_tab.dart](../lib/features/catalogue/presentation/home_tab.dart) | Food Rescue: surplus food, discounted, time-limited. A failure here is swallowed — deals are a nice-to-have and must not take the restaurant list down with them. |
 | `GET` | `/v1/restaurants/{id}` | [restaurant_screen.dart](../lib/features/catalogue/presentation/restaurant_screen.dart) | `distance_metres` is absent when fetched directly, so no distance is shown rather than "0.0 km". Carries `photos` (up to eight, merchant order, signed URLs) — storefront only, so a list of twenty shops does not ship a hundred and sixty signed URLs. `banner_url` stays the hero and leads the carousel. |
-| `GET` | `/v1/restaurants/{id}/menu` | [restaurant_screen.dart](../lib/features/catalogue/presentation/restaurant_screen.dart) | Returns `menu` (categories) **and** a separate `uncategorised` bucket. Both are rendered — a shop that never made categories would otherwise look empty. Menu items carry `rating` / `rating_count`, null until three people have rated; the badge is hidden on null rather than shown as zero. |
+| `GET` | `/v1/restaurants/{id}/menu` | [restaurant_screen.dart](../lib/features/catalogue/presentation/restaurant_screen.dart) | Returns `menu` (categories) **and** a separate `uncategorised` bucket. Both are rendered — a shop that never made categories would otherwise look empty. Menu items carry `rating` / `rating_count`, null until three people have rated; the badge is hidden on null rather than shown as zero. Menu search, filters (Veg / Egg / Non-veg, Rated 4.0+, Offers) and sorting all run on the device over this one response, so they need no endpoint. `is_bestseller` (boolean) marks a restaurant's top 5 dishes by quantity sold, recomputed nightly from delivered orders; a dish needs 5 units sold in 30 days to qualify, so a new restaurant or city returns every dish `false`. That is correct: the badge and the Bestseller chip simply stay hidden until some dish qualifies. |
 | `GET` | `/v1/restaurants/{id}/reviews` | [reviews_screen.dart](../lib/features/catalogue/presentation/reviews_screen.dart) | Newest first, paginated. `meta` carries `rating`, `rating_count` and a per-star `breakdown` for the histogram. `?with_comment=1` hides ratings with no words. **Never cached** — moderation can take a review down between two reads, so the screen always starts again at page one. |
 
 `is_open` gates ordering. When it is false, `within_operating_hours` says *why*: inside its hours

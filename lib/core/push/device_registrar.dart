@@ -42,11 +42,14 @@ class DeviceRegistrar {
     _rotation ??= _push.onTokenRefresh.listen(_send);
 
     try {
-      // Asked here rather than at launch: the question makes sense the moment
-      // there is an order to be notified about, and not before. The answer is
-      // not checked — a refusal simply means there is no token to send, and
-      // Android below 13 grants it without a dialog at all.
-      await _push.requestPermission();
+      // The question itself is asked on the first-run permission pages, with
+      // the reasons beside it. Here it is only re-confirmed when already
+      // allowed, which shows no prompt and, on iOS, turns banners on while the
+      // app is open. A customer who chose "Not now" there is not met with a
+      // bare system prompt the moment they sign in.
+      if (await _push.notificationAccess() == NotificationAccess.granted) {
+        await _push.requestPermission();
+      }
 
       final String? token = await _push.token();
       // No token is the normal state when the customer refused permission or

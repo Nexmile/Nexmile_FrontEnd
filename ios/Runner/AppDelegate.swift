@@ -19,5 +19,25 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    // What Dart needs to call Google Places with the same key the map uses.
+    // The key is restricted to this app, so requests name its bundle id.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "NexmileAppIdentity") {
+      let channel = FlutterMethodChannel(
+        name: "nexmile/app",
+        binaryMessenger: registrar.messenger()
+      )
+      channel.setMethodCallHandler { call, result in
+        switch call.method {
+        case "identity":
+          result([
+            "mapsKey": Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? "",
+            "iosBundleId": Bundle.main.bundleIdentifier ?? "",
+          ])
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    }
   }
 }

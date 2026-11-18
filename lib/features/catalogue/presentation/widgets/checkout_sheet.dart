@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/router/app_router.dart';
+import '../../../address/presentation/address_flow.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../address/data/address.dart';
@@ -57,7 +57,9 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   @override
   void initState() {
     super.initState();
-    _addressId = context.read<AddressController>().defaultAddress?.id;
+    // While delivering to "current location" nothing is chosen yet: the
+    // customer picks or adds an address with that spot's details.
+    _addressId = context.read<AddressController>().deliveryAddress?.id;
     // A refund may have landed since the wallet was last read.
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => context.read<WalletController>().load(),
@@ -100,21 +102,21 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               ListTile(
                 leading: const Icon(Icons.add_location_alt_outlined),
                 title: Text(l10n.addAddress),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushNamed(
-                    AppRoutes.locationPermission,
-                    arguments: const LocationPermissionArgs(
-                      isFirstAddress: false,
-                    ),
-                  );
-                },
+                // -1 asks for the add flow, which runs once this list closes.
+                onTap: () => Navigator.of(context).pop(-1),
               ),
             ],
           ),
     );
 
-    if (chosen != null && mounted) setState(() => _addressId = chosen);
+    if (chosen == null || !mounted) return;
+    if (chosen == -1) {
+      // Search, pin and details, then back here with the new address chosen.
+      final Address? saved = await addAddress(context);
+      if (saved != null && mounted) setState(() => _addressId = saved.id);
+      return;
+    }
+    setState(() => _addressId = chosen);
   }
 
   Future<void> _placeOrder() async {

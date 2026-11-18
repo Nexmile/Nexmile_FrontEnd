@@ -188,8 +188,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.location_on_outlined,
               label: l10n.addressBookTitle,
               value: l10n.manageAddresses,
-              onTap: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.addressBook),
+              onTap: () => Navigator.of(context).pushNamed(
+                AppRoutes.addressBook,
+                arguments: const AddressBookArgs(managing: true),
+              ),
             ),
             const SizedBox(height: 12),
             InfoTile(

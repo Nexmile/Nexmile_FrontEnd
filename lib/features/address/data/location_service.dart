@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geolocator/geolocator.dart';
 
+import 'google_places.dart';
+
 /// Why a location request failed, as a closed set the UI can translate.
 enum LocationFailure {
   /// The customer said no, but can be asked again.
@@ -51,20 +53,71 @@ class ResolvedPlace {
       (pincode ?? '').isEmpty;
 }
 
-/// One hit from an address search: where it is, and how to label it.
+/// One hit from an address search: how to label it, and where it is.
+///
+/// A Google suggestion arrives with a [placeId] and no coordinates; they are
+/// fetched only for the one the customer taps, through
+/// [LocationService.resolve]. A geocoder hit or a recent place arrives with
+/// coordinates already.
 @immutable
 class PlaceSuggestion {
   const PlaceSuggestion({
     required this.title,
     required this.subtitle,
-    required this.latitude,
-    required this.longitude,
+    this.latitude,
+    this.longitude,
+    this.placeId,
+    this.distanceMetres,
   });
 
   final String title;
   final String subtitle;
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
+
+  /// Google's id for the place, for fetching its coordinates.
+  final String? placeId;
+
+  /// How far it is from where the customer is, when Google said.
+  final double? distanceMetres;
+
+  bool get isResolved => latitude != null && longitude != null;
+
+  PlaceSuggestion copyWith({
+    double? latitude,
+    double? longitude,
+    double? distanceMetres,
+  }) =>
+      PlaceSuggestion(
+        title: title,
+        subtitle: subtitle,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
+        placeId: placeId,
+        distanceMetres: distanceMetres ?? this.distanceMetres,
+      );
+
+  /// For the recent places list. Only resolved places are stored.
+  Map<String, Object?> toJson() => <String, Object?>{
+        'title': title,
+        'subtitle': subtitle,
+        'latitude': latitude,
+        'longitude': longitude,
+      };
+
+  static PlaceSuggestion? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final Object? title = raw['title'];
+    final Object? latitude = raw['latitude'];
+    final Object? longitude = raw['longitude'];
+    if (title is! String || latitude is! num || longitude is! num) return null;
+    return PlaceSuggestion(
+      title: title,
+      subtitle: raw['subtitle'] is String ? raw['subtitle']! as String : '',
+      latitude: latitude.toDouble(),
+      longitude: longitude.toDouble(),
+    );
+  }
 }
 
 /// Wraps geolocator and geocoding so the UI never touches the plugins, and so
@@ -72,6 +125,11 @@ class PlaceSuggestion {
 abstract class LocationService {
   /// Current permission state without prompting.
   Future<LocationPermission> currentPermission();
+
+  /// Shows the system prompt if it still can, and returns the answer. Unlike
+  /// [requestFix] it does not then wait for GPS, so the first-run screen can
+  /// move on the moment the customer answers.
+  Future<LocationPermission> requestPermission();
 
   /// Prompts if needed, then returns a fix. Throws [LocationFailure] cases via
   /// [LocationException].
@@ -82,8 +140,18 @@ abstract class LocationService {
   Future<ResolvedPlace> describe(double latitude, double longitude);
 
   /// Finds places matching [query]: an area, a street, a landmark, a pincode.
-  /// Never throws; no match and no network both come back empty.
-  Future<List<PlaceSuggestion>> search(String query);
+  /// Near [nearLatitude], [nearLongitude] first when given. Never throws; no
+  /// match and no network both come back empty.
+  Future<List<PlaceSuggestion>> search(
+    String query, {
+    double? nearLatitude,
+    double? nearLongitude,
+    String? language,
+  });
+
+  /// [suggestion] with coordinates, fetching them if it has none yet. Null
+  /// when they cannot be found.
+  Future<PlaceSuggestion?> resolve(PlaceSuggestion suggestion);
 
   /// Opens the OS settings page so a "denied forever" customer can recover.
   Future<void> openSettings();
@@ -99,11 +167,26 @@ class LocationException implements Exception {
 }
 
 class GeolocatorLocationService implements LocationService {
-  const GeolocatorLocationService();
+  const GeolocatorLocationService({this.places});
+
+  /// Google's type-ahead search. Without it, or when Google cannot be used,
+  /// search falls back to the phone's own geocoder.
+  final GooglePlaces? places;
 
   @override
   Future<LocationPermission> currentPermission() =>
       Geolocator.checkPermission();
+
+  @override
+  Future<LocationPermission> requestPermission() async {
+    try {
+      return await Geolocator.requestPermission();
+    } catch (_) {
+      // A prompt already on screen, or a build missing the manifest entry.
+      // Either way the customer has not said yes.
+      return LocationPermission.denied;
+    }
+  }
 
   @override
   Future<LocationFix> requestFix() async {
@@ -174,9 +257,22 @@ class GeolocatorLocationService implements LocationService {
   }
 
   @override
-  Future<List<PlaceSuggestion>> search(String query) async {
+  Future<List<PlaceSuggestion>> search(
+    String query, {
+    double? nearLatitude,
+    double? nearLongitude,
+    String? language,
+  }) async {
     final String q = query.trim();
     if (q.length < 3) return const <PlaceSuggestion>[];
+
+    final List<PlaceSuggestion>? google = await places?.autocomplete(
+      q,
+      latitude: nearLatitude,
+      longitude: nearLongitude,
+      language: language,
+    );
+    if (google != null) return google;
 
     try {
       // The platform geocoder: Google's on Android, Apple's on iOS. No key and
@@ -216,6 +312,31 @@ class GeolocatorLocationService implements LocationService {
     } catch (_) {
       // "No results found" is thrown as an error by both platforms.
       return const <PlaceSuggestion>[];
+    }
+  }
+
+  @override
+  Future<PlaceSuggestion?> resolve(PlaceSuggestion suggestion) async {
+    if (suggestion.isResolved) return suggestion;
+    final PlaceSuggestion? fromGoogle = await places?.details(suggestion);
+    if (fromGoogle != null) return fromGoogle;
+
+    // Google could not give coordinates; ask the phone's geocoder for the
+    // place by its name instead.
+    try {
+      final List<geo.Location> hits = await geo.Geocoding().locationFromAddress(
+        <String>[suggestion.title, suggestion.subtitle]
+            .where((String p) => p.trim().isNotEmpty)
+            .join(', '),
+        locale: const Locale('en', 'IN'),
+      );
+      if (hits.isEmpty) return null;
+      return suggestion.copyWith(
+        latitude: hits.first.latitude,
+        longitude: hits.first.longitude,
+      );
+    } catch (_) {
+      return null;
     }
   }
 

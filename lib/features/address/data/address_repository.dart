@@ -24,6 +24,18 @@ abstract class AddressRepository {
 
   /// `POST /v1/addresses/{id}/default`
   Future<Address> makeDefault(int id);
+
+  /// `POST /v1/addresses/{id}/photo`, multipart, field `photo`. Answers with
+  /// the address, now carrying its `photo_url`.
+  Future<Address> uploadPhoto(
+    int id, {
+    required List<int> bytes,
+    required String filename,
+  });
+
+  /// `DELETE /v1/addresses/{id}/photo`. Answers with the address, its
+  /// `photo_url` now null.
+  Future<Address> deletePhoto(int id);
 }
 
 class ApiAddressRepository implements AddressRepository {
@@ -80,6 +92,38 @@ class ApiAddressRepository implements AddressRepository {
     final Map<String, dynamic> response =
         await _client.post('/v1/addresses/$id/default');
     return Address.fromJson(_data(response));
+  }
+
+  @override
+  Future<Address> uploadPhoto(
+    int id, {
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    final Map<String, dynamic> response = await _client.upload(
+      '/v1/addresses/$id/photo',
+      field: 'photo',
+      bytes: bytes,
+      filename: filename,
+      contentType: photoContentType(filename),
+    );
+    return Address.fromJson(_data(response));
+  }
+
+  @override
+  Future<Address> deletePhoto(int id) async {
+    final Map<String, dynamic> response =
+        await _client.delete('/v1/addresses/$id/photo');
+    return Address.fromJson(_data(response));
+  }
+
+  /// The server takes jpg, jpeg, png or webp, up to 4 MB. The picker hands
+  /// back a JPEG almost always; the name says when it did not.
+  static String photoContentType(String filename) {
+    final String name = filename.toLowerCase();
+    if (name.endsWith('.png')) return 'image/png';
+    if (name.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg';
   }
 
   static Map<String, dynamic> _data(Map<String, dynamic> response) {

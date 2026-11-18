@@ -187,6 +187,24 @@ class FirebasePushService implements PushService {
   Stream<Map<String, Object?>> get onTap => _taps.stream;
 
   @override
+  Future<NotificationAccess> notificationAccess() async {
+    final NotificationSettings settings =
+        await _messaging.getNotificationSettings();
+    return switch (settings.authorizationStatus) {
+      AuthorizationStatus.authorized ||
+      AuthorizationStatus.provisional =>
+        NotificationAccess.granted,
+      AuthorizationStatus.notDetermined => NotificationAccess.askable,
+      // iOS never prompts twice. Android reports "denied" before the first
+      // prompt as well as after a refusal, and will still prompt.
+      AuthorizationStatus.denied => defaultTargetPlatform == TargetPlatform.iOS
+          ? NotificationAccess.blocked
+          : NotificationAccess.askable,
+      AuthorizationStatus.deniedPermanently => NotificationAccess.blocked,
+    };
+  }
+
+  @override
   Future<bool> requestPermission() async {
     final NotificationSettings settings = await _messaging.requestPermission();
 

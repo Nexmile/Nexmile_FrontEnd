@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 
 import '../config/app_config.dart';
 import 'api_exception.dart';
@@ -175,6 +176,75 @@ class ApiClient {
       await tokenProvider?.onSessionLost();
     }
 
+    return _decode(response);
+  }
+
+  /// Uploads one file as `multipart/form-data` under [field].
+  ///
+  /// Same headers, same refresh-once on a 401 and the same error mapping as
+  /// the JSON calls, so a caller handles a failed upload exactly like any
+  /// other failed request.
+  Future<Map<String, dynamic>> upload(
+    String path, {
+    required String field,
+    required List<int> bytes,
+    required String filename,
+    String contentType = 'image/jpeg',
+    bool isRetry = false,
+  }) async {
+    final Uri uri = Uri.parse('$_baseUrl$path');
+    final http.MultipartRequest request = http.MultipartRequest('POST', uri)
+      ..headers['Accept'] = 'application/json'
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          field,
+          bytes,
+          filename: filename,
+          contentType: MediaType.parse(contentType),
+        ),
+      );
+    if (languageProvider?.call() case final String language
+        when language.isNotEmpty) {
+      request.headers['Accept-Language'] = language;
+    }
+    final String? token = tokenProvider?.accessToken;
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+
+    ApiLog.request('POST', uri, request.headers, <String, dynamic>{
+      field: '<${bytes.length} bytes, $filename>',
+    });
+    final Stopwatch clock = Stopwatch()..start();
+
+    late final http.Response response;
+    try {
+      final http.StreamedResponse streamed =
+          await _http.send(request).timeout(AppConfig.requestTimeout);
+      response = await http.Response.fromStream(streamed);
+    } on TimeoutException catch (error) {
+      ApiLog.failure('POST', uri, error);
+      throw const ApiException(kind: ApiErrorKind.network);
+    } on SocketException catch (error) {
+      ApiLog.failure('POST', uri, error);
+      throw const ApiException(kind: ApiErrorKind.network);
+    } on http.ClientException catch (error) {
+      ApiLog.failure('POST', uri, error);
+      throw const ApiException(kind: ApiErrorKind.network);
+    }
+    ApiLog.response('POST', uri, response.statusCode, response.body, clock.elapsed);
+
+    if (response.statusCode == 401 && !isRetry) {
+      if (await _refreshOnce()) {
+        return upload(
+          path,
+          field: field,
+          bytes: bytes,
+          filename: filename,
+          contentType: contentType,
+          isRetry: true,
+        );
+      }
+      await tokenProvider?.onSessionLost();
+    }
     return _decode(response);
   }
 

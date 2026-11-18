@@ -408,6 +408,7 @@ class MenuItem {
     this.isDiscounted = false,
     this.rating,
     this.ratingCount = 0,
+    this.isBestseller = false,
   });
 
   final int id;
@@ -436,6 +437,14 @@ class MenuItem {
   /// dish is not punished for being new.
   final double? rating;
   final int ratingCount;
+
+  /// One of the restaurant's most ordered dishes, as `is_bestseller`.
+  ///
+  /// Not sent by the API yet, so it is false for every dish, which hides both
+  /// the badge and the Bestseller chip. They appear once the server sends it,
+  /// with no app release. Popularity is the server's to compute: it sees
+  /// every order, and the app sees only this customer's.
+  final bool isBestseller;
 
   bool get hasRating => rating != null;
 
@@ -468,6 +477,7 @@ class MenuItem {
         prepTimeMinutes: asInt(json['prep_time_minutes']),
         rating: json['rating'] == null ? null : asDouble(json['rating']),
         ratingCount: asInt(json['rating_count']),
+        isBestseller: asBool(json['is_bestseller']),
         optionGroups: asMapList(json['option_groups'])
             .map(OptionGroup.fromJson)
             .toList(growable: false),

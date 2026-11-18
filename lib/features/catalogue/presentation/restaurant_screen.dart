@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:provider/provider.dart';
 
 import '../../../core/motion/app_motion.dart';
@@ -10,11 +11,14 @@ import '../../../core/theme/app_theme.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../auth/data/auth_failure.dart';
 import '../data/cart_models.dart';
+import '../data/menu_filters.dart';
 import '../data/storefront_models.dart';
 import '../state/cart_controller.dart';
 import '../state/storefront_controller.dart';
 import 'widgets/catalogue_widgets.dart';
 import 'widgets/customise_sheet.dart';
+import 'widgets/menu_browser.dart';
+import 'widgets/menu_toolbar.dart';
 
 /// One restaurant: its menu, and the basket that belongs to it.
 class RestaurantScreen extends StatefulWidget {
@@ -27,11 +31,149 @@ class RestaurantScreen extends StatefulWidget {
 }
 
 class _RestaurantScreenState extends State<RestaurantScreen> {
+  /// Search, diet, and sort for this visit. Kept here rather than in the
+  /// controller: they belong to this one look at this one menu, and the next
+  /// restaurant should open unfiltered.
+  MenuFilters _filters = MenuFilters.none;
+
+  final TextEditingController _search = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+
+  /// The top of the results, just under the pinned toolbar.
+  final GlobalKey _resultsTop = GlobalKey();
+
+  /// One per section heading, by the section's place in the full menu, so
+  /// the Menu button can jump to it.
+  final Map<int, GlobalKey> _headings = <int, GlobalKey>{};
+
+  // Worked out once per menu rather than once per keystroke.
+  RestaurantMenu? _facetsMenu;
+  MenuFacets? _facets;
+
   @override
   void initState() {
     super.initState();
+    _searchFocus.addListener(_onSearchFocus);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
+
+  @override
+  void dispose() {
+    _searchFocus
+      ..removeListener(_onSearchFocus)
+      ..dispose();
+    _search.dispose();
+    super.dispose();
+  }
+
+  MenuFacets _facetsOf(RestaurantMenu menu) {
+    if (!identical(menu, _facetsMenu)) {
+      _facetsMenu = menu;
+      _facets = MenuFacets.of(menu);
+    }
+    return _facets!;
+  }
+
+  GlobalKey _headingKey(int index) =>
+      _headings.putIfAbsent(index, () => GlobalKey());
+
+  void _setFilters(MenuFilters next) {
+    if (next == _filters) return;
+    setState(() => _filters = next);
+    // Results start from the top of the menu. A filter applied halfway down a
+    // long menu would otherwise leave the customer looking at whatever dish
+    // happened to slide into that spot.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showResults());
+  }
+
+  void _clearFilters() {
+    _search.clear();
+    _setFilters(MenuFilters.none);
+  }
+
+  /// Scrolls back up to the first result, if it has scrolled past. When
+  /// [pin] is set, scrolls down to it too, which brings the toolbar up to the
+  /// top of the screen.
+  void _showResults({bool pin = false}) {
+    final BuildContext? top = _resultsTop.currentContext;
+    if (!mounted || top == null) return;
+    Scrollable.ensureVisible(
+      top,
+      duration: AppMotion.quick,
+      curve: AppMotion.enter,
+      alignmentPolicy: pin
+          ? ScrollPositionAlignmentPolicy.explicit
+          : ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+    );
+  }
+
+  /// Searching starts with the toolbar at the top and results under it, so
+  /// the keyboard covers dishes rather than the field the customer is typing
+  /// into.
+  void _onSearchFocus() {
+    if (_searchFocus.hasFocus) _showResults(pin: true);
+  }
+
+  Future<void> _openFilterSheet(RestaurantMenu menu) async {
+    _searchFocus.unfocus();
+    final MenuFilters? next = await showMenuFilterSheet(
+      context: context,
+      menu: menu,
+      facets: _facetsOf(menu),
+      current: _filters,
+    );
+    // Null means the customer backed out, so the menu stays as it was.
+    if (next != null && mounted) _setFilters(next);
+  }
+
+  Future<void> _browse(List<MenuMatch> sections) async {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final int? index = await showMenuSections(
+      context: context,
+      sections: sections,
+      current: _currentSection(sections),
+      titleOf: (MenuMatch match) => _sectionTitle(l10n, match.section),
+    );
+    if (index == null || !mounted) return;
+    await _jumpTo(index);
+  }
+
+  Future<void> _jumpTo(int index) async {
+    final GlobalKey key = _headingKey(index);
+    final BuildContext? target = key.currentContext;
+    if (target == null) return;
+    await Scrollable.ensureVisible(
+      target,
+      duration: AppMotion.settled,
+      curve: AppMotion.enter,
+    );
+    // Dishes below the screen are only estimated until they are laid out, so
+    // a long jump can land a little short. The scroll has laid them out by
+    // now, and a second, instant pass lands on the heading exactly.
+    final BuildContext? settled = key.currentContext;
+    if (!mounted || settled == null || !settled.mounted) return;
+    await Scrollable.ensureVisible(settled);
+  }
+
+  /// The last section whose heading has scrolled up to the toolbar, or the
+  /// first section when none has yet.
+  int? _currentSection(List<MenuMatch> sections) {
+    if (sections.isEmpty) return null;
+    int current = sections.first.index;
+    for (final MenuMatch match in sections) {
+      final BuildContext? heading = _headings[match.index]?.currentContext;
+      final RenderObject? box = heading?.findRenderObject();
+      if (heading == null || box == null || !box.attached) continue;
+      final double reveal =
+          RenderAbstractViewport.of(box).getOffsetToReveal(box, 0).offset;
+      if (reveal > Scrollable.of(heading).position.pixels + 1) break;
+      current = match.index;
+    }
+    return current;
+  }
+
+  static String _sectionTitle(AppLocalizations l10n, MenuSection section) =>
+      section.isUncategorised ? l10n.moreDishesTitle : section.name;
 
   Future<void> _load() async {
     if (!mounted) return;
@@ -137,7 +279,20 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
       );
     }
 
+    final bool hasMenu = menu != null && !menu.isEmpty;
+    final List<MenuMatch> matches =
+        hasMenu ? _filters.apply(menu) : const <MenuMatch>[];
+    final int shown =
+        matches.fold<int>(0, (int n, MenuMatch m) => n + m.items.length);
+    final bool narrowed = _filters.hasQuery || _filters.activeCount > 0;
+    // Hidden while typing: over the keyboard it would sit on the results.
+    final bool canBrowse =
+        matches.length > 1 && MediaQuery.viewInsetsOf(context).bottom == 0;
+
     return Scaffold(
+      floatingActionButton:
+          canBrowse ? MenuBrowseButton(onPressed: () => _browse(matches)) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: RefreshIndicator(
         color: Theme.of(context).colorScheme.primary,
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -145,12 +300,13 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
         onRefresh: _load,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: <Widget>[
             _RestaurantHeader(restaurant: restaurant),
             SliverToBoxAdapter(
               child: _RestaurantSummary(restaurant: restaurant),
             ),
-            if (menu == null || menu.isEmpty)
+            if (!hasMenu)
               SliverToBoxAdapter(
                 child: EmptyState(
                   emoji: '📋',
@@ -158,39 +314,85 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                   subtitle: l10n.menuEmptySubtitle,
                 ),
               )
-            else
-              for (final MenuSection section in menu.sections) ...<Widget>[
+            else ...<Widget>[
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: MenuToolbarDelegate(
+                  height: MenuToolbar.heightFor(context),
+                  builder: (BuildContext context, bool raised) => MenuToolbar(
+                    search: _search,
+                    searchFocus: _searchFocus,
+                    filters: _filters,
+                    facets: _facetsOf(menu),
+                    raised: raised,
+                    onChanged: _setFilters,
+                    onOpenSheet: () => _openFilterSheet(menu),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: KeyedSubtree(
+                  key: _resultsTop,
+                  // At zero the empty state below says it, with its own
+                  // way back.
+                  child: narrowed && shown > 0
+                      ? _ResultsLine(count: shown, onClear: _clearFilters)
+                      : const SizedBox(width: double.infinity),
+                ),
+              ),
+              if (matches.isEmpty)
                 SliverToBoxAdapter(
-                  child: SectionHeader(
-                    title: section.isUncategorised
-                        ? l10n.moreDishesTitle
-                        : section.name,
-                    trailing: Text(
-                      l10n.itemsInCart(section.items.length),
-                      style: Theme.of(context).textTheme.bodySmall,
+                  child: EmptyState(
+                    emoji: '🔍',
+                    title: l10n.searchNoResultsTitle,
+                    subtitle: l10n.menuNoMatchSubtitle,
+                    action: OutlinedButton(
+                      onPressed: _clearFilters,
+                      child: Text(l10n.clearAll),
                     ),
                   ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList.separated(
-                    itemCount: section.items.length,
-                    separatorBuilder: (_, __) => const Divider(height: 28),
-                    itemBuilder: (BuildContext context, int index) {
-                      final MenuItem item = section.items[index];
-                      return Reveal(
-                        index: index,
-                        child: _MenuRow(
-                          item: item,
-                          canOrder: restaurant.isOpen,
-                          onAdd: () => _add(item),
-                          onRemove: () => _remove(item),
-                        ),
-                      );
-                    },
+                )
+              else
+                for (final MenuMatch match in matches) ...<Widget>[
+                  // Keyed by the section's place in the full menu, so hiding
+                  // one section does not hand its rows to the next.
+                  SliverToBoxAdapter(
+                    key: ValueKey<String>('menu-heading-${match.index}'),
+                    child: SectionHeader(
+                      key: _headingKey(match.index),
+                      title: _sectionTitle(l10n, match.section),
+                      trailing: Text(
+                        l10n.itemsInCart(match.items.length),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  SliverPadding(
+                    key: ValueKey<String>('menu-dishes-${match.index}'),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList.separated(
+                      itemCount: match.items.length,
+                      separatorBuilder: (_, __) => const Divider(height: 28),
+                      itemBuilder: (BuildContext context, int index) {
+                        final MenuItem item = match.items[index];
+                        // Keyed by dish, so a dish a new filter brings in
+                        // arrives with the same small lift as on first load.
+                        return Reveal(
+                          key: ValueKey<int>(item.id),
+                          index: index,
+                          child: _MenuRow(
+                            item: item,
+                            canOrder: restaurant.isOpen,
+                            onAdd: () => _add(item),
+                            onRemove: () => _remove(item),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+            ],
             const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         ),
@@ -213,6 +415,7 @@ class _RestaurantHeader extends StatelessWidget {
       // The bar fades from transparent-over-photo to solid as it collapses,
       // so the back arrow never sits on a colour it cannot be read against.
       backgroundColor: Theme.of(context).colorScheme.surface,
+      title: _CollapsedTitle(name: restaurant.name),
       flexibleSpace: FlexibleSpaceBar(
         // Parallax: the photo drifts at half the scroll speed, which is what
         // gives a flat banner a sense of depth.
@@ -250,6 +453,41 @@ class _RestaurantHeader extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The restaurant's name in the collapsed bar.
+///
+/// Invisible while the photo is showing, since the name is printed just
+/// below it, and faded in over the last stretch of the collapse. Deep in a
+/// long menu, it is the only thing on screen that says whose menu it is.
+class _CollapsedTitle extends StatelessWidget {
+  const _CollapsedTitle({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final FlexibleSpaceBarSettings? bar =
+        context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+    double collapsed = 1;
+    if (bar != null && bar.maxExtent > bar.minExtent) {
+      collapsed = ((bar.maxExtent - bar.currentExtent) /
+              (bar.maxExtent - bar.minExtent))
+          .clamp(0.0, 1.0);
+    }
+    return Opacity(
+      opacity: ((collapsed - 0.7) / 0.3).clamp(0.0, 1.0),
+      child: Text(
+        name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -480,9 +718,83 @@ class _Fact extends StatelessWidget {
         children: <Widget>[
           Icon(icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 6),
-          Text(label, style: theme.textTheme.labelMedium),
+          // Wraps rather than overflowing: on a narrow phone at large text a
+          // Malayalam "minimum order" runs wider than the screen, and the
+          // amount at its end is the part that matters.
+          Flexible(child: Text(label, style: theme.textTheme.labelMedium)),
         ],
       ),
+    );
+  }
+}
+
+/// How many dishes are left, and the way back to the whole menu.
+class _ResultsLine extends StatelessWidget {
+  const _ResultsLine({required this.count, required this.onClear});
+
+  final int count;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 8, 0),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              l10n.menuMatchCount(count),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: onClear,
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+            child: Text(l10n.clearAll),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The badge on one of the restaurant's most ordered dishes.
+class _BestsellerTag extends StatelessWidget {
+  const _BestsellerTag();
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const Icon(
+          Icons.local_fire_department_rounded,
+          size: 14,
+          color: AppColors.orangeDeep,
+        ),
+        const SizedBox(width: 2),
+        Flexible(
+          child: Text(
+            AppLocalizations.of(context).bestseller,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.orangeDeep,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -534,6 +846,10 @@ class _MenuRow extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
+                    ],
+                    if (item.isBestseller) ...<Widget>[
+                      const SizedBox(width: 8),
+                      const Flexible(child: _BestsellerTag()),
                     ],
                   ],
                 ),

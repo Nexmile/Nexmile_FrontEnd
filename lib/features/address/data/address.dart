@@ -23,6 +23,7 @@ class Address {
     this.contactPhone,
     this.line2,
     this.landmark,
+    this.photoUrl,
   });
 
   final int id;
@@ -38,6 +39,10 @@ class Address {
   final double latitude;
   final double longitude;
   final bool isDefault;
+
+  /// A photo of the door or building, as `photo_url`, so the rider recognises
+  /// it. Signed and expiring; null when there is none.
+  final String? photoUrl;
 
   /// Single-line rendering for a list row.
   String get summary => <String?>[line1, line2, landmark, city, pincode]
@@ -58,7 +63,11 @@ class Address {
         latitude: _double(json['latitude']),
         longitude: _double(json['longitude']),
         isDefault: json['is_default'] as bool? ?? false,
+        photoUrl: _url(json['photo_url']),
       );
+
+  static String? _url(Object? raw) =>
+      raw is String && raw.trim().isNotEmpty ? raw : null;
 
   static AddressLabel labelFrom(String? raw) {
     for (final AddressLabel value in AddressLabel.values) {

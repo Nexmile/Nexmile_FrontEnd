@@ -37,6 +37,45 @@ class AddressController extends ChangeNotifier {
     return _addresses.isEmpty ? null : _addresses.first;
   }
 
+  // --- Where to deliver ----------------------------------------------------
+
+  /// True after "Use current location": the storefront follows the phone
+  /// rather than a saved address, until the customer picks or saves one.
+  bool _deliverToCurrentLocation = false;
+
+  /// The saved address the storefront and checkout work from. Null while
+  /// delivering to the current location, or with nothing saved, which both
+  /// mean "wherever the phone is".
+  Address? get deliveryAddress =>
+      _deliverToCurrentLocation ? null : defaultAddress;
+
+  bool get deliversToCurrentLocation => deliveryAddress == null;
+
+  /// Browse by where the phone is, without saving anything. Checkout still
+  /// needs a saved address, and asks for one.
+  void useCurrentLocation() {
+    if (_deliverToCurrentLocation) return;
+    _deliverToCurrentLocation = true;
+    notifyListeners();
+  }
+
+  /// Delivers to [address] from now on. It becomes the default, which is the
+  /// address the API anchors the nearby search on.
+  Future<AuthFailure?> choose(Address address) async {
+    _deliverToCurrentLocation = false;
+    if (defaultAddress?.id == address.id) {
+      notifyListeners();
+      return null;
+    }
+    return makeDefault(address.id);
+  }
+
+  /// What the last successful [save] wrote, for the screen that saved it to
+  /// hand back to whoever asked for an address.
+  Address? _lastSaved;
+
+  Address? get lastSaved => _lastSaved;
+
   Future<AuthFailure?> load() async {
     _isLoading = true;
     notifyListeners();
@@ -69,6 +108,9 @@ class AddressController extends ChangeNotifier {
       final Address saved = id == null
           ? await _repository.create(draft)
           : await _repository.update(id, draft);
+      _lastSaved = saved;
+      // A new default is where the customer now wants delivery.
+      if (saved.isDefault) _deliverToCurrentLocation = false;
 
       // The API owns default-flag bookkeeping: saving a new default clears the
       // old one server-side, so re-read rather than patching locally.
@@ -146,6 +188,44 @@ class AddressController extends ChangeNotifier {
     }
   }
 
+  /// Attaches a door or building photo to a saved address.
+  Future<AuthFailure?> uploadPhoto(
+    int id, {
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    try {
+      final Address updated = await _repository.uploadPhoto(
+        id,
+        bytes: bytes,
+        filename: filename,
+      );
+      _upsert(updated);
+      if (_lastSaved?.id == id) _lastSaved = updated;
+      notifyListeners();
+      return null;
+    } on ApiException catch (error) {
+      return authFailureFrom(error, validationFailure: AuthFailure.unknown);
+    } catch (_) {
+      return AuthFailure.unknown;
+    }
+  }
+
+  /// Takes the door photo off a saved address.
+  Future<AuthFailure?> deletePhoto(int id) async {
+    try {
+      final Address updated = await _repository.deletePhoto(id);
+      _upsert(updated);
+      if (_lastSaved?.id == id) _lastSaved = updated;
+      notifyListeners();
+      return null;
+    } on ApiException catch (error) {
+      return authFailureFrom(error, validationFailure: AuthFailure.unknown);
+    } catch (_) {
+      return AuthFailure.unknown;
+    }
+  }
+
   /// Re-reads the list without touching the loading flag, for use inside an
   /// operation that is already showing a spinner.
   Future<void> _refreshQuietly() async {
@@ -173,6 +253,8 @@ class AddressController extends ChangeNotifier {
     _addresses = <Address>[];
     _hasLoaded = false;
     _fieldErrors = const <String, List<String>>{};
+    _deliverToCurrentLocation = false;
+    _lastSaved = null;
     notifyListeners();
   }
 }
