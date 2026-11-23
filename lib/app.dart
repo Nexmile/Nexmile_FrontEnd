@@ -11,6 +11,9 @@ import 'core/router/app_router.dart';
 import 'core/push/push_destination.dart';
 import 'core/push/push_service.dart';
 import 'core/services/preferences_service.dart';
+import 'core/theme/theme_controller.dart';
+import 'features/account/data/account_repository.dart';
+import 'features/account/state/account_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_typography.dart';
 import 'core/widgets/exit_dialog.dart';
@@ -35,6 +38,7 @@ class NexmileApp extends StatefulWidget {
     required this.locationService,
     required this.storefrontRepository,
     required this.walletRepository,
+    required this.accountRepository,
     this.paymentGateway,
     this.pushService = const NoopPushService(),
   });
@@ -55,6 +59,9 @@ class NexmileApp extends StatefulWidget {
   final StorefrontRepository storefrontRepository;
 
   final WalletRepository walletRepository;
+
+  /// Preferences, coupons, help, feedback: the profile page's extras.
+  final AccountRepository accountRepository;
 
   /// Null means Razorpay, built the first time money is added. Tests pass a
   /// fake so no platform channel is ever opened.
@@ -147,6 +154,15 @@ class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
           value: addressController,
         ),
         Provider<PreferencesService>.value(value: preferences),
+        ChangeNotifierProvider<ThemeController>(
+          create: (_) => ThemeController(preferences),
+        ),
+        ChangeNotifierProvider<AccountController>(
+          create: (_) => AccountController(
+            repository: widget.accountRepository,
+            preferences: preferences,
+          ),
+        ),
         Provider<PushService>.value(value: widget.pushService),
         Provider<LocationService>.value(value: locationService),
         Provider<StorefrontRepository>.value(value: storefrontRepository),
@@ -178,7 +194,8 @@ class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
 
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.system,
+            // System by default; Profile → Appearance changes it.
+            themeMode: context.watch<ThemeController>().mode,
 
             locale: controller.locale,
             supportedLocales: AppLocalizations.supportedLocales,

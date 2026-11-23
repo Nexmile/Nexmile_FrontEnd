@@ -185,6 +185,7 @@ class _WalletScreenState extends State<WalletScreen> {
               onPressed: _amountValid && canAdd ? _add : null,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.greenDeep,
+                foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(52),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radius),

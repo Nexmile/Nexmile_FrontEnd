@@ -269,6 +269,7 @@ class Order {
     required this.items,
     required this.timeline,
     this.restaurantName,
+    this.restaurantId,
     this.restaurantLocation,
     this.deliveryAddress = '',
     this.deliveryLocation,
@@ -300,6 +301,10 @@ class Order {
 
   final FulfilmentType fulfilmentType;
   final String? restaurantName;
+
+  /// So "Order again" can open the restaurant. `restaurant.id`, or a flat
+  /// `restaurant_id`; null when the API sends neither.
+  final String? restaurantId;
 
   /// Where the food is coming from, and where it is going.
   ///
@@ -357,6 +362,7 @@ class Order {
       statusLabel: asString(json['status_label']),
       fulfilmentType: fulfilmentFrom(json['fulfilment_type']),
       restaurantName: (json['restaurant_name'] ?? r['name']) as String?,
+      restaurantId: _nonEmpty(json['restaurant_id'] ?? r['id']),
       restaurantLocation: GeoPoint.fromJson(r),
       // Taken from the saved address rather than geocoded from its text: the
       // customer dropped that pin themselves, and reverse-geocoding a narrow
@@ -413,6 +419,8 @@ class OrderTracking {
     this.riderPhone,
     this.riderVehicleNumber,
     this.riderVehicleType,
+    this.riderPhotoUrl,
+    this.riderRating,
     this.riderLatitude,
     this.riderLongitude,
     this.riderHeading,
@@ -435,6 +443,11 @@ class OrderTracking {
 
   /// `bike`, `scooter`, `bicycle` … as the server names it.
   final String? riderVehicleType;
+
+  /// `rider.photo_url` and `rider.rating`, once the API sends them. The card
+  /// shows the rider's initial and no stars until then.
+  final String? riderPhotoUrl;
+  final double? riderRating;
 
   /// Live position, present only while a rider is carrying the order.
   final double? riderLatitude;
@@ -490,6 +503,8 @@ class OrderTracking {
       riderPhone: r['phone'] as String?,
       riderVehicleNumber: r['vehicle_number'] as String?,
       riderVehicleType: _nonEmpty(r['vehicle_type']),
+      riderPhotoUrl: _nonEmpty(r['photo_url']),
+      riderRating: r['rating'] == null ? null : asDouble(r['rating']),
       riderLatitude:
           p['latitude'] == null ? null : asDouble(p['latitude']),
       riderLongitude:

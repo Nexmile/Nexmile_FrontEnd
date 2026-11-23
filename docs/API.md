@@ -110,6 +110,8 @@ app never has to enforce a single-restaurant rule itself.
 | `DELETE` | `/v1/restaurants/{id}/cart/items/{itemId}` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | Used to drop sold-out lines in one go. |
 | `DELETE` | `/v1/restaurants/{id}/cart` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | "Clear cart". |
 | `GET` | `/v1/carts` | [app_shell.dart](../lib/features/shell/app_shell.dart) | Every restaurant with an unfinished basket. Powers the "you left something at ___" bar above the navigation bar. |
+| `POST` | `/v1/restaurants/{id}/cart/coupon` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | Body `{"code": "WELCOME50"}`, sent in capitals. Answers with the full cart: `totals.discount_total` filled in and an `applied_coupon` block (the app needs only its `code`; `title` and a discount amount are shown when present). A refusal is `422` under `errors.code`, shown under the field word for word. The coupon lives on the cart, so the bill shows the saving before checkout. |
+| `DELETE` | `/v1/restaurants/{id}/cart/coupon` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | Takes it off. Answers with the full cart. |
 
 Every mutation returns the whole cart, so app state is **replaced** from the response rather than
 patched locally. Totals, the minimum, sold-out lines and `can_checkout` are all the server's answer;
@@ -126,7 +128,7 @@ recomputing any of them on the client would only drift.
 | `GET` | `/v1/orders/{id}` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Full order: items, timeline, bill, pickup code. Also the two fixed ends of the journey — `delivery_address.latitude/longitude` and `restaurant.latitude/longitude` — which the tracking map draws as the home and shop pins. **Either can be null** (a merchant who never set a location, an address saved before coordinates were required) and the map draws what it has. Never geocoded from the address text: it costs per call and puts narrow streets on the wrong side. |
 | `GET` | `/v1/orders/{id}/track` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Small and cheap, polled every 8 seconds while in flight. Polling stops the moment the order finishes, so a delivered order does not keep a timer alive. Carries the rider's name, phone and live position. |
 | `POST` | `/v1/orders/{id}/cancel` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Body: `reason`. Only allowed while the order is `placed`; after that the API returns 422, so the button is hidden rather than left to fail. |
-| `POST` | `/v1/orders/{id}/review` | [rate_order_screen.dart](../lib/features/catalogue/presentation/rate_order_screen.dart) | `rating` (required), optional `comment`, and an optional `dishes` object keyed by **menu item** id. Only dishes the customer actually rated are sent — an untouched dish is not a one-star dish. `GET /v1/orders` does not send `menu_item_id` on its lines yet, so a line without one offers no stars rather than being rated against whichever dish shares that number. |
+| `POST` | `/v1/orders/{id}/review` | [rate_order_screen.dart](../lib/features/catalogue/presentation/rate_order_screen.dart) | `rating` (required), optional `comment`, and an optional `dishes` object keyed by **menu item** id. Only dishes the customer actually rated are sent — an untouched dish is not a one-star dish. Each order line carries `menu_item_id`; a line without one (an old order) offers no stars rather than being rated against whichever dish shares that number. |
 | `GET` | `/v1/orders/{id}/invoice` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | The one non-JSON call: a printable HTML tax invoice, opened in the browser rather than parsed. |
 
 Everything is re-checked server-side at checkout — availability, opening hours, the 1 km radius,
@@ -136,6 +138,64 @@ comes back in `errors.<field>[0]` is shown to the customer word for word.
 Order status is read from `status`, but the **label** shown on screen is the server's
 `status_label`. The server knows about statuses this build may not; an unrecognised one decodes to
 `unknown` and renders neutrally instead of crashing.
+
+---
+
+### Home and tracking extras (built server-side, deploying)
+
+From the backend's November 2026 reply. Each is read already and hidden until sent, so it lights up
+with no app release:
+
+- `offers` on every restaurant in `GET /v1/restaurants` and `GET /v1/home` is **already live**:
+  `[{label, type}]`, first one shown. Labels arrive translated, so they are printed as sent, never
+  templated. `type` is `food_rescue` or `free_delivery` today (coupons will add one).
+- `eta_min_minutes` / `eta_max_minutes` on each restaurant in both lists: cooking plus the ride, never
+  under 15, the same speed figure the tracking countdown uses. The card shows "25–30 min".
+  **Absent** (not null) on `GET /v1/restaurants/{id}`, which has no customer position, so the
+  restaurant page reuses the window from the card it was opened from, and otherwise falls back to
+  `avg_prep_time_minutes`.
+- `POST /v1/orders/{id}/reorder` ([reorder_flow.dart](../lib/features/catalogue/presentation/reorder_flow.dart)):
+  answers with the cart (same shape as `GET .../cart`) plus `skipped: [{name}]`. It **replaces** that
+  restaurant's basket, so the app asks first when the basket has dishes in it, waits behind a spinner
+  (never optimistic), opens the cart, and names what was left out. Offered on the home "Order again"
+  row, on delivered orders in the Orders tab and on a delivered order's screen.
+- `rider.rating` (with `rating_count`) in `GET /v1/orders/{id}/track`: null until enough ratings, and
+  the badge is hidden on null. `rider.photo_url` is always null for now, by design (who takes it,
+  whether a rider can decline, what happens when they leave are unanswered), so the card shows the
+  rider's initial.
+- `restaurant.id` on each order in `GET /v1/orders` lets "Order again" open the restaurant.
+- `menu_item_id` is on every order line, and `item_option_id` on every option (null once that choice
+  is removed). The app uses the reorder endpoint rather than rebuilding a cart from these.
+
+---
+
+## 6. Profile page extras
+
+The profile page (top-right avatar on the storefront, or the Profile tab) also uses calls that
+already exist: `GET`/`PATCH /v1/profile`, the wallet, `GET /v1/favourites`, the devices list and
+account deletion. The ones below were asked of the backend in November 2026. Until each one is
+live the app treats a `404` as "nothing yet", so the page still works.
+
+State as of the backend's November 2026 reply: **preferences** and **feedback** are built and go
+live with the next deploy. **Coupons** and **app config** wait on business decisions (who creates
+coupons and who funds the discount; the real support numbers, hours and FAQ text). **Safety reports**
+are not built, on purpose: nothing can reach a person yet (no SMS gateway), so the app has no report
+button at all and the safety screen is "Call 112" first, then the Nexmile line.
+
+| Method | Path | Called from | Notes |
+|---|---|---|---|
+| `GET` | `/v1/profile/preferences` | [account_controller.dart](../lib/features/account/state/account_controller.dart) | `data: {veg_mode, promotional_notifications}`, both booleans. Read when the storefront first loads and when the profile opens, so veg mode set on one phone follows the customer to another. |
+| `PATCH` | `/v1/profile/preferences` | [profile_screen.dart](../lib/features/profile/profile_screen.dart), [account_sheets.dart](../lib/features/account/presentation/account_sheets.dart) | Sends only the field that changed; answers with both. Shown at once and put back if refused. A `404` keeps the choice on the phone alone. Marketing pushes should skip anyone with `promotional_notifications: false`; order updates always go. |
+| `GET` | `/v1/coupons` | [account_screens.dart](../lib/features/account/presentation/account_screens.dart) | `data: [...]`, only coupons this customer can use now. Each: `id`, `code`, `title`, `description`, `discount_type` (`flat` or `percent`), `discount_value`, `max_discount`, `min_order_value`, `valid_until` (ISO 8601), `restaurant` (`{id, name}`, or null for every restaurant), `terms` (list of strings). A coupon without a `code` is skipped. The profile tile shows how many. |
+| `GET` | `/v1/app/config` | [account_screens.dart](../lib/features/account/presentation/account_screens.dart), [account_sheets.dart](../lib/features/account/presentation/account_sheets.dart) | `data: {support_phone, support_whatsapp, support_email, safety_phone, support_hours, terms_url, privacy_url, faqs: [{question, answer}]}`. Every field may be null; a missing one hides its button. Phones are digits only, WhatsApp with the country code (`91…`). |
+| `POST` | `/v1/feedback` | [account_sheets.dart](../lib/features/account/presentation/account_sheets.dart) | `rating` (1–5, required), `message` (up to 1000 characters, may be empty), `platform` (`android`/`ios`, optional), `app_version` (such as `1.4.0 (12)`, optional). Answers `201`. Read at `/admin/feedback`, filterable by build. |
+
+Veg mode is the saved default for the storefront's "Pure veg" filter, and opens every menu on its
+veg dishes. The customer can still switch either off for the visit. With the filter on, the app sends
+`veg_only=1` to both `GET /v1/restaurants` and `GET /v1/home`. The home filters its restaurant
+sections (banners, cuisine tiles and collections stay, as merchandising) and echoes
+`meta.veg_only: true`; the curated home is kept only when that echo comes back, so a server that
+ignored the flag falls back to the plain veg list rather than showing non-veg restaurants.
 
 ---
 

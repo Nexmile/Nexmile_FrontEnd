@@ -349,12 +349,18 @@ class RestaurantGrid extends StatelessWidget {
   const RestaurantGrid({
     super.key,
     required this.items,
+    required this.heroScope,
     required this.onTap,
     required this.onFavourite,
   });
 
   final List<Restaurant> items;
-  final ValueChanged<Restaurant> onTap;
+
+  /// Names this grid in its cards' photo tags; see [restaurantPhotoTag].
+  final String heroScope;
+
+  /// The restaurant tapped, and its card photo's tag.
+  final void Function(Restaurant restaurant, Object heroTag) onTap;
   final ValueChanged<Restaurant> onFavourite;
 
   @override
@@ -387,7 +393,9 @@ class RestaurantGrid extends StatelessWidget {
           child: RestaurantCard(
             restaurant: items[i],
             compact: true,
-            onTap: () => onTap(items[i]),
+            heroTag: restaurantPhotoTag(heroScope, items[i].id),
+            onTap: () =>
+                onTap(items[i], restaurantPhotoTag(heroScope, items[i].id)),
             onFavourite: () => onFavourite(items[i]),
           ),
         ),

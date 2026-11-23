@@ -185,11 +185,15 @@ class SearchTabState extends State<SearchTab> {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (BuildContext context, int index) {
                     final Restaurant restaurant = results[index];
+                    final Object photo =
+                        restaurantPhotoTag('search', restaurant.id);
                     return RestaurantCard(
                       restaurant: restaurant,
+                      heroTag: photo,
                       onTap: () => Navigator.of(context).pushNamed(
                         AppRoutes.restaurant,
-                        arguments: RestaurantArgs(restaurantId: restaurant.id),
+                        arguments:
+                            RestaurantArgs.fromCard(restaurant, heroTag: photo),
                       ),
                     );
                   },

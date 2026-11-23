@@ -770,6 +770,132 @@ abstract class AppLocalizations {
   /// **'Arriving in about {minutes} minutes.'**
   String orderPlacedSubtitle(int minutes);
 
+  /// On the celebration screen right after checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'{restaurant} has your order.'**
+  String orderPlacedWith(String restaurant);
+
+  /// The kitchen's estimate, on the celebration screen right after checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready in about {minutes} minutes.'**
+  String orderPlacedPrep(int minutes);
+
+  /// Button on the celebration screen that goes straight to tracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your order'**
+  String get trackYourOrder;
+
+  /// Row on the cart, and the title of the sheet where a code is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply a coupon'**
+  String get couponApplyTitle;
+
+  /// Field label on the apply-coupon sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupon code'**
+  String get couponCodeLabel;
+
+  /// Button on the apply-coupon sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get couponApply;
+
+  /// The cart row once a coupon is on the cart, and the confirmation after applying it.
+  ///
+  /// In en, this message translates to:
+  /// **'{code} applied'**
+  String couponAppliedTitle(String code);
+
+  /// Under the applied coupon on the cart.
+  ///
+  /// In en, this message translates to:
+  /// **'You save {amount}'**
+  String couponSaving(String amount);
+
+  /// Takes the coupon off the cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get couponRemove;
+
+  /// The home search field's hint, cycling through food categories.
+  ///
+  /// In en, this message translates to:
+  /// **'Search \"{term}\"'**
+  String searchFor(String term);
+
+  /// Badge in the home header while only veg restaurants are shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Pure veg'**
+  String get vegModeBadge;
+
+  /// Clock time the order should arrive, under the minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected by {time}'**
+  String trackingExpectedBy(String time);
+
+  /// Home row of restaurants the customer has ordered from.
+  ///
+  /// In en, this message translates to:
+  /// **'Order again'**
+  String get orderAgainTitle;
+
+  /// What was in a past order: the first dish and how many others.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{{first}} =1{{first} + 1 more} other{{first} + {count} more}}'**
+  String orderAgainItems(String first, int count);
+
+  /// Delivery time on a restaurant card.
+  ///
+  /// In en, this message translates to:
+  /// **'{min}–{max} min'**
+  String etaRange(int min, int max);
+
+  /// Spoken label for the rider's star rating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated {rating} out of 5'**
+  String riderRatingLabel(String rating);
+
+  /// Asked before a past order replaces a basket that has dishes in it.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace your basket?'**
+  String get reorderReplaceTitle;
+
+  /// Under the replace-basket question.
+  ///
+  /// In en, this message translates to:
+  /// **'Your basket from {restaurant} will be replaced with the dishes from this order.'**
+  String reorderReplaceBody(String restaurant);
+
+  /// Confirms replacing the basket with a past order.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get reorderReplace;
+
+  /// After reordering, the dishes that could not be added back.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{dishes} isn\'t available right now, so it was left out.} other{{dishes} aren\'t available right now, so they were left out.}}'**
+  String reorderSkipped(String dishes, int count);
+
+  /// When nothing from a past order can be added back.
+  ///
+  /// In en, this message translates to:
+  /// **'None of these dishes are available right now.'**
+  String get reorderNothingAvailable;
+
   /// Headline once the order arrives.
   ///
   /// In en, this message translates to:
@@ -1663,6 +1789,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current location'**
   String get currentLocationLabel;
+
+  /// A setting that is switched on.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get onLabel;
+
+  /// A setting that is switched off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get offLabel;
+
+  /// Profile tile and screen title for the customer's coupons.
+  ///
+  /// In en, this message translates to:
+  /// **'Your coupons'**
+  String get profileCoupons;
+
+  /// How many coupons the customer can use, under the tile title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{1 to use} other{{count} to use}}'**
+  String profileCouponsCount(int count);
+
+  /// Profile section heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your preferences'**
+  String get profilePreferences;
+
+  /// Setting that shows only veg restaurants and dishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Veg mode'**
+  String get profileVegMode;
+
+  /// Explains veg mode under its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Only veg restaurants and dishes'**
+  String get profileVegModeHint;
+
+  /// Setting for light or dark colours.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get profileAppearance;
+
+  /// Appearance follows the phone's light or dark setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as phone'**
+  String get appearanceSystem;
+
+  /// Light appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get appearanceLight;
+
+  /// Dark appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get appearanceDark;
+
+  /// Profile row for notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get profileNotifications;
+
+  /// Profile section heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Food delivery'**
+  String get profileFoodDelivery;
+
+  /// Profile row and screen title for saved restaurants.
+  ///
+  /// In en, this message translates to:
+  /// **'Your favourites'**
+  String get profileFavourites;
+
+  /// Profile row and screen title for help.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & support'**
+  String get profileHelp;
+
+  /// Profile section heading for everything else.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get profileMore;
+
+  /// Profile row and sheet title for app feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get profileFeedback;
+
+  /// Profile row and sheet title for safety help.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a safety emergency'**
+  String get profileSafety;
+
+  /// Profile row and sheet title for app information.
+  ///
+  /// In en, this message translates to:
+  /// **'About Nexmile'**
+  String get profileAbout;
+
+  /// Empty state on the coupons screen.
+  ///
+  /// In en, this message translates to:
+  /// **'No coupons right now'**
+  String get couponsEmptyTitle;
+
+  /// Supporting line for the empty coupons screen.
+  ///
+  /// In en, this message translates to:
+  /// **'When there\'s a coupon you can use, it will show up here.'**
+  String get couponsEmptyBody;
+
+  /// Headline of a flat-discount coupon. The amount arrives formatted with the rupee sign.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} OFF'**
+  String couponFlatOff(String amount);
+
+  /// Headline of a percentage coupon.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% OFF'**
+  String couponPercentOff(String percent);
+
+  /// The most a percentage coupon takes off.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String couponUpTo(String amount);
+
+  /// Minimum order for a coupon.
+  ///
+  /// In en, this message translates to:
+  /// **'On orders above {amount}'**
+  String couponMinOrder(String amount);
+
+  /// Coupon expiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid till {date}'**
+  String couponValidTill(String date);
+
+  /// The coupon works everywhere.
+  ///
+  /// In en, this message translates to:
+  /// **'At all restaurants'**
+  String get couponAllRestaurants;
+
+  /// The coupon works at one restaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'At {restaurant}'**
+  String couponAtRestaurant(String restaurant);
+
+  /// Confirmation after copying a coupon code.
+  ///
+  /// In en, this message translates to:
+  /// **'Code {code} copied'**
+  String couponCopied(String code);
+
+  /// Empty state on the favourites screen.
+  ///
+  /// In en, this message translates to:
+  /// **'No favourites yet'**
+  String get favouritesEmptyTitle;
+
+  /// Supporting line for the empty favourites screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the heart on a restaurant to save it here.'**
+  String get favouritesEmptyBody;
+
+  /// Help screen button that phones support.
+  ///
+  /// In en, this message translates to:
+  /// **'Call us'**
+  String get helpCall;
+
+  /// Help screen button that opens a WhatsApp chat with support.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get helpWhatsApp;
+
+  /// Help screen button that writes to support.
+  ///
+  /// In en, this message translates to:
+  /// **'Email us'**
+  String get helpEmail;
+
+  /// When support answers. The hours arrive worded by the server.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re available {hours}'**
+  String helpHours(String hours);
+
+  /// Heading over the help screen's questions and answers.
+  ///
+  /// In en, this message translates to:
+  /// **'Common questions'**
+  String get helpFaqs;
+
+  /// Shown when the help information could not be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Help details aren\'t available right now. Please try again later.'**
+  String get helpNothing;
+
+  /// Question above the star rating in the feedback sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'How is Nexmile working for you?'**
+  String get feedbackPrompt;
+
+  /// Hint in the feedback text box.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what you liked, or what we can do better'**
+  String get feedbackHint;
+
+  /// Shown when feedback is sent without stars.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a rating first'**
+  String get feedbackNeedRating;
+
+  /// Confirmation after sending feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! Your feedback has reached our team.'**
+  String get feedbackThanks;
+
+  /// Top line of the safety sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'If you or someone else is in danger, call the emergency services first.'**
+  String get safetyIntro;
+
+  /// Button that phones India's emergency number.
+  ///
+  /// In en, this message translates to:
+  /// **'Call 112'**
+  String get safetyCallEmergency;
+
+  /// What 112 reaches.
+  ///
+  /// In en, this message translates to:
+  /// **'Police, fire and ambulance'**
+  String get safetyCallEmergencyBody;
+
+  /// Button that phones the Nexmile safety team.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Nexmile safety line'**
+  String get safetyCallNexmile;
+
+  /// When the safety line is answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Answered at all hours'**
+  String get safetyCallNexmileBody;
+
+  /// The installed app version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String aboutVersion(String version);
+
+  /// Link to the terms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of service'**
+  String get aboutTerms;
+
+  /// Link to the privacy policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get aboutPrivacy;
+
+  /// Opens the list of open-source licences used in the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licences'**
+  String get aboutLicences;
+
+  /// Notification type that cannot be switched off.
+  ///
+  /// In en, this message translates to:
+  /// **'Order updates'**
+  String get notifyOrderUpdates;
+
+  /// Why order updates cannot be switched off.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on, so you know where your food is.'**
+  String get notifyOrderUpdatesBody;
+
+  /// Notification type the customer can switch off.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers and promotions'**
+  String get notifyPromotions;
+
+  /// What offers and promotions notifications contain.
+  ///
+  /// In en, this message translates to:
+  /// **'Deals, coupons and new restaurants near you.'**
+  String get notifyPromotionsBody;
+
+  /// Shown when the phone blocks the app's notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are turned off for Nexmile on this phone.'**
+  String get notifyPhoneOff;
+
+  /// Button that turns notifications on for the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get notifyTurnOn;
+
+  /// Shown when a call, email or web link cannot be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'That couldn\'t be opened on this phone.'**
+  String get linkOpenFailed;
 
   /// Title of the sheet that edits name, email and mobile number.
   ///

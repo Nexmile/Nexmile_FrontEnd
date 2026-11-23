@@ -3,12 +3,14 @@ import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:provider/provider.dart';
 
 import '../../../core/motion/app_motion.dart';
+import '../../../core/motion/haptics.dart';
 import '../../../core/motion/reveal.dart';
 import '../../../core/motion/skeleton.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../generated/l10n/app_localizations.dart';
+import '../../account/state/account_controller.dart';
 import '../../auth/data/auth_failure.dart';
 import '../data/cart_models.dart';
 import '../data/menu_filters.dart';
@@ -17,6 +19,7 @@ import '../state/cart_controller.dart';
 import '../state/storefront_controller.dart';
 import 'widgets/catalogue_widgets.dart';
 import 'widgets/customise_sheet.dart';
+import 'widgets/dish_photo_viewer.dart';
 import 'widgets/menu_browser.dart';
 import 'widgets/menu_toolbar.dart';
 
@@ -53,6 +56,10 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   @override
   void initState() {
     super.initState();
+    // Veg mode opens every menu on veg dishes; the chip clears it as usual.
+    if (context.read<AccountController>().vegMode) {
+      _filters = const MenuFilters(diet: MenuDiet.veg);
+    }
     _searchFocus.addListener(_onSearchFocus);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
@@ -175,9 +182,14 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
   static String _sectionTitle(AppLocalizations l10n, MenuSection section) =>
       section.isUncategorised ? l10n.moreDishesTitle : section.name;
 
+  /// Whether [_load] has run. Until it has, the controller may still hold
+  /// the last restaurant visited, which must not flash up for a frame.
+  bool _loadStarted = false;
+
   Future<void> _load() async {
     if (!mounted) return;
     final String id = widget.args.restaurantId;
+    _loadStarted = true;
     await context.read<StorefrontController>().openRestaurant(id);
     if (!mounted) return;
     // Carts are per-restaurant, so this shop's basket is fetched alongside its
@@ -257,10 +269,35 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     final Restaurant? restaurant = storefront.current;
     final RestaurantMenu? menu = storefront.menu;
 
-    if (storefront.isMenuLoading) {
+    if (!_loadStarted || storefront.isMenuLoading) {
+      final Restaurant? preview = widget.args.preview;
+      if (preview == null) {
+        return Scaffold(
+          appBar: AppBar(),
+          body: const MenuSkeleton(),
+        );
+      }
+      // Opened from a card: its photo and name are already known, so they
+      // show at once, and the card's photo grows into this banner. Built in
+      // the same shape as the loaded page, so the banner stays put when the
+      // menu arrives under it.
       return Scaffold(
-        appBar: AppBar(),
-        body: const MenuSkeleton(),
+        body: RefreshIndicator(
+          color: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          displacement: 28,
+          onRefresh: _load,
+          child: CustomScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            slivers: <Widget>[
+              _RestaurantHeader(
+                restaurant: preview,
+                heroTag: widget.args.heroTag,
+              ),
+              const SliverToBoxAdapter(child: MenuSkeleton()),
+            ],
+          ),
+        ),
       );
     }
 
@@ -270,6 +307,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
         body: SingleChildScrollView(
           child: EmptyState(
             emoji: '📡',
+            alert: true,
             title: l10n.somethingWentWrong,
             subtitle: (storefront.menuFailure ?? AuthFailure.unknown)
                 .message(l10n),
@@ -297,14 +335,23 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
         color: Theme.of(context).colorScheme.primary,
         backgroundColor: Theme.of(context).colorScheme.surface,
         displacement: 28,
-        onRefresh: _load,
+        onRefresh: () {
+          Haptics.tap();
+          return _load();
+        },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: <Widget>[
-            _RestaurantHeader(restaurant: restaurant),
+            _RestaurantHeader(
+              restaurant: restaurant,
+              heroTag: widget.args.heroTag,
+            ),
             SliverToBoxAdapter(
-              child: _RestaurantSummary(restaurant: restaurant),
+              child: _RestaurantSummary(
+                restaurant: restaurant,
+                preview: widget.args.preview,
+              ),
             ),
             if (!hasMenu)
               SliverToBoxAdapter(
@@ -383,6 +430,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                           index: index,
                           child: _MenuRow(
                             item: item,
+                            photoTag: dishPhotoTag(match.index, item.id),
                             canOrder: restaurant.isOpen,
                             onAdd: () => _add(item),
                             onRemove: () => _remove(item),
@@ -403,9 +451,12 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
 }
 
 class _RestaurantHeader extends StatelessWidget {
-  const _RestaurantHeader({required this.restaurant});
+  const _RestaurantHeader({required this.restaurant, this.heroTag});
 
   final Restaurant restaurant;
+
+  /// The tag of the card photo this page was opened from, if any.
+  final Object? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -423,7 +474,7 @@ class _RestaurantHeader extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: <Widget>[
-            _PhotoCarousel(restaurant: restaurant),
+            _PhotoCarousel(restaurant: restaurant, heroTag: heroTag),
             // Two scrims rather than one: the top keeps the back arrow legible
             // on a bright photo, the bottom lets the summary below sit against
             // something rather than a hard edge.
@@ -499,9 +550,12 @@ class _CollapsedTitle extends StatelessWidget {
 /// the single image the header always drew, with no dots and no page view to
 /// swallow a horizontal drag.
 class _PhotoCarousel extends StatefulWidget {
-  const _PhotoCarousel({required this.restaurant});
+  const _PhotoCarousel({required this.restaurant, this.heroTag});
 
   final Restaurant restaurant;
+
+  /// Put on the first photo, the one the card showed.
+  final Object? heroTag;
 
   @override
   State<_PhotoCarousel> createState() => _PhotoCarouselState();
@@ -510,6 +564,11 @@ class _PhotoCarousel extends StatefulWidget {
 class _PhotoCarouselState extends State<_PhotoCarousel> {
   final PageController _controller = PageController();
   int _index = 0;
+
+  Widget _withHero(Widget photo) {
+    final Object? tag = widget.heroTag;
+    return tag == null ? photo : Hero(tag: tag, child: photo);
+  }
 
   @override
   void dispose() {
@@ -523,11 +582,13 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
     final List<RestaurantPhoto> photos = restaurant.gallery;
 
     if (photos.length < 2) {
-      return FoodImage(
-        seed: restaurant.id,
-        url: photos.isEmpty ? restaurant.logoUrl : photos.first.url,
-        size: double.infinity,
-        radius: 0,
+      return _withHero(
+        FoodImage(
+          seed: restaurant.id,
+          url: photos.isEmpty ? restaurant.logoUrl : photos.first.url,
+          size: double.infinity,
+          radius: 0,
+        ),
       );
     }
 
@@ -548,12 +609,21 @@ class _PhotoCarouselState extends State<_PhotoCarousel> {
               // picture: it arrives in whatever language they typed it in, and
               // the app is read in twenty-three.
               label: photo.caption,
-              child: FoodImage(
-                seed: '${restaurant.id}-${photo.id}',
-                url: photo.url,
-                size: double.infinity,
-                radius: 0,
-              ),
+              child: i == 0
+                  ? _withHero(
+                      FoodImage(
+                        seed: '${restaurant.id}-${photo.id}',
+                        url: photo.url,
+                        size: double.infinity,
+                        radius: 0,
+                      ),
+                    )
+                  : FoodImage(
+                      seed: '${restaurant.id}-${photo.id}',
+                      url: photo.url,
+                      size: double.infinity,
+                      radius: 0,
+                    ),
             );
           },
         ),
@@ -601,9 +671,15 @@ class _PhotoDots extends StatelessWidget {
 }
 
 class _RestaurantSummary extends StatelessWidget {
-  const _RestaurantSummary({required this.restaurant});
+  const _RestaurantSummary({required this.restaurant, this.preview});
 
   final Restaurant restaurant;
+
+  /// The card this page was opened from. `GET /v1/restaurants/{id}` has no
+  /// customer position, so it carries no delivery window; the card's is
+  /// used instead, so the page never says "20 min" right after the card
+  /// said "25–30 min".
+  final Restaurant? preview;
 
   @override
   Widget build(BuildContext context) {
@@ -666,7 +742,14 @@ class _RestaurantSummary extends StatelessWidget {
             children: <Widget>[
               _Fact(
                 icon: Icons.schedule_rounded,
-                label: l10n.minutesAway(restaurant.avgPrepTimeMinutes),
+                label: switch ((restaurant, preview)) {
+                  (final Restaurant r, _) when r.hasEtaRange =>
+                    l10n.etaRange(r.etaMinMinutes!, r.etaMaxMinutes!),
+                  (_, final Restaurant p)
+                      when p.id == restaurant.id && p.hasEtaRange =>
+                    l10n.etaRange(p.etaMinMinutes!, p.etaMaxMinutes!),
+                  _ => l10n.minutesAway(restaurant.avgPrepTimeMinutes),
+                },
               ),
               if (restaurant.distanceKmLabel != null)
                 _Fact(
@@ -802,12 +885,16 @@ class _BestsellerTag extends StatelessWidget {
 class _MenuRow extends StatelessWidget {
   const _MenuRow({
     required this.item,
+    required this.photoTag,
     required this.canOrder,
     required this.onAdd,
     required this.onRemove,
   });
 
   final MenuItem item;
+
+  /// From [dishPhotoTag]: the thumbnail grows into the full-screen photo.
+  final Object photoTag;
   final bool canOrder;
   final VoidCallback onAdd;
   final VoidCallback onRemove;
@@ -921,7 +1008,7 @@ class _MenuRow extends StatelessWidget {
           const SizedBox(width: 14),
           Column(
             children: <Widget>[
-              FoodImage(seed: '${item.id}', url: item.imageUrl, size: 96),
+              _DishThumbnail(item: item, heroTag: photoTag),
               const SizedBox(height: 8),
               SizedBox(
                 width: 104,
@@ -944,6 +1031,32 @@ class _MenuRow extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A dish's photo in its row. Tapped, it opens full screen.
+class _DishThumbnail extends StatelessWidget {
+  const _DishThumbnail({required this.item, required this.heroTag});
+
+  final MenuItem item;
+  final Object heroTag;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget photo =
+        FoodImage(seed: '${item.id}', url: item.imageUrl, size: 96);
+    final String? url = item.imageUrl;
+    // Only a real photo is worth opening; the emoji fallback is not.
+    if (url == null || url.isEmpty) return photo;
+    return Semantics(
+      button: true,
+      image: true,
+      label: item.name,
+      child: GestureDetector(
+        onTap: () => showDishPhoto(context, item: item, heroTag: heroTag),
+        child: Hero(tag: heroTag, child: photo),
       ),
     );
   }
@@ -1015,14 +1128,38 @@ class _CartBarBody extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Text(
-                        l10n.itemsInCart(cart.itemCount),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium
-                            ?.copyWith(color: Colors.white70),
+                      // The count rolls up and the total counts to its new
+                      // value, so each dish visibly lands in the basket.
+                      AnimatedSwitcher(
+                        duration: AppMotion.quick,
+                        transitionBuilder:
+                            (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.5),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          );
+                        },
+                        layoutBuilder: (Widget? current, List<Widget> previous) =>
+                            Stack(
+                          alignment: AlignmentDirectional.centerStart,
+                          children: <Widget>[...previous, if (current != null) current],
+                        ),
+                        child: Text(
+                          l10n.itemsInCart(cart.itemCount),
+                          key: ValueKey<int>(cart.itemCount),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium
+                              ?.copyWith(color: Colors.white70),
+                        ),
                       ),
-                      Rupees(
+                      AnimatedRupees(
                         cart.totals.grandTotal,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: Colors.white,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/motion/app_motion.dart';
+import '../../core/motion/haptics.dart';
 import '../../core/motion/reveal.dart';
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
@@ -48,6 +49,7 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _select(int index) {
+    if (index != _index) Haptics.select();
     setState(() {
       _index = index;
       _visited.add(index);

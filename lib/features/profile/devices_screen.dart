@@ -159,6 +159,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 children: <Widget>[
                   EmptyState(
                     emoji: '📡',
+                    alert: true,
                     title: l10n.somethingWentWrong,
                     subtitle: _failure!.message(l10n),
                     action: OutlinedButton(

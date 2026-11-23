@@ -67,6 +67,8 @@ class Restaurant {
     required this.offers,
     this.photos = const <RestaurantPhoto>[],
     this.distanceMetres,
+    this.etaMinMinutes,
+    this.etaMaxMinutes,
     this.rating,
     this.ratingCount = 0,
     this.isPureVeg = false,
@@ -92,6 +94,19 @@ class Restaurant {
   final bool withinOperatingHours;
 
   final int avgPrepTimeMinutes;
+
+  /// Delivery time, cooking plus the ride, as the server works it out for
+  /// this customer: `eta_min_minutes` and `eta_max_minutes`. Null until the
+  /// API sends them, when the card falls back to [avgPrepTimeMinutes].
+  final int? etaMinMinutes;
+  final int? etaMaxMinutes;
+
+  /// "25–30 min" is only claimed when both ends make sense.
+  bool get hasEtaRange =>
+      etaMinMinutes != null &&
+      etaMaxMinutes != null &&
+      etaMinMinutes! > 0 &&
+      etaMaxMinutes! >= etaMinMinutes!;
   final double packagingFee;
   final double minOrderValue;
   final bool supportsPickup;
@@ -175,6 +190,12 @@ class Restaurant {
         isAcceptingOrders: asBool(json['is_accepting_orders']),
         withinOperatingHours: asBool(json['within_operating_hours']),
         avgPrepTimeMinutes: asInt(json['avg_prep_time_minutes']),
+        etaMinMinutes: json['eta_min_minutes'] == null
+            ? null
+            : asInt(json['eta_min_minutes']),
+        etaMaxMinutes: json['eta_max_minutes'] == null
+            ? null
+            : asInt(json['eta_max_minutes']),
         packagingFee: asDouble(json['packaging_fee']),
         minOrderValue: asDouble(json['min_order_value']),
         supportsPickup: asBool(json['supports_pickup']),
@@ -230,6 +251,8 @@ class Restaurant {
         offers: offers,
         photos: photos,
         distanceMetres: distanceMetres,
+        etaMinMinutes: etaMinMinutes,
+        etaMaxMinutes: etaMaxMinutes,
         rating: rating,
         ratingCount: ratingCount,
         isPureVeg: isPureVeg,

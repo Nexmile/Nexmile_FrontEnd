@@ -216,6 +216,7 @@ class _VoiceSearchSheetState extends State<_VoiceSearchSheet>
                     onPressed: _heard.trim().isEmpty ? null : _finish,
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.greenDeep,
+                      foregroundColor: Colors.white,
                       minimumSize: const Size.fromHeight(50),
                     ),
                     child: Text(l10n.searchTitle),

@@ -112,10 +112,25 @@ class StorefrontController extends ChangeNotifier {
 
   bool get isHomeLoading => _isHomeLoading;
 
+  /// Where the curated home was last asked for, so the veg switch can ask
+  /// again for the same place.
+  int? _homeAddressId;
+  double? _homeLatitude;
+  double? _homeLongitude;
+
   /// True while the curated home should be shown. The moment any filter is on,
   /// the screen switches to the plain filtered list — a curated "Recommended
   /// for you" that ignores the filters the customer just set would be a lie.
-  bool get showsHome => !_filters.isActive && (_home?.isEmpty == false);
+  ///
+  /// Veg only is the one exception: `GET /v1/home?veg_only=1` filters its
+  /// restaurant sections, so the home stays — but only once the answer says
+  /// it was filtered (`meta.veg_only`). Until then it is the plain veg list.
+  bool get showsHome {
+    final HomeScreen? home = _home;
+    if (home == null || home.isEmpty) return false;
+    if (_filters.copyWith(vegOnly: false).isActive) return false;
+    return !_filters.vegOnly || home.vegOnly;
+  }
 
   /// `GET /v1/home`. A failure here is not fatal — the nearby list below it
   /// still renders, so the screen degrades to what it was before.
@@ -124,6 +139,9 @@ class StorefrontController extends ChangeNotifier {
     double? latitude,
     double? longitude,
   }) async {
+    _homeAddressId = addressId;
+    _homeLatitude = latitude;
+    _homeLongitude = longitude;
     _isHomeLoading = true;
     notifyListeners();
     try {
@@ -131,6 +149,7 @@ class StorefrontController extends ChangeNotifier {
         addressId: addressId,
         latitude: latitude,
         longitude: longitude,
+        vegOnly: _filters.vegOnly,
       );
     } on ApiException {
       _home = null;
@@ -184,17 +203,35 @@ class StorefrontController extends ChangeNotifier {
     }
   }
 
+  /// Sets the filters without loading, for a load that is about to run
+  /// anyway: the home tab uses it to start on "Pure veg" in veg mode.
+  void presetFilters(RestaurantFilters value) {
+    if (_filters == value) return;
+    _filters = value;
+    notifyListeners();
+  }
+
   /// Filtering and sorting run server-side, so this re-queries rather than
   /// reordering the page already on screen. Identical filters are ignored, so
   /// reopening the sheet and pressing "Show results" unchanged costs nothing.
   Future<void> applyFilters(RestaurantFilters value) async {
     if (_filters == value) return;
+    final bool vegChanged = _filters.vegOnly != value.vegOnly;
     _filters = value;
-    await load(
-      addressId: _addressId,
-      latitude: _latitude,
-      longitude: _longitude,
-    );
+    await Future.wait(<Future<void>>[
+      load(
+        addressId: _addressId,
+        latitude: _latitude,
+        longitude: _longitude,
+      ),
+      // The curated home has a veg-only version too, so it follows the switch.
+      if (vegChanged && _home != null)
+        loadHome(
+          addressId: _homeAddressId,
+          latitude: _homeLatitude,
+          longitude: _homeLongitude,
+        ),
+    ]);
   }
 
   /// Categories run server-side, so this re-queries rather than filtering the

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/motion/app_motion.dart';
+import '../../../../core/motion/haptics.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../data/restaurant_filters.dart';
@@ -102,7 +103,10 @@ class VegToggle extends StatelessWidget {
       toggled: value,
       label: l10n.vegOnly,
       child: GestureDetector(
-        onTap: () => onChanged(!value),
+        onTap: () {
+          Haptics.select();
+          onChanged(!value);
+        },
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -203,7 +207,10 @@ class FilterPill extends StatelessWidget {
           : theme.colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          Haptics.select();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(10),
         child: Ink(
           decoration: BoxDecoration(

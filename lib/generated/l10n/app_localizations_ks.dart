@@ -389,6 +389,105 @@ class AppLocalizationsKs extends AppLocalizations {
   }
 
   @override
+  String orderPlacedWith(String restaurant) {
+    return '$restaurant has your order.';
+  }
+
+  @override
+  String orderPlacedPrep(int minutes) {
+    return 'Ready in about $minutes minutes.';
+  }
+
+  @override
+  String get trackYourOrder => 'Track your order';
+
+  @override
+  String get couponApplyTitle => 'Apply a coupon';
+
+  @override
+  String get couponCodeLabel => 'Coupon code';
+
+  @override
+  String get couponApply => 'Apply';
+
+  @override
+  String couponAppliedTitle(String code) {
+    return '$code applied';
+  }
+
+  @override
+  String couponSaving(String amount) {
+    return 'You save $amount';
+  }
+
+  @override
+  String get couponRemove => 'Remove';
+
+  @override
+  String searchFor(String term) {
+    return 'Search \"$term\"';
+  }
+
+  @override
+  String get vegModeBadge => 'Pure veg';
+
+  @override
+  String trackingExpectedBy(String time) {
+    return 'Expected by $time';
+  }
+
+  @override
+  String get orderAgainTitle => 'Order again';
+
+  @override
+  String orderAgainItems(String first, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$first + $count more',
+      one: '$first + 1 more',
+      zero: '$first',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String etaRange(int min, int max) {
+    return '$min–$max min';
+  }
+
+  @override
+  String riderRatingLabel(String rating) {
+    return 'Rated $rating out of 5';
+  }
+
+  @override
+  String get reorderReplaceTitle => 'Replace your basket?';
+
+  @override
+  String reorderReplaceBody(String restaurant) {
+    return 'Your basket from $restaurant will be replaced with the dishes from this order.';
+  }
+
+  @override
+  String get reorderReplace => 'Replace';
+
+  @override
+  String reorderSkipped(String dishes, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$dishes aren\'t available right now, so they were left out.',
+      one: '$dishes isn\'t available right now, so it was left out.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reorderNothingAvailable =>
+      'None of these dishes are available right now.';
+
+  @override
   String get orderDeliveredTitle => 'ڈیلیور گو';
 
   @override
@@ -888,6 +987,211 @@ class AppLocalizationsKs extends AppLocalizations {
 
   @override
   String get currentLocationLabel => 'موجودٕ جاے';
+
+  @override
+  String get onLabel => 'On';
+
+  @override
+  String get offLabel => 'Off';
+
+  @override
+  String get profileCoupons => 'Your coupons';
+
+  @override
+  String profileCouponsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count to use',
+      one: '1 to use',
+      zero: 'None yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profilePreferences => 'Your preferences';
+
+  @override
+  String get profileVegMode => 'Veg mode';
+
+  @override
+  String get profileVegModeHint => 'Only veg restaurants and dishes';
+
+  @override
+  String get profileAppearance => 'Appearance';
+
+  @override
+  String get appearanceSystem => 'Same as phone';
+
+  @override
+  String get appearanceLight => 'Light';
+
+  @override
+  String get appearanceDark => 'Dark';
+
+  @override
+  String get profileNotifications => 'Notifications';
+
+  @override
+  String get profileFoodDelivery => 'Food delivery';
+
+  @override
+  String get profileFavourites => 'Your favourites';
+
+  @override
+  String get profileHelp => 'Help & support';
+
+  @override
+  String get profileMore => 'More';
+
+  @override
+  String get profileFeedback => 'Send feedback';
+
+  @override
+  String get profileSafety => 'Report a safety emergency';
+
+  @override
+  String get profileAbout => 'About Nexmile';
+
+  @override
+  String get couponsEmptyTitle => 'No coupons right now';
+
+  @override
+  String get couponsEmptyBody =>
+      'When there\'s a coupon you can use, it will show up here.';
+
+  @override
+  String couponFlatOff(String amount) {
+    return '$amount OFF';
+  }
+
+  @override
+  String couponPercentOff(String percent) {
+    return '$percent% OFF';
+  }
+
+  @override
+  String couponUpTo(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String couponMinOrder(String amount) {
+    return 'On orders above $amount';
+  }
+
+  @override
+  String couponValidTill(String date) {
+    return 'Valid till $date';
+  }
+
+  @override
+  String get couponAllRestaurants => 'At all restaurants';
+
+  @override
+  String couponAtRestaurant(String restaurant) {
+    return 'At $restaurant';
+  }
+
+  @override
+  String couponCopied(String code) {
+    return 'Code $code copied';
+  }
+
+  @override
+  String get favouritesEmptyTitle => 'No favourites yet';
+
+  @override
+  String get favouritesEmptyBody =>
+      'Tap the heart on a restaurant to save it here.';
+
+  @override
+  String get helpCall => 'Call us';
+
+  @override
+  String get helpWhatsApp => 'WhatsApp';
+
+  @override
+  String get helpEmail => 'Email us';
+
+  @override
+  String helpHours(String hours) {
+    return 'We\'re available $hours';
+  }
+
+  @override
+  String get helpFaqs => 'Common questions';
+
+  @override
+  String get helpNothing =>
+      'Help details aren\'t available right now. Please try again later.';
+
+  @override
+  String get feedbackPrompt => 'How is Nexmile working for you?';
+
+  @override
+  String get feedbackHint => 'Tell us what you liked, or what we can do better';
+
+  @override
+  String get feedbackNeedRating => 'Choose a rating first';
+
+  @override
+  String get feedbackThanks => 'Thanks! Your feedback has reached our team.';
+
+  @override
+  String get safetyIntro =>
+      'If you or someone else is in danger, call the emergency services first.';
+
+  @override
+  String get safetyCallEmergency => 'Call 112';
+
+  @override
+  String get safetyCallEmergencyBody => 'Police, fire and ambulance';
+
+  @override
+  String get safetyCallNexmile => 'Call Nexmile safety line';
+
+  @override
+  String get safetyCallNexmileBody => 'Answered at all hours';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get aboutTerms => 'Terms of service';
+
+  @override
+  String get aboutPrivacy => 'Privacy policy';
+
+  @override
+  String get aboutLicences => 'Open-source licences';
+
+  @override
+  String get notifyOrderUpdates => 'Order updates';
+
+  @override
+  String get notifyOrderUpdatesBody =>
+      'Always on, so you know where your food is.';
+
+  @override
+  String get notifyPromotions => 'Offers and promotions';
+
+  @override
+  String get notifyPromotionsBody =>
+      'Deals, coupons and new restaurants near you.';
+
+  @override
+  String get notifyPhoneOff =>
+      'Notifications are turned off for Nexmile on this phone.';
+
+  @override
+  String get notifyTurnOn => 'Turn on';
+
+  @override
+  String get linkOpenFailed => 'That couldn\'t be opened on this phone.';
 
   @override
   String get editProfileTitle => 'پروفائل تبدیل کریو';

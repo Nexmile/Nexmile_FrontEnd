@@ -23,6 +23,7 @@ abstract class StorefrontRepository {
     int? addressId,
     double? latitude,
     double? longitude,
+    bool vegOnly = false,
   });
 
   /// `GET /v1/favourites`
@@ -101,8 +102,19 @@ abstract class StorefrontRepository {
   /// `DELETE /v1/restaurants/{id}/cart`
   Future<void> emptyCart(String restaurantId);
 
+  /// `POST /v1/restaurants/{id}/cart/coupon`. Answers with the cart, discount
+  /// applied; a refused code is a 422 under `errors.code`.
+  Future<Cart> applyCoupon(String restaurantId, {required String code});
+
+  /// `DELETE /v1/restaurants/{id}/cart/coupon`
+  Future<Cart> removeCoupon(String restaurantId);
+
   /// `GET /v1/carts` — every restaurant with an unfinished basket.
   Future<List<OpenCart>> openCarts();
+
+  /// `POST /v1/orders/{id}/reorder`. Replaces that restaurant's basket with
+  /// the order; it does not add to what was there.
+  Future<Reorder> reorder(int orderId);
 
   /// `POST /v1/restaurants/{id}/cart/checkout`
   Future<Order> checkout(
@@ -141,6 +153,7 @@ class ApiStorefrontRepository implements StorefrontRepository {
     int? addressId,
     double? latitude,
     double? longitude,
+    bool vegOnly = false,
   }) async {
     final Map<String, dynamic> response = await _client.get(
       '/v1/home',
@@ -148,6 +161,7 @@ class ApiStorefrontRepository implements StorefrontRepository {
         if (addressId != null) 'address_id': '$addressId',
         if (addressId == null && latitude != null) 'latitude': '$latitude',
         if (addressId == null && longitude != null) 'longitude': '$longitude',
+        if (vegOnly) 'veg_only': '1',
       },
     );
     return HomeScreen.fromJson(_data(response), _meta(response));
@@ -325,6 +339,22 @@ class ApiStorefrontRepository implements StorefrontRepository {
   }
 
   @override
+  Future<Cart> applyCoupon(String restaurantId, {required String code}) async {
+    final Map<String, dynamic> response = await _client.post(
+      '/v1/restaurants/$restaurantId/cart/coupon',
+      body: <String, dynamic>{'code': code},
+    );
+    return Cart.fromJson(_data(response));
+  }
+
+  @override
+  Future<Cart> removeCoupon(String restaurantId) async {
+    final Map<String, dynamic> response =
+        await _client.delete('/v1/restaurants/$restaurantId/cart/coupon');
+    return Cart.fromJson(_data(response));
+  }
+
+  @override
   Future<void> emptyCart(String restaurantId) =>
       _client.delete('/v1/restaurants/$restaurantId/cart');
 
@@ -380,6 +410,14 @@ class ApiStorefrontRepository implements StorefrontRepository {
     final Map<String, dynamic> response =
         await _client.get('/v1/orders/$orderId/track');
     return OrderTracking.fromJson(_data(response));
+  }
+
+  @override
+  Future<Reorder> reorder(int orderId) async {
+    final Map<String, dynamic> response =
+        await _client.post('/v1/orders/$orderId/reorder');
+    final Map<String, dynamic> data = _data(response);
+    return Reorder.fromResponse(data, response['skipped'] ?? data['skipped']);
   }
 
   @override

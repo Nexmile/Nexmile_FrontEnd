@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/motion/haptics.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -164,6 +165,7 @@ class _RateOrderScreenState extends State<RateOrderScreen> {
             onPressed: _rating == 0 || _isSending ? null : _submit,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.greenDeep,
+              foregroundColor: Colors.white,
               minimumSize: const Size.fromHeight(52),
             ),
             child: _isSending
@@ -208,7 +210,10 @@ class _StarPicker extends StatelessWidget {
             button: true,
             selected: star <= value,
             child: InkResponse(
-              onTap: () => onChanged(star == value ? 0 : star),
+              onTap: () {
+                Haptics.select();
+                onChanged(star == value ? 0 : star);
+              },
               radius: size * 0.7,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),

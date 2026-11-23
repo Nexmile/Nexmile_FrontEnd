@@ -456,6 +456,111 @@
     "placeholders": { "minutes": { "type": "int", "example": "28" } }
   },
 
+  "orderPlacedWith": "{restaurant} has your order.",
+  "@orderPlacedWith": {
+    "description": "On the celebration screen right after checkout.",
+    "placeholders": { "restaurant": { "type": "String", "example": "Anjappar Chettinad" } }
+  },
+
+  "orderPlacedPrep": "Ready in about {minutes} minutes.",
+  "@orderPlacedPrep": {
+    "description": "The kitchen's estimate, on the celebration screen right after checkout.",
+    "placeholders": { "minutes": { "type": "int", "example": "20" } }
+  },
+
+  "trackYourOrder": "Track your order",
+  "@trackYourOrder": { "description": "Button on the celebration screen that goes straight to tracking." },
+
+  "couponApplyTitle": "Apply a coupon",
+  "@couponApplyTitle": { "description": "Row on the cart, and the title of the sheet where a code is typed." },
+
+  "couponCodeLabel": "Coupon code",
+  "@couponCodeLabel": { "description": "Field label on the apply-coupon sheet." },
+
+  "couponApply": "Apply",
+  "@couponApply": { "description": "Button on the apply-coupon sheet." },
+
+  "couponAppliedTitle": "{code} applied",
+  "@couponAppliedTitle": {
+    "description": "The cart row once a coupon is on the cart, and the confirmation after applying it.",
+    "placeholders": { "code": { "type": "String", "example": "WELCOME50" } }
+  },
+
+  "couponSaving": "You save {amount}",
+  "@couponSaving": {
+    "description": "Under the applied coupon on the cart.",
+    "placeholders": { "amount": { "type": "String", "example": "₹50" } }
+  },
+
+  "couponRemove": "Remove",
+  "@couponRemove": { "description": "Takes the coupon off the cart." },
+
+  "searchFor": "Search \"{term}\"",
+  "@searchFor": {
+    "description": "The home search field's hint, cycling through food categories.",
+    "placeholders": { "term": { "type": "String", "example": "Biryani" } }
+  },
+
+  "vegModeBadge": "Pure veg",
+  "@vegModeBadge": { "description": "Badge in the home header while only veg restaurants are shown." },
+
+  "trackingExpectedBy": "Expected by {time}",
+  "@trackingExpectedBy": {
+    "description": "Clock time the order should arrive, under the minutes.",
+    "placeholders": { "time": { "type": "String", "example": "7:42 PM" } }
+  },
+
+  "orderAgainTitle": "Order again",
+  "@orderAgainTitle": { "description": "Home row of restaurants the customer has ordered from." },
+
+  "orderAgainItems": "{count, plural, =0{{first}} =1{{first} + 1 more} other{{first} + {count} more}}",
+  "@orderAgainItems": {
+    "description": "What was in a past order: the first dish and how many others.",
+    "placeholders": {
+      "first": { "type": "String", "example": "Mutton Biryani" },
+      "count": { "type": "int", "example": "2" }
+    }
+  },
+
+  "etaRange": "{min}–{max} min",
+  "@etaRange": {
+    "description": "Delivery time on a restaurant card.",
+    "placeholders": {
+      "min": { "type": "int", "example": "25" },
+      "max": { "type": "int", "example": "30" }
+    }
+  },
+
+  "riderRatingLabel": "Rated {rating} out of 5",
+  "@riderRatingLabel": {
+    "description": "Spoken label for the rider's star rating.",
+    "placeholders": { "rating": { "type": "String", "example": "4.8" } }
+  },
+
+  "reorderReplaceTitle": "Replace your basket?",
+  "@reorderReplaceTitle": { "description": "Asked before a past order replaces a basket that has dishes in it." },
+
+  "reorderReplaceBody": "Your basket from {restaurant} will be replaced with the dishes from this order.",
+  "@reorderReplaceBody": {
+    "description": "Under the replace-basket question.",
+    "placeholders": { "restaurant": { "type": "String", "example": "Anjappar Chettinad" } }
+  },
+
+  "reorderReplace": "Replace",
+  "@reorderReplace": { "description": "Confirms replacing the basket with a past order." },
+
+  "reorderSkipped": "{count, plural, =1{{dishes} isn't available right now, so it was left out.} other{{dishes} aren't available right now, so they were left out.}}",
+  "@reorderSkipped": {
+    "description": "After reordering, the dishes that could not be added back.",
+    "placeholders": {
+      "dishes": { "type": "String", "example": "Mutton Biryani, Egg Bonda" },
+      "count": { "type": "int", "example": "2" }
+    }
+  },
+
+  "reorderNothingAvailable": "None of these dishes are available right now.",
+  "@reorderNothingAvailable": { "description": "When nothing from a past order can be added back." },
+
   "orderDeliveredTitle": "Delivered",
   "@orderDeliveredTitle": { "description": "Headline once the order arrives." },
 
@@ -910,6 +1015,177 @@
 
   "currentLocationLabel": "Current location",
   "@currentLocationLabel": {"description":"Small caps label above the home header when the customer has no saved address and the list is anchored on the phone GPS instead."},
+
+  "onLabel": "On",
+  "@onLabel": {"description": "A setting that is switched on."},
+
+  "offLabel": "Off",
+  "@offLabel": {"description": "A setting that is switched off."},
+
+  "profileCoupons": "Your coupons",
+  "@profileCoupons": {"description": "Profile tile and screen title for the customer's coupons."},
+
+  "profileCouponsCount": "{count, plural, =0{None yet} =1{1 to use} other{{count} to use}}",
+  "@profileCouponsCount": {"description": "How many coupons the customer can use, under the tile title.", "placeholders": {"count": {"type": "int"}}},
+
+  "profilePreferences": "Your preferences",
+  "@profilePreferences": {"description": "Profile section heading."},
+
+  "profileVegMode": "Veg mode",
+  "@profileVegMode": {"description": "Setting that shows only veg restaurants and dishes."},
+
+  "profileVegModeHint": "Only veg restaurants and dishes",
+  "@profileVegModeHint": {"description": "Explains veg mode under its title."},
+
+  "profileAppearance": "Appearance",
+  "@profileAppearance": {"description": "Setting for light or dark colours."},
+
+  "appearanceSystem": "Same as phone",
+  "@appearanceSystem": {"description": "Appearance follows the phone's light or dark setting."},
+
+  "appearanceLight": "Light",
+  "@appearanceLight": {"description": "Light appearance."},
+
+  "appearanceDark": "Dark",
+  "@appearanceDark": {"description": "Dark appearance."},
+
+  "profileNotifications": "Notifications",
+  "@profileNotifications": {"description": "Profile row for notification settings."},
+
+  "profileFoodDelivery": "Food delivery",
+  "@profileFoodDelivery": {"description": "Profile section heading."},
+
+  "profileFavourites": "Your favourites",
+  "@profileFavourites": {"description": "Profile row and screen title for saved restaurants."},
+
+  "profileHelp": "Help & support",
+  "@profileHelp": {"description": "Profile row and screen title for help."},
+
+  "profileMore": "More",
+  "@profileMore": {"description": "Profile section heading for everything else."},
+
+  "profileFeedback": "Send feedback",
+  "@profileFeedback": {"description": "Profile row and sheet title for app feedback."},
+
+  "profileSafety": "Report a safety emergency",
+  "@profileSafety": {"description": "Profile row and sheet title for safety help."},
+
+  "profileAbout": "About Nexmile",
+  "@profileAbout": {"description": "Profile row and sheet title for app information."},
+
+  "couponsEmptyTitle": "No coupons right now",
+  "@couponsEmptyTitle": {"description": "Empty state on the coupons screen."},
+
+  "couponsEmptyBody": "When there's a coupon you can use, it will show up here.",
+  "@couponsEmptyBody": {"description": "Supporting line for the empty coupons screen."},
+
+  "couponFlatOff": "{amount} OFF",
+  "@couponFlatOff": {"description": "Headline of a flat-discount coupon. The amount arrives formatted with the rupee sign.", "placeholders": {"amount": {"type": "String", "example": "₹100"}}},
+
+  "couponPercentOff": "{percent}% OFF",
+  "@couponPercentOff": {"description": "Headline of a percentage coupon.", "placeholders": {"percent": {"type": "String", "example": "20"}}},
+
+  "couponUpTo": "Up to {amount}",
+  "@couponUpTo": {"description": "The most a percentage coupon takes off.", "placeholders": {"amount": {"type": "String", "example": "₹120"}}},
+
+  "couponMinOrder": "On orders above {amount}",
+  "@couponMinOrder": {"description": "Minimum order for a coupon.", "placeholders": {"amount": {"type": "String", "example": "₹199"}}},
+
+  "couponValidTill": "Valid till {date}",
+  "@couponValidTill": {"description": "Coupon expiry.", "placeholders": {"date": {"type": "String", "example": "30 Nov"}}},
+
+  "couponAllRestaurants": "At all restaurants",
+  "@couponAllRestaurants": {"description": "The coupon works everywhere."},
+
+  "couponAtRestaurant": "At {restaurant}",
+  "@couponAtRestaurant": {"description": "The coupon works at one restaurant.", "placeholders": {"restaurant": {"type": "String", "example": "Anjappar"}}},
+
+  "couponCopied": "Code {code} copied",
+  "@couponCopied": {"description": "Confirmation after copying a coupon code.", "placeholders": {"code": {"type": "String", "example": "NEX100"}}},
+
+  "favouritesEmptyTitle": "No favourites yet",
+  "@favouritesEmptyTitle": {"description": "Empty state on the favourites screen."},
+
+  "favouritesEmptyBody": "Tap the heart on a restaurant to save it here.",
+  "@favouritesEmptyBody": {"description": "Supporting line for the empty favourites screen."},
+
+  "helpCall": "Call us",
+  "@helpCall": {"description": "Help screen button that phones support."},
+
+  "helpWhatsApp": "WhatsApp",
+  "@helpWhatsApp": {"description": "Help screen button that opens a WhatsApp chat with support."},
+
+  "helpEmail": "Email us",
+  "@helpEmail": {"description": "Help screen button that writes to support."},
+
+  "helpHours": "We're available {hours}",
+  "@helpHours": {"description": "When support answers. The hours arrive worded by the server.", "placeholders": {"hours": {"type": "String", "example": "9 am – 11 pm"}}},
+
+  "helpFaqs": "Common questions",
+  "@helpFaqs": {"description": "Heading over the help screen's questions and answers."},
+
+  "helpNothing": "Help details aren't available right now. Please try again later.",
+  "@helpNothing": {"description": "Shown when the help information could not be loaded."},
+
+  "feedbackPrompt": "How is Nexmile working for you?",
+  "@feedbackPrompt": {"description": "Question above the star rating in the feedback sheet."},
+
+  "feedbackHint": "Tell us what you liked, or what we can do better",
+  "@feedbackHint": {"description": "Hint in the feedback text box."},
+
+  "feedbackNeedRating": "Choose a rating first",
+  "@feedbackNeedRating": {"description": "Shown when feedback is sent without stars."},
+
+  "feedbackThanks": "Thanks! Your feedback has reached our team.",
+  "@feedbackThanks": {"description": "Confirmation after sending feedback."},
+
+  "safetyIntro": "If you or someone else is in danger, call the emergency services first.",
+  "@safetyIntro": {"description": "Top line of the safety sheet."},
+
+  "safetyCallEmergency": "Call 112",
+  "@safetyCallEmergency": {"description": "Button that phones India's emergency number."},
+
+  "safetyCallEmergencyBody": "Police, fire and ambulance",
+  "@safetyCallEmergencyBody": {"description": "What 112 reaches."},
+
+  "safetyCallNexmile": "Call Nexmile safety line",
+  "@safetyCallNexmile": {"description": "Button that phones the Nexmile safety team."},
+
+  "safetyCallNexmileBody": "Answered at all hours",
+  "@safetyCallNexmileBody": {"description": "When the safety line is answered."},
+
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {"description": "The installed app version.", "placeholders": {"version": {"type": "String", "example": "1.0.0 (12)"}}},
+
+  "aboutTerms": "Terms of service",
+  "@aboutTerms": {"description": "Link to the terms."},
+
+  "aboutPrivacy": "Privacy policy",
+  "@aboutPrivacy": {"description": "Link to the privacy policy."},
+
+  "aboutLicences": "Open-source licences",
+  "@aboutLicences": {"description": "Opens the list of open-source licences used in the app."},
+
+  "notifyOrderUpdates": "Order updates",
+  "@notifyOrderUpdates": {"description": "Notification type that cannot be switched off."},
+
+  "notifyOrderUpdatesBody": "Always on, so you know where your food is.",
+  "@notifyOrderUpdatesBody": {"description": "Why order updates cannot be switched off."},
+
+  "notifyPromotions": "Offers and promotions",
+  "@notifyPromotions": {"description": "Notification type the customer can switch off."},
+
+  "notifyPromotionsBody": "Deals, coupons and new restaurants near you.",
+  "@notifyPromotionsBody": {"description": "What offers and promotions notifications contain."},
+
+  "notifyPhoneOff": "Notifications are turned off for Nexmile on this phone.",
+  "@notifyPhoneOff": {"description": "Shown when the phone blocks the app's notifications."},
+
+  "notifyTurnOn": "Turn on",
+  "@notifyTurnOn": {"description": "Button that turns notifications on for the app."},
+
+  "linkOpenFailed": "That couldn't be opened on this phone.",
+  "@linkOpenFailed": {"description": "Shown when a call, email or web link cannot be opened."},
 
   "editProfileTitle": "Edit profile",
   "@editProfileTitle": {"description":"Title of the sheet that edits name, email and mobile number."},

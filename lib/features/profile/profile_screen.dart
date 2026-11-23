@@ -3,11 +3,16 @@ import 'package:provider/provider.dart';
 
 import '../../core/localization/app_language.dart';
 import '../../core/localization/locale_controller.dart';
+import '../../core/motion/haptics.dart';
+import '../../core/motion/nexmile_loader.dart';
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/widgets/info_tile.dart';
+import '../../core/theme/theme_controller.dart';
+import '../../core/widgets/info_tile.dart' show StatusChip, StatusTone;
 import '../../generated/l10n/app_localizations.dart';
+import '../account/presentation/account_sheets.dart';
+import '../account/presentation/profile_widgets.dart';
+import '../account/state/account_controller.dart';
 import '../address/state/address_controller.dart';
 import '../auth/data/auth_failure.dart';
 import '../auth/data/auth_user.dart';
@@ -15,17 +20,14 @@ import '../auth/state/auth_controller.dart';
 import '../catalogue/presentation/widgets/catalogue_widgets.dart';
 import '../wallet/state/wallet_controller.dart';
 import 'edit_profile_sheet.dart';
-import '../../core/motion/nexmile_loader.dart';
 
-/// Customer profile, backed by `GET /v1/profile`.
+/// The customer's profile: who they are, their money and coupons, their
+/// preferences, and everything else an account needs, in grouped cards.
 ///
-/// Renders the cached user immediately and refreshes in the background, so the
-/// screen is never blank on a slow connection. A failed refresh shows a banner
-/// above the still-valid cached data rather than replacing it — the customer's
-/// name and number do not stop being true because the network dropped.
-///
-/// Read-only for now: `PATCH /v1/profile` exists (name, email, phone,
-/// preferred_locale) and an edit screen can hang off the same controller.
+/// Opened from the avatar at the top of the storefront, and also the third
+/// tab. Renders the cached user at once and refreshes in the background, so
+/// it is never blank on a slow connection. A failed refresh shows a banner
+/// above the still-valid cached data rather than replacing it.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -49,11 +51,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final NavigatorState navigator = Navigator.of(context);
     final AuthController auth = context.read<AuthController>();
-    // The wallet tile's balance. Its failure is the wallet screen's to show,
-    // not this one's, so it is not awaited into [failure].
+    final AccountController account = context.read<AccountController>();
+    // The tiles and preferences fill in as they arrive. Their failures are
+    // their own screens' to show, so only the profile's is awaited here.
     final Future<AuthFailure?> wallet = context.read<WalletController>().load();
+    final Future<void> preferences = account.loadPreferences();
+    final Future<void> coupons = account.loadCoupons();
     final AuthFailure? failure = await auth.loadProfile();
-    await wallet;
+    await Future.wait(<Future<Object?>>[wallet, preferences, coupons]);
 
     if (!mounted) return;
 
@@ -72,6 +77,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _edit() async {
+    final bool saved = await showEditProfileSheet(context);
+    // The controller already holds the updated user, so this only refreshes
+    // anything the server changed that the response did not carry.
+    if (saved && mounted) await _load();
+  }
+
+  /// Saved to the account. The home tab watches veg mode and refilters the
+  /// restaurant list itself, including when a refused change is put back.
+  Future<void> _setVegMode(bool on) async {
+    Haptics.select();
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final AuthFailure? failure =
+        await context.read<AccountController>().setVegMode(on);
+    if (!mounted || failure == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(failure.message(l10n))));
+  }
+
+  void _open(String route, {Object? arguments}) =>
+      Navigator.of(context).pushNamed(route, arguments: arguments);
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -79,6 +108,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final AuthUser? user = context.watch<AuthController>().user;
     final AppLanguage language = context.watch<LocaleController>().language;
     final WalletController wallet = context.watch<WalletController>();
+    final AccountController account = context.watch<AccountController>();
+    final ThemeMode appearance = context.watch<ThemeController>().mode;
 
     if (user == null) {
       // Only reachable for a blink between sign-out and the route swap.
@@ -88,8 +119,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    final int? couponCount = account.coupons?.length;
+
     return Scaffold(
+      backgroundColor: profilePageColour(theme),
       appBar: AppBar(
+        backgroundColor: profilePageColour(theme),
+        surfaceTintColor: Colors.transparent,
         title: Text(l10n.profileTitle),
         actions: <Widget>[
           if (_isLoading)
@@ -107,136 +143,157 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: RefreshIndicator(
-        color: Theme.of(context).colorScheme.primary,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.primary,
+        backgroundColor: theme.colorScheme.surface,
         displacement: 28,
-        onRefresh: _load,
+        onRefresh: () {
+          Haptics.tap();
+          return _load();
+        },
         child: ListView(
-          // Always scrollable so pull-to-refresh works even when the content
-          // is shorter than the viewport.
+          // Always scrollable so pull-to-refresh works on a short page too.
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
           children: <Widget>[
-            _ProfileHeader(user: user),
-            const SizedBox(height: 24),
+            _HeaderCard(user: user, onEdit: _edit),
             if (_failure != null) ...<Widget>[
+              const SizedBox(height: 12),
               _RefreshFailedBanner(
                 message: _failure!.message(l10n),
                 onRetry: _isLoading ? null : _load,
               ),
-              const SizedBox(height: 16),
             ],
-            InfoTile(
-              icon: Icons.person_outline_rounded,
-              label: l10n.nameLabel,
-              value: user.name.trim().isEmpty ? l10n.notProvided : user.name,
-              emphasise: user.name.trim().isNotEmpty,
-              // Every account is created as "Nexmile user", so this is where a
-              // customer first gets a real name.
-              onTap: () => _edit(context),
-            ),
             const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.alternate_email_rounded,
-              label: l10n.emailLabel,
-              value: user.email ?? l10n.notProvided,
-              emphasise: user.email != null,
-              // An address is LTR whatever the app's direction is.
-              valueDirection:
-                  user.email == null ? null : TextDirection.ltr,
-            ),
-            const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.phone_outlined,
-              label: l10n.mobileLabel,
-              value: user.phone ?? l10n.notProvided,
-              emphasise: user.phone != null,
-              valueDirection:
-                  user.phone == null ? null : TextDirection.ltr,
-              trailing: user.phone != null && user.phoneVerified
-                  ? StatusChip(
-                      label: l10n.verifiedLabel,
-                      tone: StatusTone.positive,
-                    )
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.verified_user_outlined,
-              label: l10n.accountStatusLabel,
-              value: _statusLabel(user.status, l10n),
-              trailing: StatusChip(
-                label: _statusLabel(user.status, l10n),
-                tone: _statusTone(user.status),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: _MoneyTile(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: l10n.walletTitle,
+                      // A balance only once the server has given one; before
+                      // that, the tile is an invitation, not a claim of ₹0.
+                      value: wallet.isAvailable
+                          ? formatRupees(wallet.balance)
+                          : l10n.walletAddMoney,
+                      onTap: () => _open(AppRoutes.wallet),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MoneyTile(
+                      icon: Icons.local_offer_outlined,
+                      title: l10n.profileCoupons,
+                      value: couponCount == null
+                          ? null
+                          : l10n.profileCouponsCount(couponCount),
+                      onTap: () => _open(AppRoutes.coupons),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.account_balance_wallet_outlined,
-              label: l10n.walletTitle,
-              // A balance only once the server has given one; before that,
-              // the tile is an invitation rather than a claim of ₹0.
-              value: wallet.isAvailable
-                  ? formatRupees(wallet.balance)
-                  : l10n.walletAddMoney,
-              emphasise: wallet.isAvailable,
-              valueDirection: wallet.isAvailable ? TextDirection.ltr : null,
-              onTap: () => Navigator.of(context).pushNamed(AppRoutes.wallet),
-            ),
-            const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.location_on_outlined,
-              label: l10n.addressBookTitle,
-              value: l10n.manageAddresses,
-              onTap: () => Navigator.of(context).pushNamed(
-                AppRoutes.addressBook,
-                arguments: const AddressBookArgs(managing: true),
-              ),
-            ),
-            const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.translate_rounded,
-              label: l10n.appLanguageLabel,
-              value: language.nativeName,
-              valueDirection: language.textDirection,
-              onTap: () => Navigator.of(context).pushNamed(
-                AppRoutes.language,
-                arguments: false,
-              ),
-            ),
-            const SizedBox(height: 12),
-            InfoTile(
-              icon: Icons.devices_other_rounded,
-              label: l10n.devicesTitle,
-              value: l10n.devicesSubtitle,
-              onTap: () => Navigator.of(context).pushNamed(AppRoutes.devices),
-            ),
-            const SizedBox(height: 28),
-            OutlinedButton.icon(
-              onPressed: () => _signOut(context),
-              icon: const Icon(Icons.logout_rounded, size: 20),
-              label: Text(l10n.signOut),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                foregroundColor: theme.colorScheme.error,
-                side: BorderSide(
-                  color: theme.colorScheme.error.withValues(alpha: 0.45),
+            const SizedBox(height: 14),
+            ProfileSection(
+              title: l10n.profilePreferences,
+              children: <Widget>[
+                ProfileRow(
+                  icon: Icons.eco_outlined,
+                  title: l10n.profileVegMode,
+                  subtitle: l10n.profileVegModeHint,
+                  onTap: () => _setVegMode(!account.vegMode),
+                  trailing: Switch(
+                    value: account.vegMode,
+                    activeTrackColor: AppColors.greenDeep,
+                    onChanged: _setVegMode,
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radius),
+                ProfileRow(
+                  icon: Icons.contrast_rounded,
+                  title: l10n.profileAppearance,
+                  value: appearanceLabel(l10n, appearance),
+                  onTap: () => showAppearanceSheet(context),
                 ),
-              ),
+                ProfileRow(
+                  icon: Icons.translate_rounded,
+                  title: l10n.appLanguageLabel,
+                  value: language.nativeName,
+                  onTap: () => _open(AppRoutes.language, arguments: false),
+                ),
+                ProfileRow(
+                  icon: Icons.notifications_none_rounded,
+                  title: l10n.profileNotifications,
+                  onTap: () => showNotificationsSheet(context),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            // Kept plain and last: a destructive action should not compete
-            // with sign-out for attention.
-            TextButton(
-              onPressed: () => _deleteAccount(context),
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-                minimumSize: const Size.fromHeight(48),
-              ),
-              child: Text(l10n.deleteAccount),
+            ProfileSection(
+              title: l10n.profileFoodDelivery,
+              children: <Widget>[
+                ProfileRow(
+                  icon: Icons.receipt_long_outlined,
+                  title: l10n.ordersTitle,
+                  onTap: () => _open(AppRoutes.orders),
+                ),
+                ProfileRow(
+                  icon: Icons.location_on_outlined,
+                  title: l10n.addressBookTitle,
+                  onTap: () => _open(
+                    AppRoutes.addressBook,
+                    arguments: const AddressBookArgs(managing: true),
+                  ),
+                ),
+                ProfileRow(
+                  icon: Icons.favorite_border_rounded,
+                  title: l10n.profileFavourites,
+                  onTap: () => _open(AppRoutes.favourites),
+                ),
+                ProfileRow(
+                  icon: Icons.support_agent_rounded,
+                  title: l10n.profileHelp,
+                  onTap: () => _open(AppRoutes.help),
+                ),
+              ],
+            ),
+            ProfileSection(
+              title: l10n.profileMore,
+              children: <Widget>[
+                ProfileRow(
+                  icon: Icons.rate_review_outlined,
+                  title: l10n.profileFeedback,
+                  onTap: () => showFeedbackSheet(context),
+                ),
+                ProfileRow(
+                  icon: Icons.health_and_safety_outlined,
+                  title: l10n.profileSafety,
+                  onTap: () => showSafetySheet(context),
+                ),
+                ProfileRow(
+                  icon: Icons.info_outline_rounded,
+                  title: l10n.profileAbout,
+                  onTap: () => showAboutNexmileSheet(context),
+                ),
+                ProfileRow(
+                  icon: Icons.devices_other_rounded,
+                  title: l10n.devicesTitle,
+                  onTap: () => _open(AppRoutes.devices),
+                ),
+                ProfileRow(
+                  icon: Icons.logout_rounded,
+                  title: l10n.signOut,
+                  destructive: true,
+                  onTap: _signOut,
+                ),
+                // Kept last and quiet: a destructive action should not compete
+                // with sign-out for attention.
+                ProfileRow(
+                  icon: Icons.delete_outline_rounded,
+                  title: l10n.deleteAccount,
+                  destructive: true,
+                  onTap: _deleteAccount,
+                ),
+              ],
             ),
           ],
         ),
@@ -244,35 +301,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _edit(BuildContext context) async {
-    final bool saved = await showEditProfileSheet(context);
-    // The controller already holds the updated user, so this only refreshes
-    // anything the server changed that the response did not carry.
-    if (saved && mounted) await _load();
-  }
-
   /// Irreversible for the customer, though the server keeps a soft-deleted
   /// record so past orders and invoices survive for tax purposes.
-  Future<void> _deleteAccount(BuildContext context) async {
+  Future<void> _deleteAccount() async {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final AuthController auth = context.read<AuthController>();
+    final WalletController wallet = context.read<WalletController>();
+    final AccountController account = context.read<AccountController>();
     final NavigatorState navigator = Navigator.of(context);
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
     final bool confirmed = await showDialog<bool>(
           context: context,
-          builder: (BuildContext context) => AlertDialog(
+          builder: (BuildContext dialogContext) => AlertDialog(
             title: Text(l10n.deleteAccountTitle),
             content: Text(l10n.deleteAccountMessage),
             actions: <Widget>[
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => Navigator.of(dialogContext).pop(false),
                 child: Text(l10n.cancelLabel),
               ),
               FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
                 style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
+                  backgroundColor: Theme.of(dialogContext).colorScheme.error,
                 ),
                 child: Text(l10n.deleteAccount),
               ),
@@ -282,7 +334,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         false;
     if (!confirmed || !mounted) return;
 
-    final WalletController wallet = context.read<WalletController>();
     final AuthFailure? failure = await auth.deleteAccount();
     if (!mounted) return;
     if (failure != null) {
@@ -292,6 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
     wallet.clear();
+    await account.clear();
     navigator.pushNamedAndRemoveUntil(
       AppRoutes.login,
       (Route<void> route) => false,
@@ -301,16 +353,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ..showSnackBar(SnackBar(content: Text(l10n.accountDeleted)));
   }
 
-  Future<void> _signOut(BuildContext context) async {
+  Future<void> _signOut() async {
     final NavigatorState navigator = Navigator.of(context);
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context);
+    final AuthController auth = context.read<AuthController>();
+    final AccountController account = context.read<AccountController>();
 
     // Clear the address book too, or the next customer to sign in on this
     // device inherits the previous one's saved addresses.
     context.read<AddressController>().clear();
     context.read<WalletController>().clear();
-    await context.read<AuthController>().signOut();
+    await auth.signOut();
+    await account.clear();
     if (!mounted) return;
 
     navigator.pushNamedAndRemoveUntil(
@@ -321,83 +376,217 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(l10n.signedOut)));
   }
-
-  static String _statusLabel(UserStatus status, AppLocalizations l10n) {
-    switch (status) {
-      case UserStatus.active:
-        return l10n.statusActive;
-      case UserStatus.pending:
-        return l10n.statusPending;
-      case UserStatus.suspended:
-        return l10n.statusSuspended;
-      case UserStatus.unknown:
-        // The API grew a status this build predates.
-        return l10n.notProvided;
-    }
-  }
-
-  static StatusTone _statusTone(UserStatus status) {
-    switch (status) {
-      case UserStatus.active:
-        return StatusTone.positive;
-      case UserStatus.pending:
-      case UserStatus.unknown:
-        return StatusTone.warning;
-      case UserStatus.suspended:
-        return StatusTone.negative;
-    }
-  }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.user});
+/// Who is signed in: initial, name, email and number, and "Edit profile".
+/// The whole card opens the editor.
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.user, required this.onEdit});
 
   final AuthUser user;
+  final VoidCallback onEdit;
+
+  static String _statusLabel(UserStatus status, AppLocalizations l10n) =>
+      switch (status) {
+        UserStatus.active => l10n.statusActive,
+        UserStatus.pending => l10n.statusPending,
+        UserStatus.suspended => l10n.statusSuspended,
+        // The API grew a status this build predates.
+        UserStatus.unknown => l10n.notProvided,
+      };
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final String name = user.name.trim();
     final String initial =
         user.firstName.isEmpty ? '?' : user.firstName.characters.first.toUpperCase();
+    final Color accent = theme.brightness == Brightness.dark
+        ? AppColors.greenLight
+        : AppColors.greenDeep;
 
-    return Column(
-      children: <Widget>[
-        Container(
-          width: 84,
-          height: 84,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            gradient: AppColors.greenGradient,
-            shape: BoxShape.circle,
+    return Material(
+      color: profileCardColour(theme),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onEdit,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 64,
+                height: 64,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  initial,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      name.isEmpty ? (user.email ?? user.phone ?? '') : name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    if (user.email != null) ...<Widget>[
+                      const SizedBox(height: 2),
+                      Text(
+                        user.email!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textDirection: TextDirection.ltr,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    if (user.phone != null) ...<Widget>[
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            user.phone!,
+                            textDirection: TextDirection.ltr,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          if (user.phoneVerified)
+                            StatusChip(
+                              label: l10n.verifiedLabel,
+                              tone: StatusTone.positive,
+                            ),
+                        ],
+                      ),
+                    ],
+                    // Only a status that needs attention is shown; an active
+                    // account is the normal case and says nothing.
+                    if (user.status != UserStatus.active) ...<Widget>[
+                      const SizedBox(height: 8),
+                      StatusChip(
+                        label: _statusLabel(user.status, l10n),
+                        tone: user.status == UserStatus.suspended
+                            ? StatusTone.negative
+                            : StatusTone.warning,
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Flexible(
+                          child: Text(
+                            l10n.editProfileTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: AppColors.orangeDeep,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_right_rounded,
+                          color: AppColors.orangeDeep,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          child: Text(
-            initial,
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: AppColors.white,
-              fontWeight: FontWeight.w800,
-            ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One of the two tiles under the header: the wallet, and coupons.
+class _MoneyTile extends StatelessWidget {
+  const _MoneyTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.value,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Material(
+      color: profileCardColour(theme),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.09),
+                ),
+                child: Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    if (value != null)
+                      Text(
+                        value!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 14),
-        Text(
-          user.name.trim().isEmpty
-              ? (user.email ?? user.phone ?? '')
-              : user.name,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          user.email ?? user.phone ?? '',
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textDirection: TextDirection.ltr,
-          style: theme.textTheme.bodyMedium,
-        ),
-      ],
+      ),
     );
   }
 }

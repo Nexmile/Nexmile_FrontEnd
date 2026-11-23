@@ -158,6 +158,7 @@ class Cart {
     required this.freeDeliveryApplied,
     required this.canCheckout,
     required this.unavailableItems,
+    this.appliedCoupon,
   });
 
   final int id;
@@ -176,6 +177,10 @@ class Cart {
 
   /// Dishes that sold out while the cart sat there, named rather than counted.
   final List<String> unavailableItems;
+
+  /// The coupon on this cart, if any. Its saving is in
+  /// [CartTotals.discountTotal] with everything else the bill takes off.
+  final AppliedCoupon? appliedCoupon;
 
   bool get isEmpty => lines.isEmpty;
 
@@ -202,6 +207,7 @@ class Cart {
       freeDeliveryApplied: asBool(json['free_delivery_applied']),
       canCheckout: asBool(json['can_checkout']),
       unavailableItems: _names(json['unavailable_items']),
+      appliedCoupon: AppliedCoupon.fromJson(json['applied_coupon']),
     );
   }
 
@@ -260,4 +266,59 @@ class OpenCart {
       grandTotal: asDouble(t['grand_total'] ?? json['grand_total']),
     );
   }
+}
+
+/// `applied_coupon` on a cart: the code the customer entered and what it is
+/// called. Read loosely, as the rest of the cart is: only the code is needed
+/// to show it, and anything else is a nicer line when present.
+@immutable
+class AppliedCoupon {
+  const AppliedCoupon({required this.code, this.title, this.discount});
+
+  final String code;
+  final String? title;
+
+  /// This coupon's own saving, when the block carries one.
+  final double? discount;
+
+  /// Null for anything without a code, so a malformed block reads as "no
+  /// coupon" rather than as a blank one.
+  static AppliedCoupon? fromJson(Object? raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final String code = asString(raw['code']).trim();
+    if (code.isEmpty) return null;
+    final String title = asString(raw['title']).trim();
+    final Object? amount =
+        raw['discount_amount'] ?? raw['discount'] ?? raw['amount'];
+    return AppliedCoupon(
+      code: code,
+      title: title.isEmpty ? null : title,
+      discount: amount == null ? null : asDouble(amount),
+    );
+  }
+}
+
+/// `POST /v1/orders/{id}/reorder`: the restaurant's basket, now holding that
+/// order, and the dishes that could not come back (off the menu, out of
+/// stock, an ended rescue deal, a removed choice), named from the order.
+@immutable
+class Reorder {
+  const Reorder({required this.cart, this.skipped = const <String>[]});
+
+  final Cart cart;
+  final List<String> skipped;
+
+  /// `skipped` is read beside `data` or inside it, whichever the answer uses.
+  static Reorder fromResponse(Map<String, dynamic> data, Object? skipped) =>
+      Reorder(
+        cart: Cart.fromJson(data),
+        skipped: <String>[
+          for (final Object? entry in skipped is List ? skipped : const <Object?>[])
+            if (entry is Map<String, dynamic> &&
+                asString(entry['name']).trim().isNotEmpty)
+              asString(entry['name']).trim()
+            else if (entry is String && entry.trim().isNotEmpty)
+              entry.trim(),
+        ],
+      );
 }

@@ -34,6 +34,11 @@ import UIKit
             "mapsKey": Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? "",
             "iosBundleId": Bundle.main.bundleIdentifier ?? "",
           ])
+        case "appVersion":
+          result([
+            "version": Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
+            "build": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "",
+          ])
         default:
           result(FlutterMethodNotImplemented)
         }

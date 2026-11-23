@@ -13,6 +13,9 @@ import 'package:nexmile/core/constants/app_assets.dart';
 import 'package:nexmile/core/localization/app_language.dart';
 import 'package:nexmile/core/network/api_client.dart';
 import 'package:nexmile/core/network/api_exception.dart';
+import 'package:nexmile/core/network/image_disk_cache.dart';
+import 'package:nexmile/core/motion/skeleton.dart';
+import 'package:nexmile/core/widgets/empty_illustration.dart';
 import 'package:nexmile/core/push/device_registrar.dart';
 import 'package:nexmile/core/push/push_destination.dart';
 import 'package:nexmile/core/push/push_service.dart';
@@ -20,6 +23,9 @@ import 'package:nexmile/core/router/app_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nexmile/core/services/preferences_service.dart';
 import 'package:nexmile/core/widgets/gradient_button.dart';
+import 'package:nexmile/features/account/data/account_models.dart';
+import 'package:nexmile/features/account/presentation/account_screens.dart';
+import 'package:nexmile/features/account/presentation/profile_widgets.dart';
 import 'package:nexmile/features/address/data/address.dart';
 import 'package:nexmile/features/address/data/address_repository.dart';
 import 'package:nexmile/features/address/data/location_service.dart';
@@ -48,7 +54,13 @@ import 'package:nexmile/features/catalogue/presentation/widgets/catalogue_widget
 import 'package:nexmile/features/catalogue/data/order_models.dart';
 import 'package:nexmile/features/catalogue/data/storefront_models.dart';
 import 'package:nexmile/features/catalogue/data/storefront_repository.dart';
+import 'package:nexmile/features/catalogue/presentation/order_placed_screen.dart';
+import 'package:nexmile/features/catalogue/presentation/order_status_screen.dart';
+import 'package:nexmile/features/catalogue/presentation/restaurant_screen.dart';
 import 'package:nexmile/features/catalogue/presentation/search_tab.dart';
+import 'package:nexmile/features/catalogue/presentation/widgets/dish_photo_viewer.dart';
+import 'package:nexmile/features/catalogue/presentation/widgets/tracking/order_progress.dart';
+import 'package:nexmile/features/catalogue/presentation/widgets/filter_bar.dart' show VegToggle;
 import 'package:nexmile/features/catalogue/state/cart_controller.dart';
 import 'package:nexmile/features/catalogue/state/orders_controller.dart';
 import 'package:nexmile/features/catalogue/state/storefront_controller.dart';
@@ -59,6 +71,7 @@ import 'package:nexmile/features/splash/splash_screen.dart';
 import 'package:nexmile/generated/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'account_fakes.dart';
 import 'wallet_fakes.dart';
 
 // ---------------------------------------------------------------------------
@@ -582,6 +595,7 @@ late FakeAddressRepository _addressRepo;
 late FakeLocationService _location;
 late FakeStorefrontRepository _storefrontRepo;
 late FakeAuthRepository _authRepo;
+late FakeAccountRepository _accountRepo;
 
 Future<void> _pumpApp(
   WidgetTester tester, {
@@ -592,6 +606,7 @@ Future<void> _pumpApp(
   FakeLocationService? locationService,
   FakeStorefrontRepository? storefrontRepository,
   FakeWalletRepository? walletRepository,
+  FakeAccountRepository? accountRepository,
   PushService pushService = const NoopPushService(),
 }) async {
   final PreferencesService preferences = await _prefs(seed);
@@ -608,6 +623,7 @@ Future<void> _pumpApp(
   _addresses = AddressController(repository: _addressRepo);
   _location = locationService ?? FakeLocationService();
   _storefrontRepo = storefrontRepository ?? FakeStorefrontRepository();
+  _accountRepo = accountRepository ?? FakeAccountRepository();
 
   await tester.pumpWidget(
     NexmileApp(
@@ -617,6 +633,7 @@ Future<void> _pumpApp(
       locationService: _location,
       storefrontRepository: _storefrontRepo,
       walletRepository: walletRepository ?? FakeWalletRepository(),
+      accountRepository: _accountRepo,
       paymentGateway: FakePaymentGateway(),
       pushService: pushService,
     ),
@@ -648,6 +665,39 @@ Future<void> _pumpFrames(WidgetTester tester, [int frames = 8]) async {
   for (int i = 0; i < frames; i++) {
     await tester.pump(const Duration(milliseconds: 120));
   }
+}
+
+/// Answers the native `appVersion` call the way the phone would: a widget
+/// test has no platform side, so the call would otherwise never return.
+void _mockAppVersion(WidgetTester tester) {
+  const MethodChannel channel = MethodChannel('nexmile/app');
+  final TestDefaultBinaryMessenger messenger =
+      tester.binding.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(
+    channel,
+    (MethodCall call) async => call.method == 'appVersion'
+        ? <String, Object?>{'version': '1.4.0', 'build': '12'}
+        : null,
+  );
+  addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+}
+
+/// Stands in for the system clipboard and returns what was copied.
+List<String> _mockClipboard(WidgetTester tester) {
+  final List<String> copied = <String>[];
+  final TestDefaultBinaryMessenger messenger =
+      tester.binding.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(SystemChannels.platform,
+      (MethodCall call) async {
+    if (call.method == 'Clipboard.setData') {
+      copied.add((call.arguments as Map<Object?, Object?>)['text']! as String);
+    }
+    return null;
+  });
+  addTearDown(
+    () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+  );
+  return copied;
 }
 
 NavigatorState _nav(WidgetTester tester) =>
@@ -740,6 +790,16 @@ void _useTallPhone(WidgetTester tester) {
 }
 
 void main() {
+  // Photos in widget tests: no folder on the host and a server that answers
+  // at once, so every image settles on its fallback inside the frame that
+  // asked for it instead of arriving after its card has gone.
+  setUpAll(() {
+    ImageDiskCache.instance = ImageDiskCache(
+      directory: () async => null,
+      client: MockClient((http.Request _) async => http.Response('', 404)),
+    );
+  });
+
   // -------------------------------------------------------------------------
   group('language catalogue', () {
     test('ships English plus all 22 Eighth Schedule languages', () {
@@ -1579,15 +1639,20 @@ void main() {
     Future<FakeAuthRepository> openProfile(
       WidgetTester tester, {
       FakeAuthRepository? repository,
+      FakeAccountRepository? accountRepository,
       Map<String, Object> seed = _languageChosen,
+      bool tallScreen = false,
     }) async {
-      _useTallPhone(tester);
+      // The whole page, every section on screen at once, when a test needs to
+      // reach the rows at the bottom without scrolling.
+      tallScreen ? _useTallScreen(tester) : _useTallPhone(tester);
       final FakeAuthRepository repo = repository ?? FakeAuthRepository();
       await _pumpApp(
         tester,
         seed: seed,
         repository: repo,
         session: _testSession(),
+        accountRepository: accountRepository,
       );
       await _settleSplash(tester);
       await tester.tap(find.byIcon(Icons.person_outline_rounded).first);
@@ -1621,11 +1686,12 @@ void main() {
       expect(find.text('Priya Kumar'), findsWidgets);
       expect(find.text('priya@example.com'), findsWidgets);
       expect(find.text('9876543210'), findsWidgets);
-      expect(find.text('Active'), findsWidgets);
+      // Active is the normal case; only a status that needs attention shows.
+      expect(find.text('Active'), findsNothing);
       expect(find.text('Verified'), findsOneWidget);
     });
 
-    testWidgets('a phone-only customer shows "Not added" for the email',
+    testWidgets('a phone-only customer sees their number, unverified',
         (WidgetTester tester) async {
       final FakeAuthRepository repo = FakeAuthRepository()
         ..profileUser = const AuthUser(
@@ -1637,7 +1703,8 @@ void main() {
         );
       await openProfile(tester, repository: repo);
 
-      expect(find.text('Not added'), findsOneWidget);
+      expect(find.text('Ravi'), findsWidgets);
+      expect(find.text('9876543210'), findsWidgets);
       expect(find.text('Verified'), findsNothing);
     });
 
@@ -1712,6 +1779,9 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).last,
       );
+      // Already built below the fold, so the scroll is a jump that only
+      // lands on the next frame.
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       await tester.pumpAndSettle();
 
@@ -1729,6 +1799,362 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(LanguageScreen), findsOneWidget);
     });
+
+    testWidgets('the avatar at the top of the storefront opens the profile',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+
+      // Priya's initial, top right.
+      await tester.tap(find.text('P'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProfileScreen), findsOneWidget);
+      expect(find.text('Your preferences'), findsOneWidget);
+    });
+
+    testWidgets('groups the account into preferences, delivery and more',
+        (WidgetTester tester) async {
+      await openProfile(tester, tallScreen: true);
+
+      for (final String text in <String>[
+        'Nexmile Wallet',
+        'Your coupons',
+        'Your preferences',
+        'Veg mode',
+        'Appearance',
+        'App language',
+        'Notifications',
+        'Food delivery',
+        'Your orders',
+        'Delivery addresses',
+        'Your favourites',
+        'Help & support',
+        'More',
+        'Send feedback',
+        'Report a safety emergency',
+        'About Nexmile',
+        'Signed-in devices',
+        'Sign out',
+        'Delete account',
+      ]) {
+        expect(find.text(text), findsWidgets, reason: text);
+      }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the coupon tile counts the coupons and lists them',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        accountRepository: FakeAccountRepository(
+          coupons: <Coupon>[
+            const Coupon(
+              id: '1',
+              code: 'WELCOME50',
+              title: 'Flat ₹50 off your first order',
+              kind: CouponKind.flat,
+              value: 50,
+              minOrderValue: 199,
+            ),
+            const Coupon(
+              id: '2',
+              code: 'VEG20',
+              title: '20% off veg meals',
+              kind: CouponKind.percent,
+              value: 20,
+              maxDiscount: 100,
+            ),
+          ],
+        ),
+      );
+      expect(find.text('2 to use'), findsOneWidget);
+
+      await tester.tap(find.text('Your coupons'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CouponsScreen), findsOneWidget);
+      expect(find.text('WELCOME50'), findsOneWidget);
+      expect(find.text('VEG20'), findsOneWidget);
+
+      final List<String> copied = _mockClipboard(tester);
+      await tester.tap(find.text('WELCOME50'));
+      await tester.pump();
+      expect(copied, <String>['WELCOME50']);
+      expect(find.text('Code WELCOME50 copied'), findsOneWidget);
+      // Let the snack bar retire, or its timer outlives the test.
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    Finder vegSwitch() => find.descendant(
+          of: find.widgetWithText(ProfileRow, 'Veg mode'),
+          matching: find.byType(Switch),
+        );
+
+    testWidgets('veg mode is saved and narrows the restaurant list',
+        (WidgetTester tester) async {
+      await openProfile(tester);
+      expect(_storefrontRepo.lastFilters.vegOnly, isFalse);
+
+      await tester.tap(vegSwitch());
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Switch>(vegSwitch()).value, isTrue);
+      expect(_accountRepo.updates, <Map<String, Object?>>[
+        <String, Object?>{'veg_mode': true},
+      ]);
+      // The home tab follows on its own, behind the profile.
+      expect(_storefrontRepo.lastFilters.vegOnly, isTrue);
+    });
+
+    testWidgets('veg mode set on another phone applies when the home loads',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        accountRepository: FakeAccountRepository(
+          stored: const AccountPreferences(vegMode: true),
+        ),
+      );
+      await _settleSplash(tester);
+
+      expect(_accountRepo.preferenceReads, 1);
+      expect(_storefrontRepo.lastFilters.vegOnly, isTrue);
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getBool('nexmile.veg_mode'), isTrue,
+          reason: 'remembered, so the next launch opens on veg at once');
+    });
+
+    testWidgets('veg mode opens a menu on its veg dishes, and can be cleared',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: <String, Object>{..._languageChosen, 'nexmile.veg_mode': true},
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..menuPayload = _filterMenu(),
+        accountRepository: FakeAccountRepository(
+          stored: const AccountPreferences(vegMode: true),
+        ),
+      );
+      await _settleSplash(tester);
+      await tester.tap(find.text('Anjappar Chettinad').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Paneer Tikka'), findsOneWidget);
+      expect(find.text('Chicken 65', skipOffstage: false), findsNothing);
+      expect(find.text('3 dishes'), findsOneWidget);
+
+      await tester.tap(find.text('Veg'));
+      await tester.pumpAndSettle();
+      expect(find.text('Chicken 65'), findsOneWidget);
+    });
+
+    testWidgets('veg mode works on the phone before the server has it',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        accountRepository: FakeAccountRepository(unavailable: true),
+      );
+      // No coupons endpoint yet reads as no coupons, not as an error.
+      expect(find.text('None yet'), findsOneWidget);
+
+      await tester.tap(vegSwitch());
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Switch>(vegSwitch()).value, isTrue);
+      expect(_storefrontRepo.lastFilters.vegOnly, isTrue);
+      expect(find.byType(SnackBar), findsNothing);
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getBool('nexmile.veg_mode'), isTrue);
+    });
+
+    testWidgets('a refused veg mode change is put back',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        accountRepository: FakeAccountRepository()
+          ..failUpdateWith = const ApiException(kind: ApiErrorKind.network),
+      );
+
+      await tester.tap(vegSwitch());
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Switch>(vegSwitch()).value, isFalse);
+      expect(_storefrontRepo.lastFilters.vegOnly, isFalse);
+      expect(
+        find.text('No internet connection. Check your connection and try again.'),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('appearance switches the app to dark and remembers it',
+        (WidgetTester tester) async {
+      await openProfile(tester, tallScreen: true);
+
+      await tester.tap(find.text('Appearance'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dark'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getString('nexmile.theme_mode'), 'dark');
+    });
+
+    testWidgets('help lists the contacts and questions from the app config',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        tallScreen: true,
+        accountRepository: FakeAccountRepository(
+          supportInfo: const SupportInfo(
+            phone: '18001234567',
+            whatsapp: '919876543210',
+            email: 'help@example.com',
+            hours: '7 am to 11 pm',
+            faqs: <Faq>[
+              Faq(
+                question: 'Where is my order?',
+                answer: 'Open Your orders to follow it live.',
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Help & support'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HelpScreen), findsOneWidget);
+      expect(find.text('Call us'), findsOneWidget);
+      expect(find.text('WhatsApp'), findsOneWidget);
+      expect(find.text('Email us'), findsOneWidget);
+      expect(find.text("We're available 7 am to 11 pm"), findsOneWidget);
+
+      await tester.tap(find.text('Where is my order?'));
+      await tester.pumpAndSettle();
+      expect(find.text('Open Your orders to follow it live.'), findsOneWidget);
+    });
+
+    testWidgets('help says so when the server has no help details yet',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        tallScreen: true,
+        accountRepository: FakeAccountRepository(unavailable: true),
+      );
+
+      await tester.tap(find.text('Help & support'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          "Help details aren't available right now. Please try again later.",
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('feedback needs a rating, then sends it with the message',
+        (WidgetTester tester) async {
+      _mockAppVersion(tester);
+      await openProfile(tester, tallScreen: true);
+
+      await tester.tap(find.text('Send feedback'));
+      await tester.pumpAndSettle();
+      expect(find.text('How is Nexmile working for you?'), findsOneWidget);
+
+      // The sheet's button carries the same words as the row that opened it.
+      await tester.tap(find.widgetWithText(GradientButton, 'Send feedback'));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a rating first'), findsOneWidget);
+      expect(_accountRepo.feedback, isEmpty);
+
+      await tester.tap(find.byTooltip('4'));
+      await tester.enterText(
+        find.widgetWithText(
+          TextField,
+          'Tell us what you liked, or what we can do better',
+        ),
+        'Quick delivery, hot food.',
+      );
+      await tester.tap(find.widgetWithText(GradientButton, 'Send feedback'));
+      await tester.pumpAndSettle();
+
+      expect(_accountRepo.feedback.single.rating, 4);
+      expect(_accountRepo.feedback.single.message, 'Quick delivery, hot food.');
+      // So the team can tell which build a complaint is about.
+      expect(_accountRepo.feedback.single.appVersion, '1.4.0 (12)');
+      expect(find.text('Thanks! Your feedback has reached our team.'),
+          findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('the safety screen leads with 112 and offers no false report',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        tallScreen: true,
+        accountRepository: FakeAccountRepository(
+          supportInfo: const SupportInfo(safetyPhone: '18007654321'),
+        ),
+      );
+
+      await tester.tap(find.text('Report a safety emergency'));
+      await tester.pumpAndSettle();
+
+      final Offset emergency = tester.getTopLeft(find.text('Call 112'));
+      final Offset nexmile =
+          tester.getTopLeft(find.text('Call Nexmile safety line'));
+      // 112 first, and the line second once the app config carries one.
+      expect(emergency.dy, lessThan(nexmile.dy));
+      // Nothing to type and send: no report reaches a person yet.
+      expect(find.byType(TextField), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('without a safety line the screen is the emergency call alone',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        tallScreen: true,
+        accountRepository: FakeAccountRepository(unavailable: true),
+      );
+
+      await tester.tap(find.text('Report a safety emergency'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Call 112'), findsOneWidget);
+      expect(find.text('Call Nexmile safety line'), findsNothing);
+    });
+
+    testWidgets('signing out turns veg mode off for the next customer',
+        (WidgetTester tester) async {
+      await openProfile(
+        tester,
+        tallScreen: true,
+        seed: <String, Object>{..._languageChosen, 'nexmile.veg_mode': true},
+        accountRepository: FakeAccountRepository(
+          stored: const AccountPreferences(vegMode: true),
+        ),
+      );
+
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginScreen), findsOneWidget);
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getBool('nexmile.veg_mode'), isFalse);
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -1741,11 +2167,11 @@ void main() {
 
       await tester.tap(find.text('Profile').first);
       await tester.pumpAndSettle();
-      // The name appears twice — in the header and in the editable tile.
+      // The header card opens the editor.
       await tester.tap(find.text('Priya Kumar').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Edit profile'), findsOneWidget);
+      expect(find.text('Save changes'), findsOneWidget);
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Name'),
         'Priya R',
@@ -1773,7 +2199,7 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.person_outline_rounded).last);
       await tester.pumpAndSettle();
-      // The name appears twice — in the header and in the editable tile.
+      // The header card opens the editor.
       await tester.tap(find.text('Priya Kumar').last);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(FilledButton).last);
@@ -3485,6 +3911,797 @@ void main() {
     });
   });
 
+  group('feel', () {
+    /// The vibrations asked of the phone, by type, from here on.
+    List<String> recordHaptics(WidgetTester tester) {
+      final List<String> buzzes = <String>[];
+      final TestDefaultBinaryMessenger messenger =
+          tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(SystemChannels.platform,
+          (MethodCall call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          buzzes.add('${call.arguments}');
+        }
+        return null;
+      });
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+      return buzzes;
+    }
+
+    Finder heroTagged(Object tag) => find.byWidgetPredicate(
+          (Widget widget) => widget is Hero && widget.tag == tag,
+          skipOffstage: false,
+        );
+
+    Future<void> openRestaurant(
+      WidgetTester tester, {
+      FakeStorefrontRepository? repository,
+    }) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repository,
+      );
+      await _settleSplash(tester);
+      await tester.tap(find.text('Anjappar Chettinad').first);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('adding a dish buzzes and the cart bar counts up to the total',
+        (WidgetTester tester) async {
+      // Open, or the stepper is disabled and nothing can be added.
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..storefrontExtras = <String, dynamic>{'is_open': 'true'};
+      await openRestaurant(tester, repository: repo);
+      // The basket the fake starts with: one Mutton Biryani.
+      expect(find.text('₹100'), findsOneWidget);
+      expect(find.text('1 item'), findsOneWidget);
+
+      final List<String> buzzes = recordHaptics(tester);
+      repo
+        ..lines = <Map<String, dynamic>>[
+          <String, dynamic>{'id': 501, 'menu_item_id': 1, 'quantity': 2},
+        ]
+        ..grandTotalOverride = 420;
+      await tester.tap(find.byIcon(Icons.add_rounded).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 120));
+
+      expect(buzzes, contains('HapticFeedbackType.lightImpact'));
+      // On its way up: neither the old total nor the new one yet.
+      expect(find.text('₹100'), findsNothing);
+      expect(find.text('₹420'), findsNothing);
+
+      await tester.pumpAndSettle();
+      expect(find.text('₹420'), findsOneWidget);
+      // The cart bar's count, and the Biryani heading's count of dishes.
+      expect(find.text('2 items'), findsNWidgets(2));
+    });
+
+    testWidgets('the card photo carries over into the restaurant banner',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+
+      final Object tag = restaurantPhotoTag('home-list', 'r1');
+      expect(heroTagged(tag), findsOneWidget);
+
+      // The card's own photo: the name also sits on a Food Rescue deal
+      // higher up, which opens the restaurant without a photo to carry.
+      final Finder card = find.ancestor(
+        of: find.byWidgetPredicate(
+          (Widget widget) => widget is Hero && widget.tag == tag,
+        ),
+        matching: find.byType(RestaurantCard),
+      );
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
+      await tester.tap(card);
+      await tester.pump();
+      // The page's first frame is built off screen, where the photo's landing
+      // spot is measured. It is built from the card, with the menu still on
+      // its way, so the banner is there to land on.
+      expect(find.byType(MenuSkeleton, skipOffstage: false), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(RestaurantScreen, skipOffstage: false),
+          matching: heroTagged(tag),
+          skipOffstage: false,
+        ),
+        findsOneWidget,
+      );
+
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(MenuSkeleton), findsNothing);
+      // Landed, and still tagged, so the photo can fly back on the way out.
+      expect(
+        find.descendant(
+          of: find.byType(RestaurantScreen),
+          matching: heroTagged(tag),
+        ),
+        findsOneWidget,
+      );
+
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(RestaurantScreen), findsNothing);
+    });
+
+    testWidgets('a dish photo opens full screen and closes again',
+        (WidgetTester tester) async {
+      await openRestaurant(
+        tester,
+        repository: FakeStorefrontRepository()
+          ..menuPayload = <String, dynamic>{
+            'menu': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'id': 1,
+                'name': 'Starters',
+                'items': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'id': 11,
+                    'name': 'Paneer Tikka',
+                    'price': '220',
+                    'is_veg': true,
+                    'image_url': 'https://x/paneer.jpg',
+                  },
+                  <String, dynamic>{
+                    'id': 12,
+                    'name': 'Plain Dosa',
+                    'price': '80',
+                    'is_veg': true,
+                  },
+                ],
+              },
+            ],
+          },
+      );
+      // Only a dish with a photo can be opened.
+      expect(heroTagged(dishPhotoTag(0, 11)), findsOneWidget);
+      expect(heroTagged(dishPhotoTag(0, 12)), findsNothing);
+
+      await tester.tap(heroTagged(dishPhotoTag(0, 11)));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Close'), findsOneWidget);
+      // In its row, and again under the big photo.
+      expect(find.text('Paneer Tikka'), findsNWidgets(2));
+
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Close'), findsNothing);
+      expect(find.text('Paneer Tikka'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    Order placedOrder() => Order.fromJson(<String, dynamic>{
+          'id': 1,
+          'order_number': 'NX1001',
+          'status': 'placed',
+          'status_label': 'Placed',
+          'fulfilment_type': 'delivery',
+          'grand_total': '420',
+          'restaurant_name': 'Anjappar Chettinad',
+          'estimated_prep_minutes': 20,
+        });
+
+    testWidgets('a placed order is celebrated, then tracking takes over',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+      final List<String> buzzes = recordHaptics(tester);
+
+      _nav(tester).pushNamed(
+        AppRoutes.orderPlaced,
+        arguments: OrderPlacedArgs(order: placedOrder()),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1400));
+
+      expect(find.byType(OrderPlacedScreen), findsOneWidget);
+      expect(find.text('Order placed'), findsOneWidget);
+      expect(find.text('Anjappar Chettinad has your order.'), findsOneWidget);
+      expect(find.text('Ready in about 20 minutes.'), findsOneWidget);
+      expect(buzzes, contains('HapticFeedbackType.mediumImpact'));
+
+      // Moves on by itself, and leaves nothing running behind it.
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderPlacedScreen), findsNothing);
+      expect(find.byType(OrderStatusScreen), findsOneWidget);
+    });
+
+    testWidgets('"Track your order" skips the wait',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+
+      _nav(tester).pushNamed(
+        AppRoutes.orderPlaced,
+        arguments: OrderPlacedArgs(order: placedOrder()),
+      );
+      // Past the fade-in: a route still arriving does not take taps.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.text('Track your order'));
+      // A new page's first frame is built off screen; it shows on the next.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.byType(OrderStatusScreen), findsOneWidget);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('an empty list glows calm, a failure glows orange',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ListView(
+              children: const <Widget>[
+                EmptyState(
+                  emoji: '🧾',
+                  title: 'No orders yet',
+                  subtitle: 'Your past orders will show up here.',
+                ),
+                EmptyState(
+                  emoji: '📡',
+                  title: 'Something went wrong',
+                  subtitle: 'Check your connection and try again.',
+                  alert: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final List<EmptyIllustration> pictures = tester
+          .widgetList<EmptyIllustration>(find.byType(EmptyIllustration))
+          .toList();
+      expect(pictures.map((EmptyIllustration p) => p.alert), <bool>[
+        false,
+        true,
+      ]);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the orders tab says it is empty with the illustration',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..orderList = <String>[],
+      );
+      await _settleSplash(tester);
+      final List<String> buzzes = recordHaptics(tester);
+
+      await tester.tap(find.text('Orders').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('No orders yet'), findsOneWidget);
+      expect(find.byType(EmptyIllustration), findsOneWidget);
+      // Switching tabs ticks.
+      expect(buzzes, contains('HapticFeedbackType.selectionClick'));
+    });
+
+    testWidgets('a coupon goes on the cart and comes off again',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..grandTotalOverride = 420;
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.cart,
+        arguments: const CartArgs(restaurantId: 'r1'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Apply a coupon'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'welcome50');
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      // Sent as typed codes are printed, in capitals.
+      expect(repo.couponCode, 'WELCOME50');
+      expect(find.text('WELCOME50 applied'), findsWidgets);
+      expect(find.text('You save ₹50'), findsOneWidget);
+      expect(find.text('Place order · ₹370'), findsOneWidget);
+
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+      expect(repo.couponCode, isNull);
+      expect(find.text('Apply a coupon'), findsOneWidget);
+      expect(find.text('Place order · ₹420'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a refused coupon says why, in the server\'s words',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..refuseCouponWith = 'This coupon has expired.';
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.cart,
+        arguments: const CartArgs(restaurantId: 'r1'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Apply a coupon'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'OLD10');
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      // Still on the sheet, so the code can be corrected.
+      expect(find.text('This coupon has expired.'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(repo.couponCode, isNull);
+    });
+
+    Map<String, dynamic> curatedHome() => <String, dynamic>{
+          'sections': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'type': 'restaurants',
+              'title': 'Recommended for you',
+              'layout': 'list',
+              'items': <Map<String, dynamic>>[
+                <String, dynamic>{'id': 'r9', 'name': 'Saravana Veg'},
+              ],
+            },
+          ],
+        };
+
+    testWidgets('veg only keeps the curated home once the server filtered it',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: <String, Object>{..._languageChosen, 'nexmile.veg_mode': true},
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..homePayload = curatedHome(),
+        accountRepository: FakeAccountRepository(
+          stored: const AccountPreferences(vegMode: true),
+        ),
+      );
+      await _settleSplash(tester);
+
+      expect(_storefrontRepo.lastHomeVegOnly, isTrue);
+      expect(find.text('Recommended for you'), findsOneWidget);
+    });
+
+    testWidgets('a server that ignores veg only gets the plain veg list',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: <String, Object>{..._languageChosen, 'nexmile.veg_mode': true},
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..homePayload = curatedHome()
+          ..echoesVegOnly = false,
+        accountRepository: FakeAccountRepository(
+          stored: const AccountPreferences(vegMode: true),
+        ),
+      );
+      await _settleSplash(tester);
+
+      // Not told it was filtered, so not trusted to have been.
+      expect(find.text('Recommended for you'), findsNothing);
+      expect(_storefrontRepo.lastFilters.vegOnly, isTrue);
+    });
+
+    testWidgets('switching veg only asks for the matching home',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..homePayload = curatedHome(),
+      );
+      await _settleSplash(tester);
+      expect(_storefrontRepo.lastHomeVegOnly, isFalse);
+      final int before = _storefrontRepo.homeCalls;
+
+      await tester.tap(find.byType(VegToggle));
+      await tester.pumpAndSettle();
+
+      expect(_storefrontRepo.homeCalls, before + 1);
+      expect(_storefrontRepo.lastHomeVegOnly, isTrue);
+      expect(find.text('Recommended for you'), findsOneWidget);
+    });
+
+    testWidgets('veg only gives the header its leaf-green badge',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+      expect(find.text('Pure veg'), findsNothing);
+
+      await tester.tap(find.byType(VegToggle));
+      await tester.pumpAndSettle();
+      expect(find.text('Pure veg'), findsOneWidget);
+
+      await tester.tap(find.byType(VegToggle));
+      await tester.pumpAndSettle();
+      expect(find.text('Pure veg'), findsNothing);
+    });
+
+    testWidgets('the search hint cycles through the categories on offer',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..homePayload = <String, dynamic>{
+            'sections': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'type': 'cuisines',
+                'items': <Map<String, dynamic>>[
+                  <String, dynamic>{'slug': 'biryani', 'name': 'Biryani'},
+                  <String, dynamic>{'slug': 'dosa', 'name': 'Dosa'},
+                ],
+              },
+            ],
+          },
+      );
+      await _settleSplash(tester);
+
+      expect(find.text('Search "Biryani"'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 2900));
+      await tester.pumpAndSettle();
+      expect(find.text('Search "Dosa"'), findsOneWidget);
+      expect(find.text('Search "Biryani"'), findsNothing);
+    });
+
+    testWidgets('with no categories the search hint stays put',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+
+      expect(find.text('Search for dishes or restaurants'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+      expect(find.text('Search for dishes or restaurants'), findsOneWidget);
+    });
+
+    testWidgets('a delivered order comes back as "Order again" and opens it',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..orderList = <String>['delivered']
+          ..orderExtra = <String, dynamic>{
+            'restaurant': <String, dynamic>{
+              'id': 'r1',
+              'name': 'Anjappar Chettinad',
+            },
+          },
+      );
+      await _settleSplash(tester);
+
+      expect(find.text('Order again'), findsOneWidget);
+      // The only dish, so no "+ more".
+      expect(find.text('Mutton Biryani'), findsOneWidget);
+
+      // The card opens the restaurant; its Reorder link refills the basket.
+      await tester.tap(find.text('Mutton Biryani'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RestaurantScreen), findsOneWidget);
+      expect(_storefrontRepo.reorders, isEmpty);
+    });
+
+    testWidgets('an order still on its way is not offered again',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..orderList = <String>['preparing']
+          ..orderExtra = <String, dynamic>{
+            'restaurant': <String, dynamic>{'id': 'r1'},
+          },
+      );
+      await _settleSplash(tester);
+
+      expect(find.text('Order again'), findsNothing);
+    });
+
+    testWidgets('the order screen shows the steps and when to expect it',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..orderStatus = 'preparing'
+          ..trackExtra = <String, dynamic>{'estimated_minutes': 25},
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.orderStatus,
+        arguments: const OrderArgs(orderId: 1),
+      );
+      // The estimate breathes for as long as the order is live, so this
+      // screen never settles; step through it instead.
+      await _pumpFrames(tester, 12);
+
+      expect(find.byType(OrderProgress), findsOneWidget);
+      expect(find.text('Preparing'), findsWidgets);
+      expect(find.textContaining('Expected by'), findsOneWidget);
+    });
+
+    test('the API can light up delivery time, the rider photo and reorder', () {
+      final Restaurant timed = Restaurant.fromJson(<String, dynamic>{
+        'id': 'r1',
+        'name': 'Anjappar Chettinad',
+        'avg_prep_time_minutes': 20,
+        'eta_min_minutes': '25',
+        'eta_max_minutes': 30,
+      });
+      expect(timed.hasEtaRange, isTrue);
+      expect(timed.withFavourite(true).etaMaxMinutes, 30);
+      final Restaurant backwards = Restaurant.fromJson(<String, dynamic>{
+        'id': 'r2',
+        'name': 'Odd',
+        'eta_min_minutes': 30,
+        'eta_max_minutes': 25,
+      });
+      expect(backwards.hasEtaRange, isFalse);
+
+      final OrderTracking tracking = OrderTracking.fromJson(<String, dynamic>{
+        'status': 'picked_up',
+        'rider': <String, dynamic>{
+          'name': 'Murugan',
+          'photo_url': 'https://x/rider.jpg',
+          'rating': '4.8',
+        },
+      });
+      expect(tracking.riderPhotoUrl, 'https://x/rider.jpg');
+      expect(tracking.riderRating, 4.8);
+
+      expect(
+        Order.fromJson(<String, dynamic>{
+          'id': 1,
+          'restaurant': <String, dynamic>{'id': 12, 'name': 'Kishore Food'},
+        }).restaurantId,
+        '12',
+      );
+      expect(Order.fromJson(<String, dynamic>{'id': 2}).restaurantId, isNull);
+    });
+
+    testWidgets('a card shows the delivery time once the API sends it',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: <Widget>[
+                RestaurantCard(
+                  restaurant: Restaurant.fromJson(<String, dynamic>{
+                    'id': 'r1',
+                    'name': 'Anjappar Chettinad',
+                    'avg_prep_time_minutes': 20,
+                    'eta_min_minutes': 25,
+                    'eta_max_minutes': 30,
+                    'is_open': true,
+                  }),
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('25–30 min'), findsOneWidget);
+      expect(find.text('20 min'), findsNothing);
+    });
+
+    Future<FakeStorefrontRepository> homeWithPastOrder(
+      WidgetTester tester, {
+      List<OpenCart> openCarts = const <OpenCart>[],
+      List<String> skipped = const <String>[],
+      bool nothing = false,
+    }) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..orderList = <String>['delivered']
+        ..orderExtra = <String, dynamic>{
+          'restaurant': <String, dynamic>{
+            'id': 'r1',
+            'name': 'Anjappar Chettinad',
+          },
+        }
+        ..openCartList = openCarts
+        ..reorderSkipped = skipped
+        ..reorderNothing = nothing;
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      return repo;
+    }
+
+    testWidgets('reorder refills the basket, opens it, and names what is gone',
+        (WidgetTester tester) async {
+      final FakeStorefrontRepository repo =
+          await homeWithPastOrder(tester, skipped: <String>['Egg Bonda']);
+
+      await tester.tap(find.text('Reorder'));
+      await tester.pumpAndSettle();
+
+      expect(repo.reorders, <int>[1]);
+      expect(find.text('Apply a coupon'), findsOneWidget, reason: 'the cart');
+      expect(
+        find.text("Egg Bonda isn't available right now, so it was left out."),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a basket with dishes in it is not replaced without asking',
+        (WidgetTester tester) async {
+      final FakeStorefrontRepository repo = await homeWithPastOrder(
+        tester,
+        openCarts: <OpenCart>[
+          OpenCart.fromJson(<String, dynamic>{
+            'restaurant': <String, dynamic>{
+              'id': 'r1',
+              'name': 'Anjappar Chettinad',
+            },
+            'items': <Map<String, dynamic>>[
+              <String, dynamic>{'cart_item_id': 4, 'quantity': 2},
+            ],
+            'totals': <String, dynamic>{'grand_total': 82},
+          }),
+        ],
+      );
+
+      await tester.tap(find.text('Reorder'));
+      await tester.pumpAndSettle();
+      expect(find.text('Replace your basket?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      // Destructive, so nothing was sent.
+      expect(repo.reorders, isEmpty);
+
+      await tester.tap(find.text('Reorder'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+      expect(repo.reorders, <int>[1]);
+      expect(find.text('Apply a coupon'), findsOneWidget);
+    });
+
+    testWidgets('when nothing can come back, the customer stays and is told',
+        (WidgetTester tester) async {
+      final FakeStorefrontRepository repo =
+          await homeWithPastOrder(tester, nothing: true);
+
+      await tester.tap(find.text('Reorder'));
+      await tester.pumpAndSettle();
+
+      expect(repo.reorders, <int>[1]);
+      expect(find.text('Apply a coupon'), findsNothing);
+      expect(
+        find.text('None of these dishes are available right now.'),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a delivered order in the list can be reordered too',
+        (WidgetTester tester) async {
+      final FakeStorefrontRepository repo = await homeWithPastOrder(tester);
+
+      await tester.tap(find.text('Orders').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Reorder'));
+      await tester.pumpAndSettle();
+
+      expect(repo.reorders, <int>[1]);
+      expect(find.text('Apply a coupon'), findsOneWidget);
+    });
+
+    testWidgets('the restaurant page keeps the delivery window the card showed',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..nearbyExtras = <String, dynamic>{
+            'eta_min_minutes': 25,
+            'eta_max_minutes': 30,
+          },
+      );
+      await _settleSplash(tester);
+      expect(find.text('25–30 min'), findsOneWidget);
+
+      final Finder card = find.ancestor(
+        of: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is Hero &&
+              widget.tag == restaurantPhotoTag('home-list', 'r1'),
+        ),
+        matching: find.byType(RestaurantCard),
+      );
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
+      await tester.tap(card);
+      await tester.pumpAndSettle();
+
+      // The page's own answer has no window (no customer position in that
+      // request), so the card's carries over rather than "20 min".
+      expect(find.byType(RestaurantScreen), findsOneWidget);
+      expect(find.text('25–30 min'), findsOneWidget);
+    });
+
+    test('a reorder answer names what it left out, wherever it puts the list',
+        () {
+      final Map<String, dynamic> cart = <String, dynamic>{
+        'id': 7,
+        'items': <Map<String, dynamic>>[
+          <String, dynamic>{'id': 1, 'menu_item_id': 2, 'quantity': 1},
+        ],
+      };
+      expect(
+        Reorder.fromResponse(cart, <Object>[
+          <String, dynamic>{'name': 'Mutton Biryani'},
+          <String, dynamic>{'name': ' '},
+        ]).skipped,
+        <String>['Mutton Biryani'],
+      );
+      expect(Reorder.fromResponse(cart, null).skipped, isEmpty);
+      expect(Reorder.fromResponse(cart, null).cart.itemCount, 1);
+    });
+  });
+
   group('restaurant menu filters', () {
     Future<FakeStorefrontRepository> openMenu(
       WidgetTester tester, {
@@ -4806,8 +6023,15 @@ class FakeStorefrontRepository implements StorefrontRepository {
         'items': lines,
         'totals': <String, dynamic>{
           'items_total': '$grandTotalOverride',
-          'grand_total': '$grandTotalOverride',
+          if (couponCode != null) 'discount_total': '$couponSaving',
+          'grand_total':
+              '${grandTotalOverride - (couponCode == null ? 0 : couponSaving)}',
         },
+        if (couponCode != null)
+          'applied_coupon': <String, dynamic>{
+            'code': couponCode,
+            'title': 'Flat ₹50 off',
+          },
         'minimum_order_value': '149',
         'meets_minimum': 'true',
         'can_checkout': 'true',
@@ -4834,10 +6058,20 @@ class FakeStorefrontRepository implements StorefrontRepository {
     int? addressId,
     double? latitude,
     double? longitude,
+    bool vegOnly = false,
   }) async {
     homeCalls++;
-    return HomeScreen.fromJson(homePayload, const <String, dynamic>{});
+    lastHomeVegOnly = vegOnly;
+    // Echoes what it filtered, as the live API does in `meta.veg_only`.
+    return HomeScreen.fromJson(homePayload, <String, dynamic>{
+      if (vegOnly && echoesVegOnly) 'veg_only': true,
+    });
   }
+
+  bool? lastHomeVegOnly;
+
+  /// False plays a server from before `veg_only` on the home existed.
+  bool echoesVegOnly = true;
 
   @override
   Future<List<Restaurant>> favourites() async => <Restaurant>[];
@@ -4931,9 +6165,10 @@ class FakeStorefrontRepository implements StorefrontRepository {
     final int count = (search ?? '').isEmpty ? 2 : searchResultCount;
     return RestaurantPage(
       items: <Restaurant>[
-        Restaurant.fromJson(
-          _restaurantJson('r1', 'Anjappar Chettinad', open: false),
-        ),
+        Restaurant.fromJson(<String, dynamic>{
+          ..._restaurantJson('r1', 'Anjappar Chettinad', open: false),
+          ...nearbyExtras,
+        }),
         if (count > 1)
           Restaurant.fromJson(_restaurantJson('r2', 'Saravana Bhavan')),
       ],
@@ -5043,11 +6278,61 @@ class FakeStorefrontRepository implements StorefrontRepository {
     return Cart.fromJson(_cartJson());
   }
 
+  /// The coupon on the cart, and what it takes off.
+  String? couponCode;
+  double couponSaving = 50;
+
+  /// Refuses the next code, with this reason under `errors.code`.
+  String? refuseCouponWith;
+
+  @override
+  Future<Cart> applyCoupon(String restaurantId, {required String code}) async {
+    final String? reason = refuseCouponWith;
+    if (reason != null) {
+      refuseCouponWith = null;
+      throw ApiException(
+        kind: ApiErrorKind.validation,
+        statusCode: 422,
+        message: reason,
+        errors: <String, List<String>>{
+          'code': <String>[reason],
+        },
+      );
+    }
+    couponCode = code;
+    return Cart.fromJson(_cartJson());
+  }
+
+  @override
+  Future<Cart> removeCoupon(String restaurantId) async {
+    couponCode = null;
+    return Cart.fromJson(_cartJson());
+  }
+
   @override
   Future<void> emptyCart(String restaurantId) async => _maybeThrow();
 
   @override
-  Future<List<OpenCart>> openCarts() async => <OpenCart>[];
+  Future<List<OpenCart>> openCarts() async => openCartList;
+
+  /// Unfinished baskets, as `GET /v1/carts` would list them.
+  List<OpenCart> openCartList = <OpenCart>[];
+
+  /// Merged into the first restaurant of the nearby list.
+  Map<String, dynamic> nearbyExtras = <String, dynamic>{};
+
+  /// What the next reorder leaves out, and whether it leaves out everything.
+  List<String> reorderSkipped = <String>[];
+  bool reorderNothing = false;
+  final List<int> reorders = <int>[];
+
+  @override
+  Future<Reorder> reorder(int orderId) async {
+    reorders.add(orderId);
+    final Map<String, dynamic> cart = _cartJson();
+    if (reorderNothing) cart['items'] = <Object>[];
+    return Reorder(cart: Cart.fromJson(cart), skipped: reorderSkipped);
+  }
 
   @override
   Future<Order> checkout(

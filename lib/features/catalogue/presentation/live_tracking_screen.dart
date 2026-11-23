@@ -10,6 +10,7 @@ import '../data/order_models.dart';
 import '../state/orders_controller.dart';
 import 'order_status_screen.dart' show dispatchMessage;
 import 'widgets/rider_map.dart';
+import 'widgets/tracking/order_progress.dart';
 import 'widgets/tracking/route_geometry.dart';
 
 /// The rider, full screen, for as long as the customer wants to watch.
@@ -340,7 +341,7 @@ class _TrackingSheet extends StatelessWidget {
           const SizedBox(height: 14),
           _EtaCard(tracking: t, distanceToGo: distanceToGo),
           const SizedBox(height: 18),
-          _ProgressTracker(status: status),
+          OrderProgress(status: status, shimmer: true),
           const SizedBox(height: 18),
           _RiderCard(
             tracking: t,
@@ -495,6 +496,16 @@ class _EtaCard extends StatelessWidget {
                     child: headline,
                   ),
                 ),
+                if (eta != null && eta > 1) ...<Widget>[
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.trackingExpectedBy(arrivalClock(context, eta)),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 if (subtitle != null && subtitle.isNotEmpty) ...<Widget>[
                   const SizedBox(height: 4),
                   Row(
@@ -578,174 +589,6 @@ class _LiveDotState extends State<_LiveDot>
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Four steps joined by bars. Finished bars are solid; the current one fills
-/// with a moving sheen, which is how the order shows it is in progress
-/// rather than stuck.
-class _ProgressTracker extends StatefulWidget {
-  const _ProgressTracker({required this.status});
-
-  final OrderStatus status;
-
-  @override
-  State<_ProgressTracker> createState() => _ProgressTrackerState();
-}
-
-class _ProgressTrackerState extends State<_ProgressTracker>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _sheen = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1600),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _sheen.dispose();
-    super.dispose();
-  }
-
-  /// Which step is under way: 0 confirmed … 3 delivered.
-  static int _stepOf(OrderStatus status) => switch (status) {
-        OrderStatus.pendingPayment ||
-        OrderStatus.placed ||
-        OrderStatus.accepted =>
-          0,
-        OrderStatus.preparing ||
-        OrderStatus.readyForPickup ||
-        OrderStatus.riderAssigned ||
-        OrderStatus.reachedRestaurant =>
-          1,
-        OrderStatus.pickedUp || OrderStatus.reachedCustomer => 2,
-        OrderStatus.delivered => 3,
-        _ => 0,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final AppLocalizations l10n = AppLocalizations.of(context);
-    final int step = _stepOf(widget.status);
-    final bool animate = !MediaQuery.disableAnimationsOf(context);
-
-    final List<(IconData, String)> steps = <(IconData, String)>[
-      (Icons.check_rounded, l10n.trackingStepConfirmed),
-      (Icons.soup_kitchen_rounded, l10n.trackingStepPreparing),
-      (Icons.delivery_dining_rounded, l10n.trackingStepOnTheWay),
-      (Icons.home_rounded, l10n.trackingStepDelivered),
-    ];
-
-    Widget dot(int i) {
-      final bool done = i < step || step == 3;
-      final bool current = i == step && step != 3;
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: done || current
-              ? AppColors.greenDeep
-              : theme.colorScheme.surfaceContainerHighest,
-          boxShadow: current
-              ? <BoxShadow>[
-                  BoxShadow(
-                    color: AppColors.greenDeep.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                  ),
-                ]
-              : null,
-        ),
-        child: Icon(
-          steps[i].$1,
-          size: 16,
-          color: done || current
-              ? Colors.white
-              : theme.colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-
-    Widget bar(int i) {
-      // Bar i joins step i and step i + 1.
-      final bool filled = i < step;
-      final bool active = i == step && step < 3;
-      return Expanded(
-        child: Container(
-          height: 4,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          decoration: BoxDecoration(
-            color: filled
-                ? AppColors.greenDeep
-                : theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: active && animate
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: AnimatedBuilder(
-                    animation: _sheen,
-                    builder: (BuildContext context, _) => FractionallySizedBox(
-                      alignment: AlignmentDirectional.centerStart,
-                      widthFactor: Curves.easeInOut.transform(_sheen.value),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: <Color>[
-                              AppColors.greenDeep.withValues(alpha: 0.15),
-                              AppColors.greenDeep,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : null,
-        ),
-      );
-    }
-
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            dot(0),
-            bar(0),
-            dot(1),
-            bar(1),
-            dot(2),
-            bar(2),
-            dot(3),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: <Widget>[
-            for (int i = 0; i < steps.length; i++)
-              Expanded(
-                child: Text(
-                  steps[i].$2,
-                  textAlign: i == 0
-                      ? TextAlign.start
-                      : i == steps.length - 1
-                          ? TextAlign.end
-                          : TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: i == step ? FontWeight.w800 : FontWeight.w500,
-                    color: i <= step
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -858,7 +701,11 @@ class _RiderCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              _Avatar(initial: first.characters.first.toUpperCase()),
+              _Avatar(
+                initial: first.characters.first.toUpperCase(),
+                photoUrl: tracking?.riderPhotoUrl,
+                rating: tracking?.riderRating,
+              ),
             ],
           ),
           if (hasPhone) ...<Widget>[
@@ -937,17 +784,55 @@ String? _vehicle(String? type, AppLocalizations l10n) {
   };
 }
 
-/// The rider's initial in a ring, standing in for the photo the API does not
-/// send yet.
+/// The rider's face in a ring, or their initial until the API sends a
+/// photo (or the photo will not load), with their rating under it once there
+/// is one.
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.initial});
+  const _Avatar({required this.initial, this.photoUrl, this.rating});
 
   final String initial;
+  final String? photoUrl;
+  final double? rating;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Container(
+    final AppLocalizations l10n = AppLocalizations.of(context);
+
+    final Widget letter = Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.orangeDeep.withValues(alpha: 0.12),
+      ),
+      child: Text(
+        initial,
+        style: theme.textTheme.titleLarge?.copyWith(
+          color: AppColors.orangeDeep,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+
+    final String? url = photoUrl;
+    final Widget face = url == null
+        ? letter
+        // Memory only, not kept on the phone: it is a person's face, and the
+        // link is signed to expire.
+        : ClipOval(
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              width: 54,
+              height: 54,
+              errorBuilder: (_, __, ___) => letter,
+              loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? progress) =>
+                  progress == null ? child : letter,
+            ),
+          );
+
+    final Widget ring = Container(
       width: 64,
       height: 64,
       padding: const EdgeInsets.all(3),
@@ -961,20 +846,54 @@ class _Avatar extends StatelessWidget {
           color: theme.colorScheme.surface,
         ),
         padding: const EdgeInsets.all(2),
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.orangeDeep.withValues(alpha: 0.12),
-          ),
-          child: Text(
-            initial,
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: AppColors.orangeDeep,
-              fontWeight: FontWeight.w800,
+        child: face,
+      ),
+    );
+
+    final double? stars = rating;
+    if (stars == null || stars <= 0) return ring;
+
+    final String shown = stars.toStringAsFixed(1);
+    return SizedBox(
+      width: 64,
+      height: 74,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: <Widget>[
+          ring,
+          Positioned(
+            bottom: 0,
+            child: Semantics(
+              label: l10n.riderRatingLabel(shown),
+              excludeSemantics: true,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 13,
+                      color: Color(0xFFF5A623),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      shown,
+                      textDirection: TextDirection.ltr,
+                      style: theme.textTheme.labelSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

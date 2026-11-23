@@ -267,6 +267,7 @@ class _CustomiseSheetState extends State<_CustomiseSheet> {
                           : null,
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.greenDeep,
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: FittedBox(

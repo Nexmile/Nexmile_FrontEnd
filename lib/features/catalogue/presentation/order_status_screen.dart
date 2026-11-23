@@ -12,8 +12,10 @@ import '../data/cart_models.dart';
 import '../data/order_models.dart';
 import '../state/orders_controller.dart';
 import 'orders_tab.dart' show OrderStatusChip;
+import 'reorder_flow.dart';
 import 'widgets/catalogue_widgets.dart';
 import 'widgets/rider_map.dart';
+import 'widgets/tracking/order_progress.dart';
 import '../../../core/motion/nexmile_loader.dart';
 
 /// One order: where it is, what is in it, and what it cost.
@@ -147,6 +149,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             : SingleChildScrollView(
                 child: EmptyState(
                   emoji: '📡',
+                  alert: true,
                   title: l10n.somethingWentWrong,
                   subtitle: AuthFailure.unknown.message(l10n),
                   action: OutlinedButton(
@@ -210,12 +213,21 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 : l10n.deliveryLabel,
             style: theme.textTheme.bodySmall,
           ),
+          // The four steps, so where the order is reads at a glance rather
+          // than from the status word alone.
+          if (status.isActive || status == OrderStatus.delivered) ...<Widget>[
+            const SizedBox(height: 18),
+            OrderProgress(status: status),
+          ],
           if (status.isActive && eta != null) ...<Widget>[
             const SizedBox(height: 16),
             _Highlight(
               icon: Icons.timer_outlined,
               title: l10n.arrivingIn,
               value: l10n.minutesAway(eta),
+              detail: eta > 1
+                  ? l10n.trackingExpectedBy(arrivalClock(context, eta))
+                  : null,
               // A slow breath on the estimate is the one place a pulse earns
               // its keep: it is the app's only signal that the number is live
               // and being re-fetched, not frozen from when the screen opened.
@@ -224,8 +236,21 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           ],
           // Offered once the food has actually arrived, and nowhere else: a
           // rating asked for mid-delivery is a rating of the wait.
-          if (status == OrderStatus.delivered) ...<Widget>[
+          if (status == OrderStatus.delivered && canReorder(order)) ...<Widget>[
             const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => reorder(context, order),
+              icon: const Icon(Icons.replay_rounded),
+              label: Text(l10n.reorder),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.greenDeep,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+              ),
+            ),
+          ],
+          if (status == OrderStatus.delivered) ...<Widget>[
+            const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => Navigator.of(context).pushNamed(
                 AppRoutes.rateOrder,
@@ -333,6 +358,7 @@ class _Highlight extends StatefulWidget {
     required this.icon,
     required this.title,
     required this.value,
+    this.detail,
     this.isError = false,
     this.pulse = false,
   });
@@ -340,6 +366,9 @@ class _Highlight extends StatefulWidget {
   final IconData icon;
   final String title;
   final String value;
+
+  /// A quieter line under the value.
+  final String? detail;
   final bool isError;
 
   /// Breathes gently, to show the value is being refreshed.
@@ -429,6 +458,13 @@ class _HighlightState extends State<_Highlight>
                   style: theme.textTheme.titleSmall
                       ?.copyWith(fontWeight: FontWeight.w800),
                 ),
+                if (widget.detail != null)
+                  Text(
+                    widget.detail!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
               ],
             ),
           ),

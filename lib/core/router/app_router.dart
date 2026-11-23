@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/account/presentation/account_screens.dart';
 import '../../features/address/data/address.dart';
 import '../../features/address/data/location_service.dart';
 import '../../features/address/presentation/address_book_screen.dart';
@@ -10,7 +11,9 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/otp_verification_screen.dart';
 import '../../features/catalogue/presentation/cart_screen.dart';
 import '../../features/catalogue/data/order_models.dart';
+import '../../features/catalogue/data/storefront_models.dart';
 import '../../features/catalogue/presentation/live_tracking_screen.dart';
+import '../../features/catalogue/presentation/order_placed_screen.dart';
 import '../../features/catalogue/presentation/order_status_screen.dart';
 import '../../features/catalogue/presentation/rate_order_screen.dart';
 import '../../features/catalogue/presentation/reviews_screen.dart';
@@ -47,6 +50,12 @@ class AppRoutes {
   /// "Where am I signed in" — every device holding a live refresh token.
   static const String devices = '/devices';
 
+  // The profile page's own screens.
+  static const String coupons = '/coupons';
+  static const String favourites = '/favourites';
+  static const String help = '/help';
+  static const String orders = '/orders';
+
   /// Balance, add money, and history.
   static const String wallet = '/wallet';
 
@@ -57,6 +66,9 @@ class AppRoutes {
   static const String restaurant = '/restaurant';
   static const String cart = '/cart';
   static const String orderStatus = '/order';
+
+  /// The moment after checkout: a short celebration, then tracking.
+  static const String orderPlaced = '/order/placed';
 
   /// The rider, full screen. Pushed from the order screen, which owns the
   /// poll both of them read.
@@ -152,9 +164,25 @@ class RateOrderArgs {
 /// Argument bundle for [AppRoutes.restaurant].
 @immutable
 class RestaurantArgs {
-  const RestaurantArgs({required this.restaurantId});
+  const RestaurantArgs({
+    required this.restaurantId,
+    this.preview,
+    this.heroTag,
+  });
+
+  /// Opened from a restaurant card, carrying what the card already shows.
+  RestaurantArgs.fromCard(Restaurant restaurant, {required Object this.heroTag})
+      : restaurantId = restaurant.id,
+        preview = restaurant;
 
   final String restaurantId;
+
+  /// The list's copy of the restaurant, so the page can show its photo and
+  /// name at once while the full details and menu load.
+  final Restaurant? preview;
+
+  /// The card photo's tag, so it grows into the banner.
+  final Object? heroTag;
 }
 
 /// Argument bundle for [AppRoutes.cart].
@@ -173,6 +201,15 @@ class OrderArgs {
   const OrderArgs({required this.orderId});
 
   final int orderId;
+}
+
+/// Argument bundle for [AppRoutes.orderPlaced]: the order checkout just
+/// returned, so the celebration can name the restaurant and the wait.
+@immutable
+class OrderPlacedArgs {
+  const OrderPlacedArgs({required this.order});
+
+  final Order order;
 }
 
 /// Argument bundle for [AppRoutes.permissions].
@@ -240,6 +277,18 @@ class AppRouter {
       case AppRoutes.devices:
         return _slideRoute(const DevicesScreen(), settings);
 
+      case AppRoutes.coupons:
+        return _slideRoute(const CouponsScreen(), settings);
+
+      case AppRoutes.favourites:
+        return _slideRoute(const FavouritesScreen(), settings);
+
+      case AppRoutes.help:
+        return _slideRoute(const HelpScreen(), settings);
+
+      case AppRoutes.orders:
+        return _slideRoute(const OrdersPage(), settings);
+
       case AppRoutes.wallet:
         return _slideRoute(const WalletScreen(), settings);
 
@@ -287,6 +336,12 @@ class AppRouter {
         final Object? args = settings.arguments;
         if (args is! OrderArgs) return _misroute(settings);
         return _slideRoute(OrderStatusScreen(args: args), settings);
+
+      case AppRoutes.orderPlaced:
+        final Object? args = settings.arguments;
+        if (args is! OrderPlacedArgs) return _misroute(settings);
+        // Faded in, not slid: it is a moment, not a place.
+        return _fadeRoute(OrderPlacedScreen(args: args), settings);
 
       case AppRoutes.liveTracking:
         final Object? args = settings.arguments;

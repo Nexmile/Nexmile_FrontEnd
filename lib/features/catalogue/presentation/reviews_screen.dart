@@ -168,6 +168,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               SliverToBoxAdapter(
                 child: EmptyState(
                   emoji: '📡',
+                  alert: true,
                   title: l10n.somethingWentWrong,
                   subtitle: _failure!.message(l10n),
                   action: OutlinedButton(

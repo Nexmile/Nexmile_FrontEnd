@@ -53,6 +53,21 @@ class AppIdentity {
     return text.isEmpty ? null : text;
   }
 
+  /// The installed version, as "1.4.0 (12)", or null off a device. For the
+  /// About page and for feedback the team can tie to a build.
+  static Future<String?> version() async {
+    try {
+      final Map<String, Object?>? raw =
+          await _channel.invokeMapMethod<String, Object?>('appVersion');
+      final String name = (raw?['version'] as String? ?? '').trim();
+      final String build = (raw?['build'] as String? ?? '').trim();
+      if (name.isEmpty) return null;
+      return build.isEmpty ? name : '$name ($build)';
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// The headers that satisfy an app-restricted key.
   Map<String, String> get headers => <String, String>{
         'X-Goog-Api-Key': mapsKey,

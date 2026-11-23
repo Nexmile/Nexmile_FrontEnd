@@ -352,6 +352,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                     controller.isMutating || needsAddress ? null : _placeOrder,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.greenDeep,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(52),
                 ),
                 child:

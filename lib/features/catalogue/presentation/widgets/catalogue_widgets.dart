@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/motion/app_motion.dart';
+import '../../../../core/motion/haptics.dart';
 import '../../../../core/motion/pressable.dart';
+import '../../../../core/network/image_disk_cache.dart';
+import '../../../../core/widgets/empty_illustration.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../data/storefront_models.dart';
 
@@ -13,6 +16,41 @@ import '../../data/storefront_models.dart';
 String formatRupees(double amount) {
   final bool isWhole = amount == amount.roundToDouble();
   return '₹${isWhole ? amount.round() : amount.toStringAsFixed(2)}';
+}
+
+/// The photo tag shared by a restaurant card and the banner of the page it
+/// opens, so the photo grows from one into the other.
+///
+/// [scope] names the list the card sits in. The same restaurant can be on
+/// screen twice (a home rail and the list under it), and two photos with one
+/// tag in the same screen is an error.
+Object restaurantPhotoTag(String scope, String restaurantId) =>
+    'restaurant-photo:$scope:$restaurantId';
+
+/// A price that counts to its new value instead of jumping, so the cart bar
+/// visibly adds up as dishes go in.
+class AnimatedRupees extends StatelessWidget {
+  const AnimatedRupees(this.amount, {super.key, this.style});
+
+  final double amount;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    if (AppMotion.reduced(context)) return Rupees(amount, style: style);
+    // A tween's begin is wherever the last one got to, so a second tap mid-
+    // count carries on from the number on screen rather than restarting.
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: amount),
+      duration: AppMotion.settled,
+      curve: AppMotion.enter,
+      builder: (BuildContext context, double value, Widget? _) => Rupees(
+        // Whole rupees while moving, the exact amount once it lands.
+        value == amount ? amount : value.roundToDouble(),
+        style: style,
+      ),
+    );
+  }
 }
 
 /// Always left-to-right — a price reads the same way in every language, and
@@ -77,6 +115,11 @@ class VegMark extends StatelessWidget {
 /// Image URLs from the API are signed and expiring, so a broken link is a
 /// normal event rather than a bug — it falls back to an emoji on a brand
 /// gradient, keyed off the id so the same shop always looks the same.
+///
+/// Photos are kept on the phone ([CachedNetworkImage]), so a second launch
+/// shows them at once. While one is on its way the gradient shows on its own
+/// and the photo fades in over it; the emoji is kept for a link that failed,
+/// so it never flashes up just before a photo that was coming anyway.
 class FoodImage extends StatelessWidget {
   const FoodImage({
     super.key,
@@ -112,60 +155,80 @@ class FoodImage extends StatelessWidget {
     final List<Color> colors =
         (isDark ? _dark : _light)[seed.hashCode.abs() % _light.length];
 
-    final Widget fallback = Container(
-      width: size.isFinite ? size : null,
-      height: size.isFinite ? size : null,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-        borderRadius: BorderRadius.circular(radius),
-      ),
-      // The banner passes an infinite size to fill its slot, which would make
-      // the emoji's font size infinite too.
-      child: Text(
-        emoji,
-        style: TextStyle(fontSize: size.isFinite ? size * 0.42 : 48),
-      ),
-    );
+    Widget backdrop({required bool withEmoji}) => Container(
+          width: size.isFinite ? size : null,
+          height: size.isFinite ? size : null,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          // The banner passes an infinite size to fill its slot, which would
+          // make the emoji's font size infinite too.
+          child: withEmoji
+              ? Text(
+                  emoji,
+                  style: TextStyle(fontSize: size.isFinite ? size * 0.42 : 48),
+                )
+              : null,
+        );
 
     final String? src = url;
-    if (src == null || src.isEmpty) return fallback;
+    if (src == null || src.isEmpty) return backdrop(withEmoji: true);
 
     // An infinite `size` means "fill whatever box you are given". Passing that
-    // straight to Image.network makes it lay out square against the smaller
-    // axis instead of filling, so the fill case drops the explicit dimensions
-    // and expands instead.
+    // straight to the image makes it lay out square against the smaller axis
+    // instead of filling, so the fill case drops the explicit dimensions and
+    // expands instead.
     final bool fills = !size.isFinite;
+    final bool still = AppMotion.reduced(context);
 
-    final Widget image = Image.network(
-      src,
+    final Widget image = Image(
+      image: CachedNetworkImage(src),
       width: fills ? null : size,
       height: fills ? null : size,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => fallback,
-      loadingBuilder:
-          (BuildContext context, Widget child, ImageChunkEvent? progress) {
-        if (progress == null) return child;
-        return fallback;
+      // Keeps the old photo up while a re-signed link for it loads.
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => backdrop(withEmoji: true),
+      frameBuilder: (
+        BuildContext context,
+        Widget child,
+        int? frame,
+        bool wasSynchronouslyLoaded,
+      ) {
+        // Already in memory: no fade, or every scroll back up would flicker.
+        if (wasSynchronouslyLoaded || still) return child;
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: AppMotion.quick,
+          curve: AppMotion.enter,
+          child: child,
+        );
       },
+    );
+
+    final Widget layered = Stack(
+      fit: StackFit.expand,
+      children: <Widget>[backdrop(withEmoji: false), image],
     );
 
     if (fills) {
       return radius == 0
-          ? SizedBox.expand(child: image)
+          ? SizedBox.expand(child: layered)
           : ClipRRect(
               borderRadius: BorderRadius.circular(radius),
-              child: SizedBox.expand(child: image),
+              child: SizedBox.expand(child: layered),
             );
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: image,
+      child: SizedBox(width: size, height: size, child: layered),
     );
   }
 }
@@ -197,10 +260,14 @@ class BillRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    // The deep green that reads on white sinks into a dark page.
+    final Color saving = theme.brightness == Brightness.dark
+        ? AppColors.greenLight
+        : const Color(0xFF0F8A0F);
     final TextStyle? style = emphasis
         ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)
         : theme.textTheme.bodyMedium?.copyWith(
-            color: highlight ? const Color(0xFF0F8A0F) : null,
+            color: highlight ? saving : null,
           );
 
     return Padding(
@@ -213,7 +280,7 @@ class BillRow extends StatelessWidget {
             Text(
               freeLabel!,
               style: style?.copyWith(
-                color: const Color(0xFF0F8A0F),
+                color: saving,
                 fontWeight: FontWeight.w700,
               ),
             )
@@ -362,6 +429,7 @@ class RestaurantCard extends StatelessWidget {
     required this.onTap,
     this.onFavourite,
     this.compact = false,
+    this.heroTag,
   });
 
   final Restaurant restaurant;
@@ -373,6 +441,10 @@ class RestaurantCard extends StatelessWidget {
 
   /// Two-across grid form: shorter image, tighter type.
   final bool compact;
+
+  /// From [restaurantPhotoTag]. Given, the photo grows into the banner of
+  /// the restaurant page; the caller passes the same tag to that page.
+  final Object? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -419,13 +491,15 @@ class RestaurantCard extends StatelessWidget {
                             BlendMode.multiply,
                           )
                         : const ColorFilter.matrix(_greyscale),
-                    child: FoodImage(
-                      seed: restaurant.id,
-                      url: restaurant.bannerUrl.isEmpty
-                          ? restaurant.logoUrl
-                          : restaurant.bannerUrl,
-                      size: double.infinity,
-                      radius: 0,
+                    child: _maybeHero(
+                      FoodImage(
+                        seed: restaurant.id,
+                        url: restaurant.bannerUrl.isEmpty
+                            ? restaurant.logoUrl
+                            : restaurant.bannerUrl,
+                        size: double.infinity,
+                        radius: 0,
+                      ),
                     ),
                   ),
                   // Scrim only along the bottom, so the pills stay legible on a
@@ -447,7 +521,12 @@ class RestaurantCard extends StatelessWidget {
                       children: <Widget>[
                         _GlassPill(
                           icon: Icons.schedule_rounded,
-                          label: l10n.minutesAway(restaurant.avgPrepTimeMinutes),
+                          label: restaurant.hasEtaRange
+                              ? l10n.etaRange(
+                                  restaurant.etaMinMinutes!,
+                                  restaurant.etaMaxMinutes!,
+                                )
+                              : l10n.minutesAway(restaurant.avgPrepTimeMinutes),
                         ),
                         if (restaurant.distanceKmLabel != null) ...<Widget>[
                           const SizedBox(width: 6),
@@ -568,6 +647,12 @@ class RestaurantCard extends StatelessWidget {
     );
   }
 
+  Widget _maybeHero(Widget photo) {
+    final Object? tag = heroTag;
+    if (tag == null) return photo;
+    return Hero(tag: tag, child: photo);
+  }
+
   /// Luminance-weighted greyscale, for a shop that is shut.
   static const List<double> _greyscale = <double>[
     0.2126, 0.7152, 0.0722, 0, 0, //
@@ -642,49 +727,117 @@ class QuantityControl extends StatelessWidget {
     final Color onAccent = isDark ? AppColors.black : Colors.white;
     final bool isEmpty = quantity == 0;
 
-    return AnimatedContainer(
-      duration: AppMotion.quick,
-      curve: AppMotion.enter,
-      width: 104,
-      height: 38,
-      decoration: BoxDecoration(
-        // Outlined while empty, filled once something is in the cart. The fill
-        // is what makes a chosen dish scannable down a long menu.
-        color: isEmpty ? Colors.transparent : accent,
-        border: Border.all(color: accent, width: 1.4),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: AnimatedSwitcher(
+    // A tap for adding, a lighter tick for taking away: the hand learns which
+    // way the count went without looking.
+    void add() {
+      Haptics.tap();
+      onAdd();
+    }
+
+    void remove() {
+      Haptics.select();
+      onRemove();
+    }
+
+    return _PopOnIncrease(
+      quantity: quantity,
+      child: AnimatedContainer(
         duration: AppMotion.quick,
-        switchInCurve: AppMotion.enter,
-        switchOutCurve: AppMotion.exit,
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.82, end: 1).animate(animation),
-              child: child,
-            ),
-          );
-        },
-        child: isEmpty
-            ? _AddButton(
-                key: const ValueKey<String>('add'),
-                label: l10n.addLabel,
-                accent: accent,
-                onTap: enabled ? onAdd : null,
-              )
-            : _Stepper(
-                key: const ValueKey<String>('stepper'),
-                quantity: quantity,
-                enabled: enabled,
-                foreground: onAccent,
-                onAdd: onAdd,
-                onRemove: onRemove,
+        curve: AppMotion.enter,
+        width: 104,
+        height: 38,
+        decoration: BoxDecoration(
+          // Outlined while empty, filled once something is in the cart. The fill
+          // is what makes a chosen dish scannable down a long menu.
+          color: isEmpty ? Colors.transparent : accent,
+          border: Border.all(color: accent, width: 1.4),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: AnimatedSwitcher(
+          duration: AppMotion.quick,
+          switchInCurve: AppMotion.enter,
+          switchOutCurve: AppMotion.exit,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.82, end: 1).animate(animation),
+                child: child,
               ),
+            );
+          },
+          child: isEmpty
+              ? _AddButton(
+                  key: const ValueKey<String>('add'),
+                  label: l10n.addLabel,
+                  accent: accent,
+                  onTap: enabled ? add : null,
+                )
+              : _Stepper(
+                  key: const ValueKey<String>('stepper'),
+                  quantity: quantity,
+                  enabled: enabled,
+                  foreground: onAccent,
+                  onAdd: add,
+                  onRemove: remove,
+                ),
+        ),
       ),
     );
   }
+}
+
+/// A quick swell and settle each time the count goes up: the button
+/// answering the finger, which is most of what makes adding feel quick.
+class _PopOnIncrease extends StatefulWidget {
+  const _PopOnIncrease({required this.quantity, required this.child});
+
+  final int quantity;
+  final Widget child;
+
+  @override
+  State<_PopOnIncrease> createState() => _PopOnIncreaseState();
+}
+
+class _PopOnIncreaseState extends State<_PopOnIncrease>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: AppMotion.quick,
+  );
+
+  late final Animation<double> _scale = TweenSequence<double>(
+    <TweenSequenceItem<double>>[
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1, end: 1.09)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 40,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1.09, end: 1)
+            .chain(CurveTween(curve: AppMotion.spring)),
+        weight: 60,
+      ),
+    ],
+  ).animate(_controller);
+
+  @override
+  void didUpdateWidget(_PopOnIncrease oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.quantity > oldWidget.quantity && !AppMotion.reduced(context)) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      ScaleTransition(scale: _scale, child: widget.child);
 }
 
 class _AddButton extends StatelessWidget {
@@ -825,6 +978,8 @@ class _StepperButton extends StatelessWidget {
   }
 }
 
+/// "Nothing here yet" or "that didn't work": a picture, a line saying so,
+/// and the way forward.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -832,6 +987,7 @@ class EmptyState extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.action,
+    this.alert = false,
   });
 
   final String emoji;
@@ -839,26 +995,49 @@ class EmptyState extends StatelessWidget {
   final String subtitle;
   final Widget? action;
 
+  /// Something failed (offline, a server error) rather than simply being
+  /// empty. Glows orange instead of green.
+  final bool alert;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 48),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(emoji, style: const TextStyle(fontSize: 52)),
-          const SizedBox(height: 16),
-          Text(title,
-              textAlign: TextAlign.center, style: theme.textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(subtitle,
-              textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
-          if (action != null) ...<Widget>[
-            const SizedBox(height: 20),
-            action!,
-          ],
-        ],
+      padding: const EdgeInsets.fromLTRB(32, 40, 32, 48),
+      child: Center(
+        child: ConstrainedBox(
+          // Short lines read as a sentence; full-width ones as a paragraph.
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              EmptyIllustration(emoji: emoji, alert: alert),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.45,
+                ),
+              ),
+              if (action != null) ...<Widget>[
+                const SizedBox(height: 22),
+                action!,
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1079,7 +1258,10 @@ class _FavouriteButton extends StatelessWidget {
       button: true,
       toggled: isFavourite,
       child: InkResponse(
-        onTap: onTap,
+        onTap: () {
+          Haptics.tap();
+          onTap();
+        },
         radius: 22,
         child: Padding(
           padding: const EdgeInsets.all(8),

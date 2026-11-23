@@ -9,6 +9,8 @@ class PreferencesService {
   static const String _sessionKey = 'nexmile.session';
   static const String _permissionsAskedKey = 'nexmile.permissions_asked';
   static const String _recentPlacesKey = 'nexmile.recent_places';
+  static const String _themeModeKey = 'nexmile.theme_mode';
+  static const String _vegModeKey = 'nexmile.veg_mode';
 
   final SharedPreferences _prefs;
 
@@ -60,4 +62,17 @@ class PreferencesService {
 
   Future<void> saveRecentPlacesJson(String json) =>
       _prefs.setString(_recentPlacesKey, json);
+
+  /// "system", "light" or "dark". A phone setting, not an account one: the
+  /// same customer may want dark on one phone and light on another.
+  String? get themeMode => _prefs.getString(_themeModeKey);
+
+  Future<void> saveThemeMode(String mode) =>
+      _prefs.setString(_themeModeKey, mode);
+
+  /// The last veg-mode answer the server gave, so the storefront can open in
+  /// veg-only straight away instead of after a network round trip.
+  bool get vegMode => _prefs.getBool(_vegModeKey) ?? false;
+
+  Future<void> saveVegMode(bool on) => _prefs.setBool(_vegModeKey, on);
 }

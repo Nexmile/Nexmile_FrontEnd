@@ -207,6 +207,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                 onPressed: _isSaving ? null : _save,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.greenDeep,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(52),
                 ),
                 child: _isSaving

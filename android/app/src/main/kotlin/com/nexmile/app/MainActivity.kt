@@ -24,9 +24,24 @@ class MainActivity : FlutterActivity() {
                             "androidCertSha1" to signingSha1(),
                         ),
                     )
+                    "appVersion" -> result.success(appVersion())
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /** The installed version, for About and for feedback the team can act on. */
+    private fun appVersion(): Map<String, String> = try {
+        val info = packageManager.getPackageInfo(packageName, 0)
+        val build = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.longVersionCode.toString()
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toString()
+        }
+        mapOf("version" to (info.versionName ?: ""), "build" to build)
+    } catch (e: Exception) {
+        emptyMap()
     }
 
     /** The Maps key from the manifest, put there from android/maps.properties. */

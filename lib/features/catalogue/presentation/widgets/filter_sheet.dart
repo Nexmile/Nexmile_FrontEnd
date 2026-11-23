@@ -331,6 +331,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   onPressed: () => Navigator.of(context).pop(_draft),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.greenDeep,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(50),
                   ),
                   child: FittedBox(

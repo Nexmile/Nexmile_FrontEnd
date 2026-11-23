@@ -151,6 +151,50 @@ class CartController extends ChangeNotifier {
   Future<AuthFailure?> removeLine(String restaurantId, int cartItemId) =>
       _mutate(() => _repository.removeItem(restaurantId, cartItemId));
 
+  /// A refused code leaves its reason in `firstError('code')`, worded by the
+  /// server for the customer.
+  Future<AuthFailure?> applyCoupon(String restaurantId, String code) => _mutate(
+        () => _repository.applyCoupon(restaurantId, code: code.trim()),
+      );
+
+  Future<AuthFailure?> removeCoupon(String restaurantId) =>
+      _mutate(() => _repository.removeCoupon(restaurantId));
+
+  /// The unfinished basket at [restaurantId], if there is one.
+  OpenCart? openCartFor(String restaurantId) {
+    for (final OpenCart cart in _openCarts) {
+      if (cart.restaurantId == restaurantId) return cart;
+    }
+    return null;
+  }
+
+  /// Puts a past order back in its restaurant's basket, replacing whatever
+  /// was there. Never optimistic: the call is destructive, so nothing on
+  /// screen changes until the server has answered.
+  Future<(Reorder?, AuthFailure?)> reorder(int orderId) async {
+    _isMutating = true;
+    _fieldErrors = const <String, List<String>>{};
+    notifyListeners();
+    try {
+      final Reorder result = await _repository.reorder(orderId);
+      _cart = result.cart;
+      return (result, null);
+    } on ApiException catch (error) {
+      _fieldErrors = error.errors;
+      return (
+        null,
+        authFailureFrom(error, validationFailure: AuthFailure.unknown),
+      );
+    } catch (_) {
+      return (null, AuthFailure.unknown);
+    } finally {
+      _isMutating = false;
+      notifyListeners();
+      // The "you left something" bar now has this basket to point at.
+      loadOpenCarts();
+    }
+  }
+
   Future<AuthFailure?> empty(String restaurantId) async {
     _isMutating = true;
     notifyListeners();

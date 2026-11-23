@@ -170,12 +170,21 @@ class RestaurantSection extends HomeSection {
 /// The whole home payload.
 @immutable
 class HomeScreen {
-  const HomeScreen({required this.sections, this.radiusMetres});
+  const HomeScreen({
+    required this.sections,
+    this.radiusMetres,
+    this.vegOnly = false,
+  });
 
   final List<HomeSection> sections;
 
   /// How far the server searched. Worth showing when a list comes back short.
   final int? radiusMetres;
+
+  /// `meta.veg_only`: the server left out non-veg restaurants and dishes.
+  /// Read from the answer rather than assumed from the request, so a server
+  /// that ignores `veg_only=1` is never trusted to have filtered.
+  final bool vegOnly;
 
   bool get isEmpty => sections.isEmpty;
 
@@ -195,6 +204,7 @@ class HomeScreen {
       sections: sections,
       radiusMetres:
           meta['radius_metres'] == null ? null : asInt(meta['radius_metres']),
+      vegOnly: asBool(meta['veg_only']),
     );
   }
 }

@@ -519,6 +519,7 @@ class _MenuFilterSheetState extends State<_MenuFilterSheet> {
                       shown > 0 ? () => Navigator.of(context).pop(draft) : null,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.greenDeep,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(50),
                   ),
                   child: FittedBox(

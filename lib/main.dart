@@ -12,6 +12,7 @@ import 'core/services/preferences_service.dart';
 import 'features/address/data/address_repository.dart';
 import 'features/address/data/location_service.dart';
 import 'features/address/data/google_places.dart';
+import 'features/account/data/account_repository.dart';
 import 'features/address/state/address_controller.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/auth_session.dart';
@@ -92,6 +93,7 @@ Future<void> main() async {
       locationService: GeolocatorLocationService(places: GooglePlaces()),
       storefrontRepository: ApiStorefrontRepository(apiClient),
       walletRepository: ApiWalletRepository(apiClient),
+      accountRepository: ApiAccountRepository(apiClient),
       pushService: pushService,
     ),
   );

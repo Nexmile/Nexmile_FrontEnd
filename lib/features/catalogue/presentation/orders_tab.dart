@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/motion/haptics.dart';
 import '../../../core/motion/pressable.dart';
 import '../../../core/motion/reveal.dart';
 import '../../../core/router/app_router.dart';
@@ -9,6 +10,7 @@ import '../../../generated/l10n/app_localizations.dart';
 import '../../auth/data/auth_failure.dart';
 import '../data/order_models.dart';
 import '../state/orders_controller.dart';
+import 'reorder_flow.dart';
 import 'widgets/catalogue_widgets.dart';
 import '../../../core/motion/nexmile_loader.dart';
 
@@ -58,7 +60,10 @@ class _OrdersTabState extends State<OrdersTab> {
         color: Theme.of(context).colorScheme.primary,
         backgroundColor: Theme.of(context).colorScheme.surface,
         displacement: 28,
-        onRefresh: _load,
+        onRefresh: () {
+          Haptics.tap();
+          return _load();
+        },
         child: Builder(
           builder: (BuildContext context) {
             if (controller.isLoading && !controller.hasLoaded) {
@@ -198,6 +203,24 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (canReorder(order)) ...<Widget>[
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: OutlinedButton.icon(
+                      onPressed: () => reorder(context, order),
+                      icon: const Icon(Icons.replay_rounded, size: 18),
+                      label: Text(l10n.reorder),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.orangeDeep,
+                        side: BorderSide(
+                          color: AppColors.orangeDeep.withValues(alpha: 0.5),
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ),
+                ],
                   ],
                 ),
               ),
