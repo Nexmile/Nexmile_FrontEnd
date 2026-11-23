@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart'
+    show LicenseEntryWithLineBreaks, LicenseRegistry;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -24,6 +26,13 @@ import 'features/wallet/data/wallet_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // The bundled font's licence, on the open-source licences page.
+  LicenseRegistry.addLicense(() async* {
+    final String text = await rootBundle
+        .loadString('assets/fonts/plus_jakarta_sans/OFL.txt');
+    yield LicenseEntryWithLineBreaks(<String>['Plus Jakarta Sans'], text);
+  });
 
   // Portrait only: the splash lockup and the language grid are both designed
   // for a tall viewport.

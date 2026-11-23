@@ -531,6 +531,7 @@ class OrdersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OrdersTab(
+      asPage: true,
       // "Browse restaurants" from an empty history goes home.
       onBrowse: () =>
           Navigator.of(context).popUntil((Route<void> route) => route.isFirst),

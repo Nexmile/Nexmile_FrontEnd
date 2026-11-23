@@ -22,6 +22,7 @@ class MenuToolbar extends StatelessWidget {
     required this.onChanged,
     required this.onOpenSheet,
     this.raised = false,
+    this.showSearch = true,
   });
 
   final TextEditingController search;
@@ -34,6 +35,10 @@ class MenuToolbar extends StatelessWidget {
   /// True once the menu scrolls under the bar, which gives it a shadow.
   final bool raised;
 
+  /// The search field, above the chips. Off until the customer asks to
+  /// search (the Search button over the photo), so the bar is just the chips.
+  final bool showSearch;
+
   /// Text scaling is held inside this range here, so the bar's height can be
   /// worked out before it is built. A pinned header needs that height in
   /// advance.
@@ -43,8 +48,10 @@ class MenuToolbar extends StatelessWidget {
       (MediaQuery.textScalerOf(context).scale(14) / 14)
           .clamp(1.0, _maxTextScale);
 
-  /// The pinned height: the search field and the chip row, each scaled.
-  static double heightFor(BuildContext context) => 16 + 88 * _scaleOf(context);
+  /// The pinned height: the chip row, and the search field above it when
+  /// [showSearch] is on, each scaled.
+  static double heightFor(BuildContext context, {bool withSearch = true}) =>
+      withSearch ? 16 + 88 * _scaleOf(context) : 12 + 44 * _scaleOf(context);
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +77,7 @@ class MenuToolbar extends StatelessWidget {
         ),
         child: Column(
           children: <Widget>[
+            if (showSearch) ...<Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: _SearchField(
@@ -86,7 +94,8 @@ class MenuToolbar extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 4),
+            ],
+            SizedBox(height: showSearch ? 4 : 6),
             SizedBox(
               height: 44 * scale,
               child: ListView(

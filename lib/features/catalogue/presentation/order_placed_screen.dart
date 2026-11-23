@@ -157,7 +157,6 @@ class _OrderPlacedScreenState extends State<OrderPlacedScreen>
                                 style: theme.textTheme.headlineMedium?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.4,
                                 ),
                               ),
                               if (restaurant != null && restaurant.isNotEmpty) ...<Widget>[

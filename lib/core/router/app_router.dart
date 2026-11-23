@@ -154,7 +154,10 @@ class ReviewsArgs {
 /// Argument bundle for [AppRoutes.rateOrder].
 @immutable
 class RateOrderArgs {
-  const RateOrderArgs({required this.order});
+  const RateOrderArgs({required this.order, this.initialRating});
+
+  /// The stars already tapped on a prompt card, so the screen opens with them.
+  final int? initialRating;
 
   /// Carried rather than re-fetched: the screen needs the lines to put stars
   /// against, and the customer arrives here from a screen that already has it.

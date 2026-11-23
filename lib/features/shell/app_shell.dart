@@ -13,9 +13,9 @@ import '../catalogue/presentation/home_tab.dart';
 import '../catalogue/presentation/orders_tab.dart';
 import '../catalogue/presentation/widgets/catalogue_widgets.dart';
 import '../catalogue/state/cart_controller.dart';
-import '../profile/profile_screen.dart';
 
-/// Signed-in home: four tabs plus the floating cart bar.
+/// Signed-in home: Delivery and History on a floating bar, plus the basket
+/// bar. The profile is the avatar at the top of either, not a tab.
 ///
 /// Tabs are kept alive in an [IndexedStack] so switching away and back does not
 /// reset the search query, the category filter or a scroll position — which is
@@ -75,18 +75,14 @@ class _AppShellState extends State<AppShell> {
           onOpenSearch: () => _openSearch(),
           onOpenVoiceSearch: () => _openSearch(voice: true),
         );
-      case 1:
-        return OrdersTab(onBrowse: _openHome);
       default:
-        return const ProfileScreen();
+        return OrdersTab(onBrowse: _openHome);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final bool isDark = theme.brightness == Brightness.dark;
 
     // Back from any other tab goes Home first, the way delivery apps behave;
     // only back from Home reaches the exit question.
@@ -96,43 +92,32 @@ class _AppShellState extends State<AppShell> {
         if (!didPop && _index != 0) _select(0);
       },
       child: Scaffold(
+        // The pages run under the floating bar, the way the big apps do; each
+        // leaves room at its foot so its last item can scroll clear of it.
+        extendBody: true,
         body: IndexedStack(
           index: _index,
-          children: <Widget>[for (int i = 0; i < 3; i++) _tab(i)],
+          children: <Widget>[for (int i = 0; i < 2; i++) _tab(i)],
         ),
-        // The unfinished-basket bar rides above the navigation bar on the
-        // browsing tabs; the orders and profile tabs have their own actions.
+        // The unfinished-basket bar rides above the bottom bar on Delivery;
+        // History has its own actions.
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             if (_index == 0) const _OpenCartBar(),
-            NavigationBar(
-              selectedIndex: _index,
-              onDestinationSelected: _select,
-              destinations: <Widget>[
-                NavigationDestination(
-                  icon: const Icon(Icons.home_outlined),
-                  selectedIcon: Icon(
-                    Icons.home_rounded,
-                    color: isDark ? AppColors.greenLight : AppColors.greenDeep,
-                  ),
-                  label: l10n.navHome,
+            _FloatingNav(
+              index: _index,
+              onSelect: _select,
+              items: <_NavItemData>[
+                _NavItemData(
+                  label: l10n.deliveryLabel,
+                  icon: Icons.home_outlined,
+                  selectedIcon: Icons.home_rounded,
                 ),
-                NavigationDestination(
-                  icon: const Icon(Icons.receipt_long_outlined),
-                  selectedIcon: Icon(
-                    Icons.receipt_long_rounded,
-                    color: isDark ? AppColors.greenLight : AppColors.greenDeep,
-                  ),
-                  label: l10n.navOrders,
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.person_outline_rounded),
-                  selectedIcon: Icon(
-                    Icons.person_rounded,
-                    color: isDark ? AppColors.greenLight : AppColors.greenDeep,
-                  ),
-                  label: l10n.profileTitle,
+                _NavItemData(
+                  label: l10n.navHistory,
+                  icon: Icons.receipt_long_outlined,
+                  selectedIcon: Icons.receipt_long_rounded,
                 ),
               ],
             ),
@@ -221,6 +206,145 @@ class _OpenCartBar extends StatelessWidget {
                     Icons.arrow_forward_rounded,
                     color: Colors.white,
                     size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItemData {
+  const _NavItemData({
+    required this.label,
+    required this.icon,
+    required this.selectedIcon,
+  });
+
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+}
+
+/// The bottom bar: a white pill floating over the page, the chosen tab a dark
+/// pill inside it with its icon in colour.
+class _FloatingNav extends StatelessWidget {
+  const _FloatingNav({
+    required this.index,
+    required this.onSelect,
+    required this.items,
+  });
+
+  final int index;
+  final ValueChanged<int> onSelect;
+  final List<_NavItemData> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 12),
+      child: Center(
+        // Never wider than the screen: on a small phone at large text the
+        // labels shorten rather than push the bar off the edge.
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width - 32,
+          ),
+          child: Material(
+            color: theme.colorScheme.surface,
+            elevation: isDark ? 2 : 10,
+            shadowColor: Colors.black.withValues(alpha: 0.28),
+            shape: StadiumBorder(
+              side: BorderSide(color: theme.colorScheme.outlineVariant),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  for (int i = 0; i < items.length; i++)
+                    Flexible(
+                      child: _NavItem(
+                        data: items[i],
+                        selected: i == index,
+                        onTap: () => onSelect(i),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.data,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _NavItemData data;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color ink = selected
+        ? theme.colorScheme.onInverseSurface
+        : theme.colorScheme.onSurface;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: AppMotion.quick,
+            curve: AppMotion.enter,
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.sizeOf(context).width < 360 ? 14 : 22,
+              vertical: 13,
+            ),
+            decoration: ShapeDecoration(
+              shape: const StadiumBorder(),
+              color: selected
+                  ? theme.colorScheme.inverseSurface
+                  : Colors.transparent,
+            ),
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.3,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    selected ? data.selectedIcon : data.icon,
+                    size: 22,
+                    color: selected ? AppColors.orange : ink,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      data.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: ink,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),

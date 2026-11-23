@@ -14,6 +14,7 @@ import '../state/orders_controller.dart';
 import 'orders_tab.dart' show OrderStatusChip;
 import 'reorder_flow.dart';
 import 'widgets/catalogue_widgets.dart';
+import 'widgets/rate_prompt.dart';
 import 'widgets/rider_map.dart';
 import 'widgets/tracking/order_progress.dart';
 import '../../../core/motion/nexmile_loader.dart';
@@ -234,8 +235,6 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               pulse: true,
             ),
           ],
-          // Offered once the food has actually arrived, and nowhere else: a
-          // rating asked for mid-delivery is a rating of the wait.
           if (status == OrderStatus.delivered && canReorder(order)) ...<Widget>[
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -249,19 +248,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ),
             ),
           ],
+          // Asked once the food has arrived, and nowhere else: a rating
+          // asked for mid-delivery is a rating of the wait.
           if (status == OrderStatus.delivered) ...<Widget>[
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed(
-                AppRoutes.rateOrder,
-                arguments: RateOrderArgs(order: order),
-              ),
-              icon: const Icon(Icons.star_outline_rounded),
-              label: Text(l10n.rateThisOrder),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-            ),
+            const SizedBox(height: 14),
+            RatePromptCard(order: order),
           ],
           // Finding a rider runs alongside the kitchen, so it gets its own
           // line rather than a status: an order can be cooking and still

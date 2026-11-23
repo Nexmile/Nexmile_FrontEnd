@@ -11,6 +11,7 @@ class PreferencesService {
   static const String _recentPlacesKey = 'nexmile.recent_places';
   static const String _themeModeKey = 'nexmile.theme_mode';
   static const String _vegModeKey = 'nexmile.veg_mode';
+  static const String _ratedOrdersKey = 'nexmile.rated_orders';
 
   final SharedPreferences _prefs;
 
@@ -75,4 +76,11 @@ class PreferencesService {
   bool get vegMode => _prefs.getBool(_vegModeKey) ?? false;
 
   Future<void> saveVegMode(bool on) => _prefs.setBool(_vegModeKey, on);
+
+  /// Orders rated, or whose rating prompt was waved away, on this phone:
+  /// JSON for [RatedOrders].
+  String? get ratedOrdersJson => _prefs.getString(_ratedOrdersKey);
+
+  Future<void> saveRatedOrdersJson(String json) =>
+      _prefs.setString(_ratedOrdersKey, json);
 }

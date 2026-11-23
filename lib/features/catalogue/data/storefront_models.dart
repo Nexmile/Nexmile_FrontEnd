@@ -66,6 +66,7 @@ class Restaurant {
     required this.cuisines,
     required this.offers,
     this.photos = const <RestaurantPhoto>[],
+    this.featuredDish,
     this.distanceMetres,
     this.etaMinMinutes,
     this.etaMaxMinutes,
@@ -94,6 +95,19 @@ class Restaurant {
   final bool withinOperatingHours;
 
   final int avgPrepTimeMinutes;
+
+  /// `featured_dish` in the list: one dish to put on the card's photo
+  /// ("Paneer Tikka · ₹220"). Null until the API sends it.
+  final FeaturedDish? featuredDish;
+
+  /// Close by and quick, the way the big apps flag it: within 2 km, and
+  /// there within half an hour by the server's window (or the kitchen's time
+  /// when there is no window yet).
+  bool get isNearAndFast {
+    final int? metres = distanceMetres;
+    if (metres == null || metres > 2000) return false;
+    return hasEtaRange ? etaMaxMinutes! <= 30 : avgPrepTimeMinutes <= 25;
+  }
 
   /// Delivery time, cooking plus the ride, as the server works it out for
   /// this customer: `eta_min_minutes` and `eta_max_minutes`. Null until the
@@ -208,6 +222,7 @@ class Restaurant {
         costForTwo:
             json['cost_for_two'] == null ? null : asInt(json['cost_for_two']),
         cuisines: _strings(json['cuisines']),
+        featuredDish: FeaturedDish.fromJson(json['featured_dish']),
         photos: asMapList(json['photos'])
             .map(RestaurantPhoto.fromJson)
             .where((RestaurantPhoto p) => p.url.isNotEmpty)
@@ -250,6 +265,7 @@ class Restaurant {
         cuisines: cuisines,
         offers: offers,
         photos: photos,
+        featuredDish: featuredDish,
         distanceMetres: distanceMetres,
         etaMinMinutes: etaMinMinutes,
         etaMaxMinutes: etaMaxMinutes,
@@ -584,4 +600,30 @@ class RestaurantOffer {
         label: asString(json['label']),
         type: asString(json['type']),
       );
+}
+
+/// One dish a restaurant card leads with: what it is, what it costs.
+@immutable
+class FeaturedDish {
+  const FeaturedDish({
+    required this.name,
+    required this.price,
+    required this.isVeg,
+  });
+
+  final String name;
+  final double price;
+  final bool isVeg;
+
+  /// Null for anything without a name, so a half-sent dish shows nothing.
+  static FeaturedDish? fromJson(Object? raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final String name = asString(raw['name']).trim();
+    if (name.isEmpty) return null;
+    return FeaturedDish(
+      name: name,
+      price: asDouble(raw['price']),
+      isVeg: asBool(raw['is_veg']),
+    );
+  }
 }

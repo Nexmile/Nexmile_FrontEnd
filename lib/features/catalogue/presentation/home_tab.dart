@@ -24,11 +24,13 @@ import '../data/order_models.dart';
 import '../data/restaurant_filters.dart';
 import '../data/storefront_models.dart';
 import '../state/orders_controller.dart';
+import '../state/rated_orders.dart';
 import '../state/storefront_controller.dart';
 import 'reorder_flow.dart';
 import 'widgets/catalogue_widgets.dart';
 import 'widgets/filter_bar.dart';
 import 'widgets/home_sections.dart';
+import 'widgets/rate_prompt.dart';
 
 /// Nearby restaurants for the customer's delivery address.
 class HomeTab extends StatefulWidget {
@@ -68,6 +70,9 @@ class _HomeTabState extends State<HomeTab> {
 
   static String _deliveryKey(AddressController addresses) =>
       addresses.deliveryAddress?.id.toString() ?? 'here';
+
+  /// The Food Rescue heading, for the Explore tile that scrolls to it.
+  final GlobalKey _dealsHeading = GlobalKey();
 
   /// The veg mode the "Pure veg" filter was last set from. Veg mode is the
   /// customer's saved default for that filter, applied when it changes rather
@@ -266,7 +271,9 @@ class _HomeTabState extends State<HomeTab> {
             :final bool isGrid,
             :final List<Restaurant> items,
           ):
-          slivers.add(SliverToBoxAdapter(child: SectionHeader(title: title)));
+          slivers.add(
+            SliverToBoxAdapter(child: SectionHeader(title: title, caps: true)),
+          );
           slivers.add(
             SliverToBoxAdapter(
               child: isGrid
@@ -460,13 +467,40 @@ class _HomeTabState extends State<HomeTab> {
                     context.read<StorefrontController>().applyFilters(next),
               ),
             ),
-            // Personal, so it stands aside while the customer is narrowing
-            // the list down: a filter asks a question this row does not answer.
-            if (!storefront.filters.isActive)
+            // Shortcuts into the list, and the customer's own past orders.
+            // Both stand aside while the list is being narrowed down: a
+            // filter asks a question these rows do not answer.
+            if (!storefront.filters.isActive) ...<Widget>[
+              const SliverToBoxAdapter(child: _RateLastOrder()),
+              SliverToBoxAdapter(
+                child: _ExploreMore(
+                  onPick: (RestaurantFilters next) =>
+                      context.read<StorefrontController>().applyFilters(next),
+                  filters: storefront.filters,
+                  onRescue: storefront.deals.isEmpty
+                      ? null
+                      : () {
+                          final BuildContext? deals =
+                              _dealsHeading.currentContext;
+                          if (deals != null) {
+                            Scrollable.ensureVisible(
+                              deals,
+                              duration: AppMotion.settled,
+                              curve: AppMotion.enter,
+                            );
+                          }
+                        },
+                ),
+              ),
               const SliverToBoxAdapter(child: _OrderAgainRail()),
+            ],
             if (storefront.deals.isNotEmpty) ...<Widget>[
               SliverToBoxAdapter(
-                child: SectionHeader(title: l10n.rescueDealsTitle),
+                child: SectionHeader(
+                  key: _dealsHeading,
+                  title: l10n.rescueDealsTitle,
+                  caps: true,
+                ),
               ),
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -502,15 +536,13 @@ class _HomeTabState extends State<HomeTab> {
               ..._homeSlivers(context, storefront),
             SliverToBoxAdapter(
               child: SectionHeader(
-                title: storefront.showsHome
-                    ? l10n.allRestaurantsTitle
-                    : l10n.restaurantsNearby,
-                trailing: storefront.total == null
-                    ? null
-                    : Text(
-                        l10n.restaurantsCount(storefront.total!),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                caps: true,
+                // "12 restaurants delivering to you" once the count is in.
+                title: storefront.total != null
+                    ? l10n.restaurantsDelivering(storefront.total!)
+                    : (storefront.showsHome
+                        ? l10n.allRestaurantsTitle
+                        : l10n.restaurantsNearby),
               ),
             ),
             if (storefront.isLoading && restaurants.isEmpty)
@@ -563,7 +595,8 @@ class _HomeTabState extends State<HomeTab> {
                   },
                 ),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 110)),
+            // Room for the floating bottom bar and the basket bar above it.
+            const SliverToBoxAdapter(child: SizedBox(height: 160)),
           ],
         ),
       ),
@@ -1274,7 +1307,7 @@ class _OrderAgainRail extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        SectionHeader(title: l10n.orderAgainTitle),
+        SectionHeader(title: l10n.orderAgainTitle, caps: true),
         SizedBox(
           // Fixed, as a sideways row must be, but grown with the text scale.
           height:
@@ -1416,6 +1449,197 @@ class _OrderAgainCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// "Explore more": big picture tiles that drop the customer straight into a
+/// useful slice of the list (offers, near and fast, top rated, pure veg) or
+/// to Food Rescue when there are deals. Each is a filter the list already
+/// has, so a tile is just a faster way to it.
+class _ExploreMore extends StatelessWidget {
+  const _ExploreMore({
+    required this.filters,
+    required this.onPick,
+    this.onRescue,
+  });
+
+  final RestaurantFilters filters;
+  final ValueChanged<RestaurantFilters> onPick;
+
+  /// Scrolls to Food Rescue. Null when there are no deals to see.
+  final VoidCallback? onRescue;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final List<_ExploreTile> tiles = <_ExploreTile>[
+      _ExploreTile(
+        emoji: '🏷️',
+        label: l10n.offersSection,
+        tint: const Color(0xFF3D7BF7),
+        onTap: () => onPick(filters.copyWith(hasOffers: true)),
+      ),
+      _ExploreTile(
+        emoji: '⚡',
+        label: l10n.nearAndFast,
+        tint: AppColors.orange,
+        onTap: () => onPick(filters.copyWith(nearAndFast: true)),
+      ),
+      _ExploreTile(
+        emoji: '⭐',
+        label: l10n.exploreTopRated,
+        tint: const Color(0xFFF5A623),
+        onTap: () => onPick(filters.copyWith(ratingMin: 4.0)),
+      ),
+      _ExploreTile(
+        emoji: '🥗',
+        label: l10n.vegModeBadge,
+        tint: AppColors.green,
+        onTap: () => onPick(filters.copyWith(vegOnly: true)),
+      ),
+      if (onRescue != null)
+        _ExploreTile(
+          emoji: '🍱',
+          label: l10n.rescueDealsTitle,
+          tint: AppColors.greenDeep,
+          onTap: onRescue!,
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        SectionHeader(title: l10n.exploreMore, caps: true),
+        SizedBox(
+          height:
+              MediaQuery.textScalerOf(context).scale(124).clamp(124.0, 176.0),
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: tiles.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (BuildContext context, int i) => Reveal(
+              index: i,
+              child: tiles[i],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExploreTile extends StatelessWidget {
+  const _ExploreTile({
+    required this.emoji,
+    required this.label,
+    required this.tint,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final String label;
+
+  /// The glow behind the picture.
+  final Color tint;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    return Pressable(
+      onTap: () {
+        Haptics.select();
+        onTap();
+      },
+      child: Container(
+        width: 108,
+        padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.6),
+          ),
+        ),
+        child: Column(
+          children: <Widget>[
+            Container(
+              width: 56,
+              height: 56,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: <Color>[
+                    tint.withValues(alpha: isDark ? 0.34 : 0.22),
+                    tint.withValues(alpha: 0.04),
+                  ],
+                ),
+              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 30)),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Center(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The latest delivered order, if it is recent and not yet rated: a card
+/// asking how it was, which the customer can rate from here or wave away.
+class _RateLastOrder extends StatelessWidget {
+  const _RateLastOrder();
+
+  /// Long enough to catch the customer's next visit, short enough that the
+  /// question is still about a meal they remember.
+  static const Duration _window = Duration(days: 3);
+
+  static Order? _pick(List<Order> orders, RatedOrders rated, DateTime now) {
+    for (final Order order in orders) {
+      if (order.status != OrderStatus.delivered) continue;
+      // Only ever the newest delivered order: an older one is not worth a
+      // card at the top of the storefront.
+      final DateTime? when = order.deliveredAt ?? order.placedAt;
+      if (when == null || now.difference(when) > _window) return null;
+      if (!rated.needsRating(order) || rated.isDismissed(order)) return null;
+      return order;
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final RatedOrders rated = context.watch<RatedOrders>();
+    final Order? order = _pick(
+      context.watch<OrdersController>().orders,
+      rated,
+      DateTime.now(),
+    );
+    if (order == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      child: RatePromptCard(
+        order: order,
+        onDismiss: () => rated.dismiss(order.id),
       ),
     );
   }

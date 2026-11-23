@@ -487,6 +487,200 @@ class AppLocalizationsSd extends AppLocalizations {
       'None of these dishes are available right now.';
 
   @override
+  String get searchShort => 'Search';
+
+  @override
+  String get favouriteSave => 'Save to favourites';
+
+  @override
+  String get restaurantAbout => 'About this restaurant';
+
+  @override
+  String ratingByCount(String count) {
+    return 'By $count';
+  }
+
+  @override
+  String offersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count offers',
+      one: '1 offer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareRestaurantText(String restaurant) {
+    return 'Order from $restaurant on Nexmile';
+  }
+
+  @override
+  String get ordersSearchHint => 'Search by restaurant or dish…';
+
+  @override
+  String get ordersNoMatch =>
+      'No orders from a restaurant or dish by that name.';
+
+  @override
+  String orderPlacedOn(String date) {
+    return 'Order placed on $date';
+  }
+
+  @override
+  String get viewMenu => 'View menu';
+
+  @override
+  String get navHistory => 'History';
+
+  @override
+  String get exploreMore => 'Explore more';
+
+  @override
+  String get exploreTopRated => 'Top rated';
+
+  @override
+  String restaurantsDelivering(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count restaurants delivering to you',
+      one: '1 restaurant delivering to you',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rateHowWasDelivery => 'How was your delivery?';
+
+  @override
+  String get rateHowWasFood => 'How was the food?';
+
+  @override
+  String get rateWordTerrible => 'Terrible';
+
+  @override
+  String get rateWordBad => 'Bad';
+
+  @override
+  String get rateWordOkay => 'Okay';
+
+  @override
+  String get rateWordGood => 'Good';
+
+  @override
+  String get rateWordLoved => 'Loved it!';
+
+  @override
+  String get rateWhatWentWrong => 'What went wrong?';
+
+  @override
+  String get rateWhatYouLiked => 'What did you like?';
+
+  @override
+  String get rateRiderNoteHint => 'A note about the delivery (optional)';
+
+  @override
+  String get rateReviewHeading => 'Write a review';
+
+  @override
+  String get rateFoodFirst => 'Rate the food to submit';
+
+  @override
+  String get rateYouRated => 'You rated this order';
+
+  @override
+  String get ratePromptLater => 'Not now';
+
+  @override
+  String get tagTasty => 'Tasty';
+
+  @override
+  String get tagFreshHot => 'Hot & fresh';
+
+  @override
+  String get tagGoodPortion => 'Good portion';
+
+  @override
+  String get tagGoodPackaging => 'Good packaging';
+
+  @override
+  String get tagValueForMoney => 'Value for money';
+
+  @override
+  String get tagHygienic => 'Hygienic';
+
+  @override
+  String get tagColdFood => 'Cold food';
+
+  @override
+  String get tagPoorTaste => 'Didn\'t taste good';
+
+  @override
+  String get tagSmallPortion => 'Small portion';
+
+  @override
+  String get tagWrongItems => 'Wrong items';
+
+  @override
+  String get tagMissingItems => 'Missing items';
+
+  @override
+  String get tagPoorPackaging => 'Poor packaging';
+
+  @override
+  String get tagTooOily => 'Too oily or spicy';
+
+  @override
+  String get tagOnTime => 'On time';
+
+  @override
+  String get tagPolite => 'Polite';
+
+  @override
+  String get tagFollowedInstructions => 'Followed instructions';
+
+  @override
+  String get tagCarefulHandling => 'Handled food with care';
+
+  @override
+  String get tagGoodCommunication => 'Kept me updated';
+
+  @override
+  String get tagLate => 'Late delivery';
+
+  @override
+  String get tagRude => 'Rude behaviour';
+
+  @override
+  String get tagIgnoredInstructions => 'Didn\'t follow instructions';
+
+  @override
+  String get tagFoodSpilled => 'Food spilled';
+
+  @override
+  String get tagAskedExtraMoney => 'Asked for extra money';
+
+  @override
+  String get tagUnprofessional => 'Unprofessional';
+
+  @override
+  String rateDeliveredBy(String name) {
+    return 'Delivered by $name';
+  }
+
+  @override
+  String rateFoodFrom(String restaurant) {
+    return 'From $restaurant';
+  }
+
+  @override
+  String ratePromptTitle(String restaurant) {
+    return 'How was your order from $restaurant?';
+  }
+
+  @override
   String get orderDeliveredTitle => 'ڊليور ٿي ويو';
 
   @override

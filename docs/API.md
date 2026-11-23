@@ -169,6 +169,48 @@ with no app release:
 
 ---
 
+### Asked for, not live yet (home cards)
+
+Read already and hidden until sent:
+
+- `featured_dish: {name, price, is_veg}` on each restaurant in `GET /v1/restaurants` and
+  `GET /v1/home`: one dish the card leads with, shown on its photo ("Non Veg Loaded · ₹202").
+- `photos` (up to 5, signed) on each restaurant in those lists: the card's photos become swipeable,
+  with dots. Lists send only `banner_url` today, on purpose, to keep the payload small; up to 3 is
+  plenty for a card.
+
+---
+
+### Ratings (asked for, not live yet)
+
+The rating screen ([rate_order_screen.dart](../lib/features/catalogue/presentation/rate_order_screen.dart))
+rates the delivery, the food and restaurant, and single dishes. It sends today's fields plus two new
+ones to `POST /v1/orders/{id}/review`, so it works now and the new parts are kept once the server
+reads them:
+
+```json
+{
+  "rating": 4,
+  "comment": "Biryani was great",
+  "dishes": {"41": 5, "44": 3},
+  "tags": ["tasty", "good_packaging"],
+  "rider": {"rating": 5, "tags": ["on_time"], "comment": "Thanks!"}
+}
+```
+
+`rating` (the food and restaurant, 1–5) is still the only required field. `tags` are the food's quick
+answers; `rider` is absent for a pickup, and its `comment` is private. Tag codes are fixed lists in
+[review_tags.dart](../lib/features/catalogue/data/review_tags.dart): praise for 4–5 stars, issues for
+1–3; the app translates the labels.
+
+Asked for on each order in `GET /v1/orders` and `GET /v1/orders/{id}`: `review` (null, or
+`{rating, rider_rating}`), `can_review` (delivered, inside the window, not yet rated) and
+`rider: {name, photo_url}` on delivered orders. Until they arrive, the app remembers on the phone
+which orders it rated ([rated_orders.dart](../lib/features/catalogue/state/rated_orders.dart)), so a
+rated order stops asking. The server's `review` wins whenever it is sent.
+
+---
+
 ## 6. Profile page extras
 
 The profile page (top-right avatar on the storefront, or the Profile tab) also uses calls that

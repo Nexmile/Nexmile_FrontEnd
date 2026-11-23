@@ -16,6 +16,7 @@ import 'package:nexmile/core/network/api_exception.dart';
 import 'package:nexmile/core/network/image_disk_cache.dart';
 import 'package:nexmile/core/motion/skeleton.dart';
 import 'package:nexmile/core/widgets/empty_illustration.dart';
+import 'package:nexmile/core/theme/app_theme.dart';
 import 'package:nexmile/core/push/device_registrar.dart';
 import 'package:nexmile/core/push/push_destination.dart';
 import 'package:nexmile/core/push/push_service.dart';
@@ -55,8 +56,12 @@ import 'package:nexmile/features/catalogue/data/order_models.dart';
 import 'package:nexmile/features/catalogue/data/storefront_models.dart';
 import 'package:nexmile/features/catalogue/data/storefront_repository.dart';
 import 'package:nexmile/features/catalogue/presentation/order_placed_screen.dart';
+import 'package:nexmile/features/catalogue/presentation/orders_tab.dart';
 import 'package:nexmile/features/catalogue/presentation/order_status_screen.dart';
 import 'package:nexmile/features/catalogue/presentation/restaurant_screen.dart';
+import 'package:nexmile/features/catalogue/data/review_tags.dart';
+import 'package:nexmile/features/catalogue/presentation/widgets/rating_stars.dart';
+import 'package:nexmile/features/catalogue/presentation/rate_order_screen.dart';
 import 'package:nexmile/features/catalogue/presentation/search_tab.dart';
 import 'package:nexmile/features/catalogue/presentation/widgets/dish_photo_viewer.dart';
 import 'package:nexmile/features/catalogue/presentation/widgets/tracking/order_progress.dart';
@@ -1606,7 +1611,7 @@ void main() {
     testWidgets('back from another tab goes Home first',
         (WidgetTester tester) async {
       await onHome(tester);
-      await tester.tap(find.text('Orders').last);
+      await tester.tap(find.text('History').last);
       await _pumpFrames(tester);
 
       await tester.binding.handlePopRoute();
@@ -1655,7 +1660,8 @@ void main() {
         accountRepository: accountRepository,
       );
       await _settleSplash(tester);
-      await tester.tap(find.byIcon(Icons.person_outline_rounded).first);
+      // The avatar at the top of the storefront; the profile is not a tab.
+      _nav(tester).pushNamed(AppRoutes.profile);
       await tester.pumpAndSettle();
       return repo;
     }
@@ -1760,7 +1766,7 @@ void main() {
         session: _testSession(),
       );
       await _settleSplash(tester);
-      await tester.tap(find.byIcon(Icons.person_outline_rounded).first);
+      _nav(tester).pushNamed(AppRoutes.profile);
       await tester.pumpAndSettle();
 
       // The fake throws directly rather than going through ApiClient, so the
@@ -1951,7 +1957,7 @@ void main() {
 
       await tester.tap(find.text('Veg'));
       await tester.pumpAndSettle();
-      expect(find.text('Chicken 65'), findsOneWidget);
+      expect(find.text('Chicken 65', skipOffstage: false), findsOneWidget);
     });
 
     testWidgets('veg mode works on the phone before the server has it',
@@ -2165,7 +2171,7 @@ void main() {
       await _pumpApp(tester, seed: _languageChosen, session: _testSession());
       await _settleSplash(tester);
 
-      await tester.tap(find.text('Profile').first);
+      _nav(tester).pushNamed(AppRoutes.profile);
       await tester.pumpAndSettle();
       // The header card opens the editor.
       await tester.tap(find.text('Priya Kumar').last);
@@ -2197,7 +2203,7 @@ void main() {
       );
       await _settleSplash(tester);
 
-      await tester.tap(find.byIcon(Icons.person_outline_rounded).last);
+      _nav(tester).pushNamed(AppRoutes.profile);
       await tester.pumpAndSettle();
       // The header card opens the editor.
       await tester.tap(find.text('Priya Kumar').last);
@@ -2321,7 +2327,7 @@ void main() {
       );
       await _settleSplash(tester);
 
-      await tester.tap(find.text('Profile').first);
+      _nav(tester).pushNamed(AppRoutes.profile);
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.translate_rounded).first);
@@ -2333,9 +2339,12 @@ void main() {
       await tester.tap(find.text('தொடரவும்'));
       await tester.pumpAndSettle();
 
-      // Back in the shell, with the whole chrome now in Tamil.
+      // Back on the profile, and under it the shell, now in Tamil.
+      expect(find.byType(ProfileScreen), findsOneWidget);
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
       expect(find.byType(AppShell), findsOneWidget);
-      expect(find.text('முகப்பு'), findsWidgets);
+      expect(find.text('டெலிவரி'), findsWidgets);
     });
   });
 
@@ -3550,7 +3559,7 @@ void main() {
         (WidgetTester tester) async {
       await openStore(tester);
 
-      await tester.tap(find.text('Orders').first);
+      await tester.tap(find.text('History').first);
       await tester.pumpAndSettle();
 
       expect(_storefrontRepo.orderCalls, greaterThan(0));
@@ -3564,7 +3573,7 @@ void main() {
         repository: FakeStorefrontRepository()..orderList = <String>[],
       );
 
-      await tester.tap(find.text('Orders').first);
+      await tester.tap(find.text('History').first);
       await tester.pumpAndSettle();
 
       expect(find.text('No orders yet'), findsOneWidget);
@@ -3826,7 +3835,7 @@ void main() {
         };
       await openRestaurant(tester, repo);
 
-      await tester.tap(find.text('18 ratings'));
+      await tester.tap(find.text('By 18'));
       await tester.pumpAndSettle();
 
       expect(find.text('Ratings & reviews'), findsOneWidget);
@@ -3855,7 +3864,7 @@ void main() {
           'rating_count': 18,
         };
       await openRestaurant(tester, repo);
-      await tester.tap(find.text('18 ratings'));
+      await tester.tap(find.text('By 18'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('With reviews'));
@@ -3880,20 +3889,38 @@ void main() {
       );
       await _settleSplash(tester);
 
-      await tester.tap(find.text('Orders').first);
+      await tester.tap(find.text('History').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Order NX1001').first);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Rate this order'));
+      // The order asks with a card of stars; the fourth opens the rating
+      // with four already given.
+      expect(find.textContaining('How was your order from'), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('prompt-stars-1')),
+          matching: find.byIcon(Icons.star_outline_rounded),
+        ).at(3),
+      );
       await tester.pumpAndSettle();
 
-      // Nothing to send until the customer says something.
-      final Finder submit = find.widgetWithText(FilledButton, 'Submit rating');
-      expect(tester.widget<FilledButton>(submit).onPressed, isNull);
+      final Finder submit = find.byKey(const Key('rate-submit'));
+      expect(tester.widget<FilledButton>(submit).onPressed, isNotNull);
+      expect(find.text('🙂  Good'), findsOneWidget);
 
-      // The fourth star of the overall rating.
-      await tester.tap(find.byIcon(Icons.star_outline_rounded).at(3));
+      // Clearing the food's stars leaves nothing to send, and says why.
+      final Finder food = find.byKey(const Key('food-stars'));
+      await tester.tap(
+        find.descendant(of: food, matching: find.byIcon(Icons.star_rounded)).at(3),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.widget<FilledButton>(submit).onPressed, isNull);
+      expect(find.text('Rate the food to submit'), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(of: food, matching: find.byIcon(Icons.star_outline_rounded)).at(3),
+      );
       await tester.pumpAndSettle();
       expect(tester.widget<FilledButton>(submit).onPressed, isNotNull);
 
@@ -4188,7 +4215,7 @@ void main() {
       await _settleSplash(tester);
       final List<String> buzzes = recordHaptics(tester);
 
-      await tester.tap(find.text('Orders').first);
+      await tester.tap(find.text('History').first);
       await tester.pumpAndSettle();
 
       expect(find.text('No orders yet'), findsOneWidget);
@@ -4294,7 +4321,7 @@ void main() {
       await _settleSplash(tester);
 
       expect(_storefrontRepo.lastHomeVegOnly, isTrue);
-      expect(find.text('Recommended for you'), findsOneWidget);
+      expect(find.text('RECOMMENDED FOR YOU'), findsOneWidget);
     });
 
     testWidgets('a server that ignores veg only gets the plain veg list',
@@ -4314,7 +4341,7 @@ void main() {
       await _settleSplash(tester);
 
       // Not told it was filtered, so not trusted to have been.
-      expect(find.text('Recommended for you'), findsNothing);
+      expect(find.text('RECOMMENDED FOR YOU'), findsNothing);
       expect(_storefrontRepo.lastFilters.vegOnly, isTrue);
     });
 
@@ -4337,7 +4364,7 @@ void main() {
 
       expect(_storefrontRepo.homeCalls, before + 1);
       expect(_storefrontRepo.lastHomeVegOnly, isTrue);
-      expect(find.text('Recommended for you'), findsOneWidget);
+      expect(find.text('RECOMMENDED FOR YOU'), findsOneWidget);
     });
 
     testWidgets('veg only gives the header its leaf-green badge',
@@ -4345,15 +4372,17 @@ void main() {
       _useTallPhone(tester);
       await _pumpApp(tester, seed: _languageChosen, session: _testSession());
       await _settleSplash(tester);
-      expect(find.text('Pure veg'), findsNothing);
+      // The badge's leaf; "Pure veg" is also an Explore tile's name.
+      final Finder badge = find.byIcon(Icons.eco_rounded);
+      expect(badge, findsNothing);
 
       await tester.tap(find.byType(VegToggle));
       await tester.pumpAndSettle();
-      expect(find.text('Pure veg'), findsOneWidget);
+      expect(badge, findsOneWidget);
 
       await tester.tap(find.byType(VegToggle));
       await tester.pumpAndSettle();
-      expect(find.text('Pure veg'), findsNothing);
+      expect(badge, findsNothing);
     });
 
     testWidgets('the search hint cycles through the categories on offer',
@@ -4414,7 +4443,7 @@ void main() {
       );
       await _settleSplash(tester);
 
-      expect(find.text('Order again'), findsOneWidget);
+      expect(find.text('ORDER AGAIN'), findsOneWidget);
       // The only dish, so no "+ more".
       expect(find.text('Mutton Biryani'), findsOneWidget);
 
@@ -4440,7 +4469,7 @@ void main() {
       );
       await _settleSplash(tester);
 
-      expect(find.text('Order again'), findsNothing);
+      expect(find.text('ORDER AGAIN'), findsNothing);
     });
 
     testWidgets('the order screen shows the steps and when to expect it',
@@ -4638,9 +4667,9 @@ void main() {
         (WidgetTester tester) async {
       final FakeStorefrontRepository repo = await homeWithPastOrder(tester);
 
-      await tester.tap(find.text('Orders').first);
+      await tester.tap(find.text('History').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Reorder'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Reorder'));
       await tester.pumpAndSettle();
 
       expect(repo.reorders, <int>[1]);
@@ -4661,7 +4690,8 @@ void main() {
           },
       );
       await _settleSplash(tester);
-      expect(find.text('25–30 min'), findsOneWidget);
+      // Close and quick, so the card says "Near & Fast · 25–30 min".
+      expect(find.textContaining('25–30 min'), findsOneWidget);
 
       final Finder card = find.ancestor(
         of: find.byWidgetPredicate(
@@ -4679,7 +4709,7 @@ void main() {
       // The page's own answer has no window (no customer position in that
       // request), so the card's carries over rather than "20 min".
       expect(find.byType(RestaurantScreen), findsOneWidget);
-      expect(find.text('25–30 min'), findsOneWidget);
+      expect(find.textContaining('25–30 min'), findsOneWidget);
     });
 
     test('a reorder answer names what it left out, wherever it puts the list',
@@ -4699,6 +4729,472 @@ void main() {
       );
       expect(Reorder.fromResponse(cart, null).skipped, isEmpty);
       expect(Reorder.fromResponse(cart, null).cart.itemCount, 1);
+    });
+
+    testWidgets('the bottom bar is Delivery and History; the avatar is the profile',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+
+      expect(find.text('Delivery'), findsWidgets);
+      expect(find.text('History'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      expect(find.byType(OrdersTab), findsOneWidget);
+      // History carries the avatar too.
+      await tester.tap(find.byTooltip('Profile'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProfileScreen), findsOneWidget);
+    });
+
+    Future<FakeStorefrontRepository> history(
+      WidgetTester tester,
+      List<String> orders,
+    ) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..orderList = orders
+        ..orderExtra = <String, dynamic>{
+          'restaurant': <String, dynamic>{
+            'id': 'r1',
+            'name': 'Anjappar Chettinad',
+            'area': 'Velachery, Chennai',
+          },
+        };
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('a history card reads like a receipt and offers the next step',
+        (WidgetTester tester) async {
+      await history(tester, <String>['preparing', 'delivered']);
+
+      expect(find.text('Velachery, Chennai'), findsNWidgets(2));
+      expect(find.text('1 x Mutton Biryani'), findsNWidgets(2));
+      expect(find.textContaining('Order placed on'), findsNothing,
+          reason: 'the fake sends no time, so none is claimed');
+      // On its way: track it. Delivered: order it again.
+      expect(find.widgetWithText(FilledButton, 'Track your order'),
+          findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Reorder'), findsOneWidget);
+
+      await tester.tap(find.text('View menu').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(RestaurantScreen), findsOneWidget);
+    });
+
+    testWidgets('history search finds orders by restaurant or dish',
+        (WidgetTester tester) async {
+      await history(tester, <String>['delivered']);
+
+      await tester.enterText(find.byType(TextField), 'mutton');
+      await tester.pumpAndSettle();
+      expect(find.text('1 x Mutton Biryani'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'pizza');
+      await tester.pumpAndSettle();
+      expect(find.text('1 x Mutton Biryani'), findsNothing);
+      expect(find.text('No orders from a restaurant or dish by that name.'),
+          findsOneWidget);
+    });
+
+    testWidgets('"Your orders" from the profile is a page with a way back',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.orders);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.text('Your orders'), findsOneWidget);
+      // The tab's location row belongs to the tab.
+      expect(find.byTooltip('Nexmile Wallet'), findsNothing);
+    });
+
+    Future<void> menuPage(
+      WidgetTester tester, {
+      Map<String, dynamic> extras = const <String, dynamic>{},
+    }) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..menuPayload = _filterMenu()
+          ..storefrontExtras = extras,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.restaurant,
+        arguments: const RestaurantArgs(restaurantId: 'r1'),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a menu section folds away and opens again',
+        (WidgetTester tester) async {
+      await menuPage(tester);
+      expect(find.text('Paneer Tikka', skipOffstage: false), findsOneWidget);
+
+      await tester.tap(find.text('Starters'));
+      await tester.pumpAndSettle();
+      expect(find.text('Paneer Tikka', skipOffstage: false), findsNothing);
+
+      await tester.tap(find.text('Starters'));
+      await tester.pumpAndSettle();
+      expect(find.text('Paneer Tikka', skipOffstage: false), findsOneWidget);
+    });
+
+    testWidgets('the best offer shows, and the rest behind "2 offers"',
+        (WidgetTester tester) async {
+      await menuPage(
+        tester,
+        extras: <String, dynamic>{
+          'offers': <Map<String, dynamic>>[
+            <String, dynamic>{'label': '30% OFF up to ₹75', 'type': 'x'},
+            <String, dynamic>{
+              'label': 'Free delivery above ₹149',
+              'type': 'free_delivery',
+            },
+          ],
+        },
+      );
+      expect(find.text('30% OFF up to ₹75'), findsOneWidget);
+      expect(find.text('Free delivery above ₹149'), findsNothing);
+
+      await tester.tap(find.text('2 offers'));
+      await tester.pumpAndSettle();
+      expect(find.text('Free delivery above ₹149'), findsOneWidget);
+    });
+
+    testWidgets('the (i) beside the name opens the restaurant details',
+        (WidgetTester tester) async {
+      await menuPage(tester);
+
+      await tester.tap(find.byTooltip('About this restaurant'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('Anjappar Chettinad'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Explore more tiles drop into the slice they name',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+
+      expect(find.text('EXPLORE MORE'), findsOneWidget);
+      expect(find.text('2 RESTAURANTS DELIVERING TO YOU'), findsOneWidget);
+
+      await tester.tap(find.text('Top rated'));
+      await tester.pumpAndSettle();
+      expect(_storefrontRepo.lastFilters.ratingMin, 4.0);
+      // A filter is a question the shortcuts do not answer: they step aside.
+      expect(find.text('EXPLORE MORE'), findsNothing);
+    });
+
+    Widget cardApp(Map<String, dynamic> json) => MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: <Widget>[
+                RestaurantCard(
+                  restaurant: Restaurant.fromJson(<String, dynamic>{
+                    'id': 'r1',
+                    'name': 'Domino’s Pizza',
+                    'is_open': true,
+                    'avg_prep_time_minutes': 20,
+                    ...json,
+                  }),
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+        );
+
+    testWidgets('a close, quick kitchen reads "Near & Fast", with its offers',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(cardApp(<String, dynamic>{
+        'distance_metres': 900,
+        'eta_min_minutes': 20,
+        'eta_max_minutes': 25,
+        'offers': <Map<String, dynamic>>[
+          <String, dynamic>{'label': 'Free delivery', 'type': 'free_delivery'},
+          <String, dynamic>{'label': '55% OFF on select items', 'type': 'x'},
+        ],
+      }));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Near & Fast'), findsOneWidget);
+      expect(find.text(' · 20–25 min'), findsOneWidget);
+      // The delivery offer as the strip on the photo, the rest under it.
+      expect(find.text('Free delivery'), findsOneWidget);
+      expect(find.text('55% OFF on select items'), findsOneWidget);
+      expect(find.byType(OfferBadge), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a far kitchen gives its window and distance instead',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(cardApp(<String, dynamic>{
+        'distance_metres': 4200,
+        'eta_min_minutes': 35,
+        'eta_max_minutes': 40,
+      }));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Near & Fast'), findsNothing);
+      expect(find.text('35–40 min'), findsOneWidget);
+      expect(find.text(' · 4.2 km'), findsOneWidget);
+    });
+
+    testWidgets('a featured dish and a gallery light up once the API sends them',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(cardApp(<String, dynamic>{
+        'featured_dish': <String, dynamic>{
+          'name': 'Non Veg Loaded',
+          'price': 202,
+          'is_veg': false,
+        },
+        'photos': <Map<String, dynamic>>[
+          <String, dynamic>{'id': 1, 'url': 'https://x/1.jpg'},
+          <String, dynamic>{'id': 2, 'url': 'https://x/2.jpg'},
+          <String, dynamic>{'id': 3, 'url': 'https://x/3.jpg'},
+        ],
+      }));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Non Veg Loaded · ₹202'), findsOneWidget);
+      // Three photos to swipe through.
+      expect(find.byType(PageView), findsOneWidget);
+      await tester.drag(find.byType(PageView), const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    test('the app is set in Plus Jakarta Sans', () {
+      expect(AppTheme.light.textTheme.bodyMedium?.fontFamily, 'PlusJakartaSans');
+      expect(AppTheme.dark.textTheme.titleLarge?.fontFamily, 'PlusJakartaSans');
+    });
+
+    Order delivered({
+      String fulfilment = 'delivery',
+      Map<String, dynamic> extra = const <String, dynamic>{},
+    }) =>
+        Order.fromJson(<String, dynamic>{
+          'id': 7,
+          'order_number': 'NX7',
+          'status': 'delivered',
+          'status_label': 'Delivered',
+          'fulfilment_type': fulfilment,
+          'grand_total': '420',
+          'restaurant': <String, dynamic>{
+            'id': 'r1',
+            'name': 'Erode Amman Mess',
+          },
+          'rider': <String, dynamic>{'name': 'Murugan'},
+          'items': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 1,
+              'menu_item_id': 41,
+              'name': 'Mutton Biryani',
+              'quantity': 1,
+              'is_veg': false,
+            },
+          ],
+          ...extra,
+        });
+
+    Future<FakeStorefrontRepository> rateScreen(
+      WidgetTester tester,
+      Order order,
+    ) async {
+      _useTallScreen(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.rateOrder,
+        arguments: RateOrderArgs(order: order),
+      );
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    Future<void> tapStar(WidgetTester tester, String key, int star) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(Key(key)),
+          matching: find.byType(InkResponse),
+        ).at(star - 1),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the delivery, the food and a dish are rated in one go',
+        (WidgetTester tester) async {
+      final FakeStorefrontRepository repo =
+          await rateScreen(tester, delivered());
+
+      expect(find.text('How was your delivery?'), findsOneWidget);
+      expect(find.text('Delivered by Murugan'), findsOneWidget);
+      expect(find.text('From Erode Amman Mess'), findsOneWidget);
+
+      await tapStar(tester, 'rider-stars', 5);
+      expect(find.text('😍  Loved it!'), findsOneWidget);
+      await tester.tap(find.text('On time'));
+      await tester.pumpAndSettle();
+
+      await tapStar(tester, 'food-stars', 2);
+      expect(find.text('What went wrong?'), findsOneWidget);
+      await tester.tap(find.text('Cold food'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('rate-submit')));
+      await tester.pump();
+      await tester.pump();
+
+      final Map<String, Object?> sent = repo.orderReviews.single;
+      expect(sent['order'], 7);
+      expect(sent['rating'], 2);
+      expect(sent['tags'], <String>['cold_food']);
+      expect(sent['rider'], <String, Object?>{
+        'rating': 5,
+        'tags': <String>['on_time'],
+      });
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('crossing four stars swaps complaints for praise',
+        (WidgetTester tester) async {
+      await rateScreen(tester, delivered());
+
+      await tapStar(tester, 'food-stars', 2);
+      await tester.tap(find.text('Cold food'));
+      await tester.pumpAndSettle();
+
+      await tapStar(tester, 'food-stars', 5);
+      expect(find.text('What did you like?'), findsOneWidget);
+      expect(find.text('Cold food'), findsNothing);
+      expect(find.text('Tasty'), findsOneWidget);
+    });
+
+    testWidgets('a pickup has no delivery to rate',
+        (WidgetTester tester) async {
+      await rateScreen(tester, delivered(fulfilment: 'pickup'));
+
+      expect(find.text('How was your delivery?'), findsNothing);
+      expect(find.text('How was the food?'), findsOneWidget);
+    });
+
+    Future<FakeStorefrontRepository> homeWithDelivered(
+      WidgetTester tester, {
+      Map<String, dynamic> extra = const <String, dynamic>{},
+    }) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = FakeStorefrontRepository()
+        ..orderList = <String>['delivered']
+        ..orderExtra = <String, dynamic>{
+          'restaurant': <String, dynamic>{
+            'id': 'r1',
+            'name': 'Erode Amman Mess',
+          },
+          'placed_at': DateTime.now()
+              .subtract(const Duration(hours: 3))
+              .toUtc()
+              .toIso8601String(),
+          ...extra,
+        };
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: repo,
+      );
+      await _settleSplash(tester);
+      return repo;
+    }
+
+    testWidgets('home asks about the last order, and can be waved away',
+        (WidgetTester tester) async {
+      await homeWithDelivered(tester);
+
+      expect(find.text('How was your order from Erode Amman Mess?'),
+          findsOneWidget);
+      await tester.tap(find.byTooltip('Not now'));
+      await tester.pumpAndSettle();
+      expect(find.text('How was your order from Erode Amman Mess?'),
+          findsNothing);
+
+      // Remembered on the phone, so it stays away.
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getString('nexmile.rated_orders'), contains('dismissed'));
+    });
+
+    testWidgets('rated from home, the order then shows its stars in History',
+        (WidgetTester tester) async {
+      final FakeStorefrontRepository repo = await homeWithDelivered(tester);
+
+      await tapStar(tester, 'prompt-stars-1', 4);
+      expect(find.byType(RateOrderScreen), findsOneWidget);
+      await tester.tap(find.byKey(const Key('rate-submit')));
+      await tester.pumpAndSettle();
+      expect(repo.orderReviews.single['rating'], 4);
+
+      // Asked once.
+      expect(find.text('How was your order from Erode Amman Mess?'),
+          findsNothing);
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RatedStars), findsOneWidget);
+      expect(find.byKey(const Key('card-stars-1')), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a rating the server already has is shown, not asked for',
+        (WidgetTester tester) async {
+      await homeWithDelivered(
+        tester,
+        extra: <String, dynamic>{
+          'review': <String, dynamic>{'rating': 3, 'rider_rating': 5},
+        },
+      );
+
+      expect(find.text('How was your order from Erode Amman Mess?'),
+          findsNothing);
+      await tester.tap(find.text('History'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<RatedStars>(find.byType(RatedStars)).value,
+        3,
+      );
     });
   });
 
@@ -4725,7 +5221,9 @@ void main() {
     testWidgets('the veg chip narrows the menu, and a second tap restores it',
         (WidgetTester tester) async {
       await openMenu(tester);
-      expect(find.text('Chicken 65'), findsOneWidget);
+      // In the list; with the photo and the sheet above it, just below the
+      // fold on this phone.
+      expect(find.text('Chicken 65', skipOffstage: false), findsOneWidget);
 
       await tester.tap(find.text('Veg'));
       await tester.pumpAndSettle();
@@ -4738,7 +5236,7 @@ void main() {
 
       await tester.tap(find.text('Veg'));
       await tester.pumpAndSettle();
-      expect(find.text('Chicken 65'), findsOneWidget);
+      expect(find.text('Chicken 65', skipOffstage: false), findsOneWidget);
       expect(find.text('3 dishes'), findsNothing);
     });
 
@@ -4746,6 +5244,10 @@ void main() {
         (WidgetTester tester) async {
       await openMenu(tester);
 
+      // Search lives over the photo, as on the big apps, and opens the field.
+      expect(find.byType(TextField), findsNothing);
+      await tester.tap(find.text('Search'));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'paneer');
       await tester.pumpAndSettle();
 
@@ -4765,6 +5267,8 @@ void main() {
         (WidgetTester tester) async {
       await openMenu(tester);
 
+      await tester.tap(find.text('Search'));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'pizza');
       await tester.pumpAndSettle();
       expect(find.text('Nothing matched'), findsOneWidget);
@@ -4800,7 +5304,7 @@ void main() {
       expect(find.text('Desserts'), findsOneWidget);
       // Below the pinned bars rather than hidden under them.
       final double barsBottom =
-          tester.getBottomLeft(find.byType(TextField)).dy;
+          tester.getBottomLeft(find.byKey(const Key('menu-chips'))).dy;
       expect(tester.getTopLeft(find.text('Desserts')).dy,
           greaterThan(barsBottom));
     });
@@ -5852,13 +6356,19 @@ void main() {
             ..menuPayload = _filterMenu(),
         );
         await _settleSplash(tester);
-        await tester.tap(find.text('Anjappar Chettinad').first);
+        // Opened directly: on this screen the home's first restaurant sits
+        // below the fold, and the menu is what is under test.
+        _nav(tester).pushNamed(
+          AppRoutes.restaurant,
+          arguments: const RestaurantArgs(restaurantId: 'r1'),
+        );
         await tester.pumpAndSettle();
 
         // Pinned, with the menu scrolling under it.
         await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
         await tester.pumpAndSettle();
-        expect(find.byType(TextField), findsOneWidget, reason: code);
+        expect(find.byKey(const Key('menu-chips')), findsOneWidget,
+            reason: code);
         expect(tester.takeException(), isNull, reason: code);
 
         await tester.tap(find.byIcon(Icons.tune_rounded));
@@ -6129,6 +6639,8 @@ class FakeStorefrontRepository implements StorefrontRepository {
     required int rating,
     String? comment,
     Map<int, int> dishes = const <int, int>{},
+    List<String> tags = const <String>[],
+    RiderReview? rider,
   }) async {
     _maybeThrow();
     orderReviews.add(<String, Object?>{
@@ -6136,6 +6648,8 @@ class FakeStorefrontRepository implements StorefrontRepository {
       'rating': rating,
       'comment': comment,
       'dishes': dishes,
+      'tags': tags,
+      'rider': rider?.toJson(),
     });
   }
 

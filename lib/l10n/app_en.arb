@@ -561,6 +561,195 @@
   "reorderNothingAvailable": "None of these dishes are available right now.",
   "@reorderNothingAvailable": { "description": "When nothing from a past order can be added back." },
 
+  "searchShort": "Search",
+  "@searchShort": { "description": "The search button over a restaurant's photo; searches its menu." },
+
+  "favouriteSave": "Save to favourites",
+  "@favouriteSave": { "description": "Tooltip on the heart over a restaurant's photo." },
+
+  "restaurantAbout": "About this restaurant",
+  "@restaurantAbout": { "description": "Tooltip on the info button beside a restaurant's name." },
+
+  "ratingByCount": "By {count}",
+  "@ratingByCount": {
+    "description": "Under a restaurant's rating: how many people rated it, shortened (2.3K+).",
+    "placeholders": { "count": { "type": "String", "example": "2.3K+" } }
+  },
+
+  "offersCount": "{count, plural, =1{1 offer} other{{count} offers}}",
+  "@offersCount": {
+    "description": "Opens the full list of a restaurant's offers.",
+    "placeholders": { "count": { "type": "int", "example": "3" } }
+  },
+
+  "shareRestaurantText": "Order from {restaurant} on Nexmile",
+  "@shareRestaurantText": {
+    "description": "Text shared when a customer shares a restaurant.",
+    "placeholders": { "restaurant": { "type": "String", "example": "Anjappar Chettinad" } }
+  },
+
+  "ordersSearchHint": "Search by restaurant or dish…",
+  "@ordersSearchHint": { "description": "Search field at the top of the order history." },
+
+  "ordersNoMatch": "No orders from a restaurant or dish by that name.",
+  "@ordersNoMatch": { "description": "When an order-history search finds nothing." },
+
+  "orderPlacedOn": "Order placed on {date}",
+  "@orderPlacedOn": {
+    "description": "When a past order was placed, on its history card.",
+    "placeholders": { "date": { "type": "String", "example": "7 Sep, 8:37 PM" } }
+  },
+
+  "viewMenu": "View menu",
+  "@viewMenu": { "description": "Link on an order history card to the restaurant's menu." },
+
+  "navHistory": "History",
+  "@navHistory": { "description": "Bottom bar: the customer's past and current orders." },
+
+  "exploreMore": "Explore more",
+  "@exploreMore": { "description": "Home section of shortcut tiles: offers, near and fast, top rated, pure veg." },
+
+  "exploreTopRated": "Top rated",
+  "@exploreTopRated": { "description": "Home shortcut tile: restaurants rated 4.0 and above." },
+
+  "restaurantsDelivering": "{count, plural, =1{1 restaurant delivering to you} other{{count} restaurants delivering to you}}",
+  "@restaurantsDelivering": {
+    "description": "Heading over the home restaurant list.",
+    "placeholders": { "count": { "type": "int", "example": "12" } }
+  },
+
+  "rateHowWasDelivery": "How was your delivery?",
+  "@rateHowWasDelivery": { "description": "Rating screen: the delivery section's question." },
+
+  "rateHowWasFood": "How was the food?",
+  "@rateHowWasFood": { "description": "Rating screen: the food section's question." },
+
+  "rateWordTerrible": "Terrible",
+  "@rateWordTerrible": { "description": "One star." },
+
+  "rateWordBad": "Bad",
+  "@rateWordBad": { "description": "Two stars." },
+
+  "rateWordOkay": "Okay",
+  "@rateWordOkay": { "description": "Three stars." },
+
+  "rateWordGood": "Good",
+  "@rateWordGood": { "description": "Four stars." },
+
+  "rateWordLoved": "Loved it!",
+  "@rateWordLoved": { "description": "Five stars." },
+
+  "rateWhatWentWrong": "What went wrong?",
+  "@rateWhatWentWrong": { "description": "Over the quick answers for one to three stars." },
+
+  "rateWhatYouLiked": "What did you like?",
+  "@rateWhatYouLiked": { "description": "Over the quick answers for four or five stars." },
+
+  "rateRiderNoteHint": "A note about the delivery (optional)",
+  "@rateRiderNoteHint": { "description": "Private note on the delivery; not shown publicly." },
+
+  "rateReviewHeading": "Write a review",
+  "@rateReviewHeading": { "description": "Over the public review text box." },
+
+  "rateFoodFirst": "Rate the food to submit",
+  "@rateFoodFirst": { "description": "Submit button while the food has no rating yet." },
+
+  "rateYouRated": "You rated this order",
+  "@rateYouRated": { "description": "Shown with the stars once an order is rated." },
+
+  "ratePromptLater": "Not now",
+  "@ratePromptLater": { "description": "Dismisses the rate-your-order card." },
+
+  "tagTasty": "Tasty",
+  "@tagTasty": { "description": "Food praise." },
+
+  "tagFreshHot": "Hot & fresh",
+  "@tagFreshHot": { "description": "Food praise." },
+
+  "tagGoodPortion": "Good portion",
+  "@tagGoodPortion": { "description": "Food praise." },
+
+  "tagGoodPackaging": "Good packaging",
+  "@tagGoodPackaging": { "description": "Food praise." },
+
+  "tagValueForMoney": "Value for money",
+  "@tagValueForMoney": { "description": "Food praise." },
+
+  "tagHygienic": "Hygienic",
+  "@tagHygienic": { "description": "Food praise." },
+
+  "tagColdFood": "Cold food",
+  "@tagColdFood": { "description": "Food issue." },
+
+  "tagPoorTaste": "Didn't taste good",
+  "@tagPoorTaste": { "description": "Food issue." },
+
+  "tagSmallPortion": "Small portion",
+  "@tagSmallPortion": { "description": "Food issue." },
+
+  "tagWrongItems": "Wrong items",
+  "@tagWrongItems": { "description": "Food issue." },
+
+  "tagMissingItems": "Missing items",
+  "@tagMissingItems": { "description": "Food issue." },
+
+  "tagPoorPackaging": "Poor packaging",
+  "@tagPoorPackaging": { "description": "Food issue." },
+
+  "tagTooOily": "Too oily or spicy",
+  "@tagTooOily": { "description": "Food issue." },
+
+  "tagOnTime": "On time",
+  "@tagOnTime": { "description": "Delivery praise." },
+
+  "tagPolite": "Polite",
+  "@tagPolite": { "description": "Delivery praise." },
+
+  "tagFollowedInstructions": "Followed instructions",
+  "@tagFollowedInstructions": { "description": "Delivery praise." },
+
+  "tagCarefulHandling": "Handled food with care",
+  "@tagCarefulHandling": { "description": "Delivery praise." },
+
+  "tagGoodCommunication": "Kept me updated",
+  "@tagGoodCommunication": { "description": "Delivery praise." },
+
+  "tagLate": "Late delivery",
+  "@tagLate": { "description": "Delivery issue." },
+
+  "tagRude": "Rude behaviour",
+  "@tagRude": { "description": "Delivery issue." },
+
+  "tagIgnoredInstructions": "Didn't follow instructions",
+  "@tagIgnoredInstructions": { "description": "Delivery issue." },
+
+  "tagFoodSpilled": "Food spilled",
+  "@tagFoodSpilled": { "description": "Delivery issue." },
+
+  "tagAskedExtraMoney": "Asked for extra money",
+  "@tagAskedExtraMoney": { "description": "Delivery issue." },
+
+  "tagUnprofessional": "Unprofessional",
+  "@tagUnprofessional": { "description": "Delivery issue." },
+
+  "rateDeliveredBy": "Delivered by {name}",
+  "@rateDeliveredBy": {
+    "description": "Under the delivery question, naming the rider.",
+    "placeholders": { "name": { "type": "String", "example": "Murugan" } }
+  },
+
+  "rateFoodFrom": "From {restaurant}",
+  "@rateFoodFrom": {
+    "description": "Under the food question, naming the restaurant.",
+    "placeholders": { "restaurant": { "type": "String", "example": "Erode Amman Mess" } }
+  },
+
+  "ratePromptTitle": "How was your order from {restaurant}?",
+  "@ratePromptTitle": {
+    "description": "Card asking to rate a delivered order.",
+    "placeholders": { "restaurant": { "type": "String", "example": "Erode Amman Mess" } }
+  },
+
   "orderDeliveredTitle": "Delivered",
   "@orderDeliveredTitle": { "description": "Headline once the order arrives." },
 

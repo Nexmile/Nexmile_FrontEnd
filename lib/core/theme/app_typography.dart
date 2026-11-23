@@ -21,6 +21,10 @@ class AppTypography {
   /// Minimum system text-scale honoured by the app.
   static const double minTextScale = 0.9;
 
+  /// The brand face, bundled in the app (see pubspec.yaml). Covers Latin;
+  /// Indic scripts fall back to the phone's own fonts.
+  static const String family = 'PlusJakartaSans';
+
   /// Maximum system text-scale honoured by the app.
   ///
   /// Android and iOS both allow scale factors above 2.0. Beyond ~1.3 the
@@ -37,6 +41,7 @@ class AppTypography {
       Color? color,
     }) {
       return TextStyle(
+        fontFamily: family,
         fontSize: size,
         fontWeight: weight,
         height: height,

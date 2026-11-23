@@ -78,7 +78,9 @@ class Rupees extends StatelessWidget {
   }
 }
 
-/// The green (veg) or red (non-veg) square Indian menus are required to show.
+/// The mark Indian menus are required to show: a green square with a dot
+/// for veg, a brown square with a triangle for non-veg. The shapes differ,
+/// not only the colours, so the marks still read for a colour-blind eye.
 class VegMark extends StatelessWidget {
   const VegMark({super.key, required this.isVeg, this.size = 16});
 
@@ -88,7 +90,7 @@ class VegMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color =
-        isVeg ? const Color(0xFF0F8A0F) : const Color(0xFFB3261E);
+        isVeg ? const Color(0xFF0F8A0F) : const Color(0xFFA6461C);
     return Semantics(
       label: isVeg ? 'Veg' : 'Non-veg',
       child: Container(
@@ -99,15 +101,40 @@ class VegMark extends StatelessWidget {
           borderRadius: BorderRadius.circular(3),
         ),
         child: Center(
-          child: Container(
-            width: size * 0.45,
-            height: size * 0.45,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
+          child: isVeg
+              ? Container(
+                  width: size * 0.45,
+                  height: size * 0.45,
+                  decoration:
+                      BoxDecoration(color: color, shape: BoxShape.circle),
+                )
+              : CustomPaint(
+                  size: Size(size * 0.52, size * 0.46),
+                  painter: _TrianglePainter(color),
+                ),
         ),
       ),
     );
   }
+}
+
+class _TrianglePainter extends CustomPainter {
+  const _TrianglePainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Path path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_TrianglePainter old) => old.color != color;
 }
 
 /// Remote image with a branded fallback.
@@ -359,14 +386,57 @@ class ClosedNotice extends StatelessWidget {
 }
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.title, this.trailing});
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.trailing,
+    this.caps = false,
+  });
 
   final String title;
   final Widget? trailing;
 
+  /// Small spaced capitals in a quiet grey ("EXPLORE MORE"), the way the big
+  /// apps title the sections of a home feed: the content below is the
+  /// headline, and the title only names it.
+  final bool caps;
+
+  /// Wide tracking suits Latin capitals; Indic scripts have no capitals and
+  /// their clusters must not be pulled apart, so they get a touch only.
+  static bool _isLatin(String text) =>
+      text.runes.every((int rune) => rune < 0x0250);
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    if (caps) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                title.toUpperCase(),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: _isLatin(title) ? 2.0 : 0.3,
+                ),
+              ),
+            ),
+            if (trailing != null) ...<Widget>[
+              const SizedBox(width: 10),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.4,
+                ),
+                child: trailing!,
+              ),
+            ],
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
       child: Row(
@@ -405,9 +475,16 @@ class SectionHeader extends StatelessWidget {
           ),
           if (trailing != null) ...<Widget>[
             const SizedBox(width: 10),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: trailing!,
+            // A count or a link wraps rather than pushing the heading off a
+            // small screen at large text.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.sizeOf(context).width * 0.4,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: trailing!,
+              ),
             ),
           ],
         ],
@@ -416,12 +493,12 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Restaurant card on the home and search tabs.
+/// Restaurant card on the home and search tabs, laid out the way the big
+/// delivery apps lay theirs: the food first and large, then the name and
+/// rating, how soon it comes, and the offer.
 ///
-/// A photo-led card rather than a bordered row: in a delivery app the picture
-/// is the product, and a list of text rows reads like a directory. The facts a
-/// customer actually chooses on — distance, prep time, whether it is open —
-/// float over the image, so the block of text below stays short enough to scan.
+/// A closed shop is dimmed rather than hidden — customers look for a
+/// favourite by name even when it is shut.
 class RestaurantCard extends StatelessWidget {
   const RestaurantCard({
     super.key,
@@ -439,20 +516,49 @@ class RestaurantCard extends StatelessWidget {
   /// about finding a shop rather than keeping it.
   final VoidCallback? onFavourite;
 
-  /// Two-across grid form: shorter image, tighter type.
+  /// Two-across grid form: shorter photo, and only the name, rating and time
+  /// under it, to fit the grid's fixed cell.
   final bool compact;
 
   /// From [restaurantPhotoTag]. Given, the photo grows into the banner of
   /// the restaurant page; the caller passes the same tag to that page.
   final Object? heroTag;
 
+  /// The offers' own word for a delivery offer, shown as a strip on the photo.
+  static const String _freeDelivery = 'free_delivery';
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context);
     final bool isDark = theme.brightness == Brightness.dark;
-    final BorderRadius radius = BorderRadius.circular(AppTheme.radiusLarge);
+    final BorderRadius radius = BorderRadius.circular(20);
     final bool isOpen = restaurant.isOpen;
+    final Color green = isDark ? AppColors.greenLight : AppColors.greenDeep;
+
+    RestaurantOffer? firstWhere(bool Function(RestaurantOffer) test) {
+      for (final RestaurantOffer offer in restaurant.offers) {
+        if (test(offer)) return offer;
+      }
+      return null;
+    }
+
+    final RestaurantOffer? strip = compact
+        ? null
+        : firstWhere((RestaurantOffer o) => o.type == _freeDelivery);
+    final RestaurantOffer? deal =
+        firstWhere((RestaurantOffer o) => o.type != _freeDelivery);
+    final FeaturedDish? dish = compact ? null : restaurant.featuredDish;
+
+    final String eta = restaurant.hasEtaRange
+        ? l10n.etaRange(restaurant.etaMinMinutes!, restaurant.etaMaxMinutes!)
+        : l10n.minutesAway(restaurant.avgPrepTimeMinutes);
+    final bool nearAndFast = restaurant.isNearAndFast;
+    final String? after = nearAndFast
+        ? eta
+        : (restaurant.distanceKmLabel == null
+            ? null
+            : l10n.kilometresAway(restaurant.distanceKmLabel!));
 
     return Pressable(
       onTap: onTap,
@@ -461,16 +567,18 @@ class RestaurantCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerLowest,
           borderRadius: radius,
-          border: Border.all(color: theme.colorScheme.outline),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.6),
+          ),
           // A single soft shadow lifts the card off the page. Dark themes get
           // none — a shadow on a dark ground reads as mud.
           boxShadow: isDark
               ? null
               : <BoxShadow>[
                   BoxShadow(
-                    color: AppColors.inkStrong.withValues(alpha: 0.07),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
+                    color: AppColors.inkStrong.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
         ),
@@ -478,12 +586,10 @@ class RestaurantCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             AspectRatio(
-              aspectRatio: compact ? 4 / 3 : 16 / 9,
+              aspectRatio: compact ? 4 / 3 : 16 / 10,
               child: Stack(
                 fit: StackFit.expand,
                 children: <Widget>[
-                  // A shut shop is dimmed rather than hidden — customers look
-                  // for a favourite by name even when it is closed.
                   ColorFiltered(
                     colorFilter: isOpen
                         ? const ColorFilter.mode(
@@ -491,76 +597,49 @@ class RestaurantCard extends StatelessWidget {
                             BlendMode.multiply,
                           )
                         : const ColorFilter.matrix(_greyscale),
-                    child: _maybeHero(
-                      FoodImage(
-                        seed: restaurant.id,
-                        url: restaurant.bannerUrl.isEmpty
-                            ? restaurant.logoUrl
-                            : restaurant.bannerUrl,
-                        size: double.infinity,
-                        radius: 0,
-                      ),
-                    ),
+                    child: _CardPhotos(restaurant: restaurant, heroTag: heroTag),
                   ),
-                  // Scrim only along the bottom, so the pills stay legible on a
-                  // bright photo without dulling the whole image.
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.center,
-                        colors: <Color>[Colors.black54, Colors.transparent],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 12,
-                    right: 12,
-                    bottom: 10,
-                    child: Row(
-                      children: <Widget>[
-                        _GlassPill(
-                          icon: Icons.schedule_rounded,
-                          label: restaurant.hasEtaRange
-                              ? l10n.etaRange(
-                                  restaurant.etaMinMinutes!,
-                                  restaurant.etaMaxMinutes!,
-                                )
-                              : l10n.minutesAway(restaurant.avgPrepTimeMinutes),
-                        ),
-                        if (restaurant.distanceKmLabel != null) ...<Widget>[
-                          const SizedBox(width: 6),
-                          _GlassPill(
-                            icon: Icons.near_me_rounded,
-                            label: l10n.kilometresAway(
-                              restaurant.distanceKmLabel!,
-                            ),
+                  // Scrim only along the bottom, where the labels sit, so
+                  // they stay legible on a bright photo without dulling it.
+                  if (dish != null)
+                    const IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.center,
+                            colors: <Color>[Colors.black54, Colors.transparent],
                           ),
-                        ],
-                      ],
+                        ),
+                      ),
                     ),
-                  ),
                   if (!isOpen)
                     PositionedDirectional(
                       top: 10,
                       start: 12,
-                      child: ClosedNotice(restaurant: restaurant, compact: true),
-                    )
-                  // The offer ribbon and the closed badge occupy the same
-                  // corner. A shut shop's hours matter more than its discount.
-                  else if (restaurant.offers.isNotEmpty)
-                    PositionedDirectional(
-                      top: 10,
-                      start: 12,
-                      // Leaves the bookmark its corner. Without this the
-                      // ribbon runs under it and the two overlap.
                       end: onFavourite != null ? 48 : 12,
                       child: Align(
                         alignment: AlignmentDirectional.centerStart,
-                        child: _OfferRibbon(
-                          label: restaurant.offers.first.label,
-                        ),
+                        child:
+                            ClosedNotice(restaurant: restaurant, compact: true),
                       ),
+                    ),
+                  if (dish != null)
+                    PositionedDirectional(
+                      start: 12,
+                      end: 12,
+                      bottom: strip != null ? 40 : 12,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _DishHighlight(dish: dish),
+                      ),
+                    ),
+                  if (strip != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _OfferStrip(label: strip.label),
                     ),
                   if (restaurant.isPureVeg && onFavourite == null)
                     const PositionedDirectional(
@@ -581,7 +660,9 @@ class RestaurantCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              padding: compact
+                  ? const EdgeInsets.fromLTRB(12, 10, 12, 10)
+                  : const EdgeInsets.fromLTRB(16, 12, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -593,10 +674,10 @@ class RestaurantCard extends StatelessWidget {
                           restaurant.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.2,
-                          ),
+                          style: (compact
+                                  ? theme.textTheme.titleMedium
+                                  : theme.textTheme.titleLarge)
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                       ),
                       // Hidden entirely until the API sends a rating. A "0.0"
@@ -608,31 +689,60 @@ class RestaurantCard extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    restaurant.subtitle(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  if (restaurant.minOrderValue > 0) ...<Widget>[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 13,
-                          color: theme.colorScheme.onSurfaceVariant,
+                  if (!compact && restaurant.subtitle().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 2),
+                    Text(
+                      restaurant.subtitle(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                  SizedBox(height: compact ? 4 : 6),
+                  // How soon: "Near & Fast" for a close, quick kitchen, the
+                  // window otherwise, and the distance after it.
+                  Row(
+                    children: <Widget>[
+                      Icon(Icons.bolt_rounded, size: 17, color: green),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          nearAndFast ? l10n.nearAndFast : eta,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: green,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        const SizedBox(width: 5),
+                      ),
+                      if (after != null)
                         Flexible(
                           child: Text(
-                            l10n.minimumOrder(
-                              formatRupees(restaurant.minOrderValue),
-                            ),
+                            ' · $after',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelMedium,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (!compact && deal != null) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: <Widget>[
+                        const OfferBadge(size: 20),
+                        const SizedBox(width: 8),
+                        // Worded and translated by the server: shown as sent.
+                        Expanded(
+                          child: Text(
+                            deal.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelLarge,
                           ),
                         ),
                       ],
@@ -647,12 +757,6 @@ class RestaurantCard extends StatelessWidget {
     );
   }
 
-  Widget _maybeHero(Widget photo) {
-    final Object? tag = heroTag;
-    if (tag == null) return photo;
-    return Hero(tag: tag, child: photo);
-  }
-
   /// Luminance-weighted greyscale, for a shop that is shut.
   static const List<double> _greyscale = <double>[
     0.2126, 0.7152, 0.0722, 0, 0, //
@@ -662,38 +766,188 @@ class RestaurantCard extends StatelessWidget {
   ];
 }
 
-/// A frosted pill that sits over a photograph.
-class _GlassPill extends StatelessWidget {
-  const _GlassPill({required this.icon, required this.label});
+/// The blue disc with a per-cent sign that marks an offer.
+class OfferBadge extends StatelessWidget {
+  const OfferBadge({super.key, this.size = 26});
 
-  final IconData icon;
-  final String label;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        color: Color(0xFF3D7BF7),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.percent_rounded,
+        size: size * 0.62,
+        color: Colors.white,
+      ),
+    );
+  }
+}
+
+/// The card's photos: one, or several to swipe through with dots. The first
+/// carries the hero tag, so it is the one that grows into the page.
+class _CardPhotos extends StatefulWidget {
+  const _CardPhotos({required this.restaurant, this.heroTag});
+
+  final Restaurant restaurant;
+  final Object? heroTag;
+
+  @override
+  State<_CardPhotos> createState() => _CardPhotosState();
+}
+
+class _CardPhotosState extends State<_CardPhotos> {
+  final PageController _pages = PageController();
+  int _index = 0;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  Widget _withHero(Widget photo) {
+    final Object? tag = widget.heroTag;
+    return tag == null ? photo : Hero(tag: tag, child: photo);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Restaurant restaurant = widget.restaurant;
+    // Lists send no gallery today, only the banner; with one photo there is
+    // nothing to swipe, so it is the single picture the card always had.
+    final List<RestaurantPhoto> photos = restaurant.gallery;
+    if (photos.length < 2) {
+      return _withHero(
+        FoodImage(
+          seed: restaurant.id,
+          url: photos.isEmpty
+              ? (restaurant.bannerUrl.isEmpty
+                  ? restaurant.logoUrl
+                  : restaurant.bannerUrl)
+              : photos.first.url,
+          size: double.infinity,
+          radius: 0,
+        ),
+      );
+    }
+
+    final int shown = photos.length.clamp(0, 5);
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        PageView.builder(
+          controller: _pages,
+          itemCount: shown,
+          onPageChanged: (int i) => setState(() => _index = i),
+          itemBuilder: (BuildContext context, int i) {
+            final Widget photo = FoodImage(
+              seed: '${restaurant.id}-${photos[i].id}',
+              url: photos[i].url,
+              size: double.infinity,
+              radius: 0,
+            );
+            return i == 0 ? _withHero(photo) : photo;
+          },
+        ),
+        PositionedDirectional(
+          end: 12,
+          bottom: 12,
+          child: IgnorePointer(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                for (int i = 0; i < shown; i++)
+                  AnimatedContainer(
+                    duration: AppMotion.quick,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: i == _index ? 16 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.white
+                          .withValues(alpha: i == _index ? 1 : 0.6),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Paneer Tikka · ₹220" on a card's photo, with its veg mark.
+class _DishHighlight extends StatelessWidget {
+  const _DishHighlight({required this.dish});
+
+  final FeaturedDish dish;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(6, 4, 10, 4),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(icon, size: 12, color: Colors.white),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
+          // On white, so the mark reads on a dark pill.
+          Container(
+            padding: const EdgeInsets.all(1.5),
+            decoration: BoxDecoration(
               color: Colors.white,
-              fontWeight: FontWeight.w700,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: VegMark(isVeg: dish.isVeg, size: 13),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '${dish.name} · ${formatRupees(dish.price)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A delivery offer as a blue strip along the bottom of a card's photo.
+class _OfferStrip extends StatelessWidget {
+  const _OfferStrip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      color: const Color(0xFF2F6BE6),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -747,11 +1001,21 @@ class QuantityControl extends StatelessWidget {
         width: 104,
         height: 38,
         decoration: BoxDecoration(
-          // Outlined while empty, filled once something is in the cart. The fill
-          // is what makes a chosen dish scannable down a long menu.
-          color: isEmpty ? Colors.transparent : accent,
+          // Solid while empty, so it reads where it sits over a dish photo;
+          // filled with the accent once something is in the cart, which is
+          // what makes a chosen dish scannable down a long menu.
+          color: isEmpty ? theme.colorScheme.surface : accent,
           border: Border.all(color: accent, width: 1.4),
           borderRadius: BorderRadius.circular(10),
+          boxShadow: isEmpty && !isDark
+              ? <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
         child: AnimatedSwitcher(
           duration: AppMotion.quick,
@@ -1019,7 +1283,6 @@ class EmptyState extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -0.2,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1210,35 +1473,6 @@ class RatingBadge extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// The promotion strip over a card's photo. The label is the server's wording,
-/// rendered verbatim.
-class _OfferRibbon extends StatelessWidget {
-  const _OfferRibbon({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.orangeDeep,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
       ),
     );
   }

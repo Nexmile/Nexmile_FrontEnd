@@ -896,6 +896,336 @@ abstract class AppLocalizations {
   /// **'None of these dishes are available right now.'**
   String get reorderNothingAvailable;
 
+  /// The search button over a restaurant's photo; searches its menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchShort;
+
+  /// Tooltip on the heart over a restaurant's photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to favourites'**
+  String get favouriteSave;
+
+  /// Tooltip on the info button beside a restaurant's name.
+  ///
+  /// In en, this message translates to:
+  /// **'About this restaurant'**
+  String get restaurantAbout;
+
+  /// Under a restaurant's rating: how many people rated it, shortened (2.3K+).
+  ///
+  /// In en, this message translates to:
+  /// **'By {count}'**
+  String ratingByCount(String count);
+
+  /// Opens the full list of a restaurant's offers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 offer} other{{count} offers}}'**
+  String offersCount(int count);
+
+  /// Text shared when a customer shares a restaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from {restaurant} on Nexmile'**
+  String shareRestaurantText(String restaurant);
+
+  /// Search field at the top of the order history.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by restaurant or dish…'**
+  String get ordersSearchHint;
+
+  /// When an order-history search finds nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders from a restaurant or dish by that name.'**
+  String get ordersNoMatch;
+
+  /// When a past order was placed, on its history card.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed on {date}'**
+  String orderPlacedOn(String date);
+
+  /// Link on an order history card to the restaurant's menu.
+  ///
+  /// In en, this message translates to:
+  /// **'View menu'**
+  String get viewMenu;
+
+  /// Bottom bar: the customer's past and current orders.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navHistory;
+
+  /// Home section of shortcut tiles: offers, near and fast, top rated, pure veg.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore more'**
+  String get exploreMore;
+
+  /// Home shortcut tile: restaurants rated 4.0 and above.
+  ///
+  /// In en, this message translates to:
+  /// **'Top rated'**
+  String get exploreTopRated;
+
+  /// Heading over the home restaurant list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 restaurant delivering to you} other{{count} restaurants delivering to you}}'**
+  String restaurantsDelivering(int count);
+
+  /// Rating screen: the delivery section's question.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your delivery?'**
+  String get rateHowWasDelivery;
+
+  /// Rating screen: the food section's question.
+  ///
+  /// In en, this message translates to:
+  /// **'How was the food?'**
+  String get rateHowWasFood;
+
+  /// One star.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrible'**
+  String get rateWordTerrible;
+
+  /// Two stars.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad'**
+  String get rateWordBad;
+
+  /// Three stars.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay'**
+  String get rateWordOkay;
+
+  /// Four stars.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get rateWordGood;
+
+  /// Five stars.
+  ///
+  /// In en, this message translates to:
+  /// **'Loved it!'**
+  String get rateWordLoved;
+
+  /// Over the quick answers for one to three stars.
+  ///
+  /// In en, this message translates to:
+  /// **'What went wrong?'**
+  String get rateWhatWentWrong;
+
+  /// Over the quick answers for four or five stars.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you like?'**
+  String get rateWhatYouLiked;
+
+  /// Private note on the delivery; not shown publicly.
+  ///
+  /// In en, this message translates to:
+  /// **'A note about the delivery (optional)'**
+  String get rateRiderNoteHint;
+
+  /// Over the public review text box.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a review'**
+  String get rateReviewHeading;
+
+  /// Submit button while the food has no rating yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate the food to submit'**
+  String get rateFoodFirst;
+
+  /// Shown with the stars once an order is rated.
+  ///
+  /// In en, this message translates to:
+  /// **'You rated this order'**
+  String get rateYouRated;
+
+  /// Dismisses the rate-your-order card.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get ratePromptLater;
+
+  /// Food praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasty'**
+  String get tagTasty;
+
+  /// Food praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Hot & fresh'**
+  String get tagFreshHot;
+
+  /// Food praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Good portion'**
+  String get tagGoodPortion;
+
+  /// Food praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Good packaging'**
+  String get tagGoodPackaging;
+
+  /// Food praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Value for money'**
+  String get tagValueForMoney;
+
+  /// Food praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Hygienic'**
+  String get tagHygienic;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold food'**
+  String get tagColdFood;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t taste good'**
+  String get tagPoorTaste;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Small portion'**
+  String get tagSmallPortion;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong items'**
+  String get tagWrongItems;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing items'**
+  String get tagMissingItems;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor packaging'**
+  String get tagPoorPackaging;
+
+  /// Food issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Too oily or spicy'**
+  String get tagTooOily;
+
+  /// Delivery praise.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get tagOnTime;
+
+  /// Delivery praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Polite'**
+  String get tagPolite;
+
+  /// Delivery praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed instructions'**
+  String get tagFollowedInstructions;
+
+  /// Delivery praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Handled food with care'**
+  String get tagCarefulHandling;
+
+  /// Delivery praise.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept me updated'**
+  String get tagGoodCommunication;
+
+  /// Delivery issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Late delivery'**
+  String get tagLate;
+
+  /// Delivery issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Rude behaviour'**
+  String get tagRude;
+
+  /// Delivery issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t follow instructions'**
+  String get tagIgnoredInstructions;
+
+  /// Delivery issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Food spilled'**
+  String get tagFoodSpilled;
+
+  /// Delivery issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked for extra money'**
+  String get tagAskedExtraMoney;
+
+  /// Delivery issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Unprofessional'**
+  String get tagUnprofessional;
+
+  /// Under the delivery question, naming the rider.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered by {name}'**
+  String rateDeliveredBy(String name);
+
+  /// Under the food question, naming the restaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'From {restaurant}'**
+  String rateFoodFrom(String restaurant);
+
+  /// Card asking to rate a delivered order.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your order from {restaurant}?'**
+  String ratePromptTitle(String restaurant);
+
   /// Headline once the order arrives.
   ///
   /// In en, this message translates to:

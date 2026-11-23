@@ -23,6 +23,7 @@ import 'features/auth/state/auth_controller.dart';
 import 'features/catalogue/data/storefront_repository.dart';
 import 'features/catalogue/state/cart_controller.dart';
 import 'features/catalogue/state/orders_controller.dart';
+import 'features/catalogue/state/rated_orders.dart';
 import 'features/catalogue/state/storefront_controller.dart';
 import 'features/wallet/data/payment_gateway.dart';
 import 'features/wallet/data/wallet_repository.dart';
@@ -176,6 +177,9 @@ class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
         ),
         ChangeNotifierProvider<OrdersController>(
           create: (_) => OrdersController(repository: storefrontRepository),
+        ),
+        ChangeNotifierProvider<RatedOrders>(
+          create: (_) => RatedOrders(widget.preferences),
         ),
         ChangeNotifierProvider<WalletController>(
           create:

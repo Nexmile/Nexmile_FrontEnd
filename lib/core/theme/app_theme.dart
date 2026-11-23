@@ -100,6 +100,8 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      // Also for the few styles not taken from the text theme.
+      fontFamily: AppTypography.family,
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       textTheme: text,

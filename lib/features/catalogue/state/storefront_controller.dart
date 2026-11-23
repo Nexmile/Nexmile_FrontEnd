@@ -190,6 +190,8 @@ class StorefrontController extends ChangeNotifier {
     if (home != null) {
       _home = HomeScreen(
         radiusMetres: home.radiusMetres,
+        // Kept, or saving a favourite would drop the curated home in veg mode.
+        vegOnly: home.vegOnly,
         sections: home.sections
             .map((HomeSection s) => s is RestaurantSection
                 ? RestaurantSection(

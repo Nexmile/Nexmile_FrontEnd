@@ -270,6 +270,12 @@ class Order {
     required this.timeline,
     this.restaurantName,
     this.restaurantId,
+    this.restaurantArea,
+    this.restaurantLogoUrl,
+    this.review,
+    this.canReview,
+    this.riderName,
+    this.riderPhotoUrl,
     this.restaurantLocation,
     this.deliveryAddress = '',
     this.deliveryLocation,
@@ -305,6 +311,24 @@ class Order {
   /// So "Order again" can open the restaurant. `restaurant.id`, or a flat
   /// `restaurant_id`; null when the API sends neither.
   final String? restaurantId;
+
+  /// `restaurant.area` and `restaurant.logo_url` (or `banner_url`), when the
+  /// API sends them: the order history card's second line and picture.
+  final String? restaurantArea;
+  final String? restaurantLogoUrl;
+
+  /// `review`: the customer's own rating of this order, once given. Null
+  /// until then, and from a server that does not send it yet.
+  final OrderReview? review;
+
+  /// `can_review`: delivered, inside the rating window, not yet rated. Null
+  /// from a server that does not send it, when the app decides by itself.
+  final bool? canReview;
+
+  /// `rider.name` / `rider.photo_url` on the order, for "How was your
+  /// delivery with Murugan?" after the live tracking has gone quiet.
+  final String? riderName;
+  final String? riderPhotoUrl;
 
   /// Where the food is coming from, and where it is going.
   ///
@@ -363,6 +387,16 @@ class Order {
       fulfilmentType: fulfilmentFrom(json['fulfilment_type']),
       restaurantName: (json['restaurant_name'] ?? r['name']) as String?,
       restaurantId: _nonEmpty(json['restaurant_id'] ?? r['id']),
+      restaurantArea: _nonEmpty(r['area']),
+      review: OrderReview.fromJson(json['review']),
+      canReview: json['can_review'] == null ? null : asBool(json['can_review']),
+      riderName: json['rider'] is Map<String, dynamic>
+          ? _nonEmpty((json['rider'] as Map<String, dynamic>)['name'])
+          : null,
+      riderPhotoUrl: json['rider'] is Map<String, dynamic>
+          ? _nonEmpty((json['rider'] as Map<String, dynamic>)['photo_url'])
+          : null,
+      restaurantLogoUrl: _nonEmpty(r['logo_url'] ?? r['banner_url']),
       restaurantLocation: GeoPoint.fromJson(r),
       // Taken from the saved address rather than geocoded from its text: the
       // customer dropped that pin themselves, and reverse-geocoding a narrow
@@ -577,4 +611,27 @@ String _addressLine(Object? raw) {
 String? _nonEmpty(Object? raw) {
   final String value = raw == null ? '' : '$raw'.trim();
   return value.isEmpty ? null : value;
+}
+
+/// The customer's rating of an order, as the server keeps it.
+@immutable
+class OrderReview {
+  const OrderReview({required this.rating, this.riderRating});
+
+  /// The food and restaurant, 1 to 5.
+  final int rating;
+
+  /// The delivery, 1 to 5, when the customer rated it.
+  final int? riderRating;
+
+  static OrderReview? fromJson(Object? raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final int rating = asInt(raw['rating']);
+    if (rating < 1) return null;
+    return OrderReview(
+      rating: rating,
+      riderRating:
+          raw['rider_rating'] == null ? null : asInt(raw['rider_rating']),
+    );
+  }
 }

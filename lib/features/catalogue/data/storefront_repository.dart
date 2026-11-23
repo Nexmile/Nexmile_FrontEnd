@@ -5,6 +5,7 @@ import 'home_models.dart';
 import 'restaurant_filters.dart';
 import 'order_models.dart';
 import 'review_models.dart';
+import 'review_tags.dart';
 import 'storefront_models.dart';
 
 /// The customer storefront: what is nearby, what is on the menu, what is in the
@@ -65,11 +66,15 @@ abstract class StorefrontRepository {
   ///
   /// [dishes] maps a menu item id to its rating. Anything not actually on the
   /// order is dropped server-side, so a stale menu cannot poison the request.
+  /// [tags] are the food's quick answers ([ReviewTags]); [rider] is the
+  /// delivery half, absent for a pickup.
   Future<void> reviewOrder(
     int orderId, {
     required int rating,
     String? comment,
     Map<int, int> dishes,
+    List<String> tags,
+    RiderReview? rider,
   });
 
   /// `GET /v1/restaurants/{id}/cart`
@@ -269,11 +274,15 @@ class ApiStorefrontRepository implements StorefrontRepository {
     required int rating,
     String? comment,
     Map<int, int> dishes = const <int, int>{},
+    List<String> tags = const <String>[],
+    RiderReview? rider,
   }) {
     return _client.post(
       '/v1/orders/$orderId/review',
       body: <String, dynamic>{
         'rating': rating,
+        if (tags.isNotEmpty) 'tags': tags,
+        if (rider != null) 'rider': rider.toJson(),
         if (comment != null && comment.trim().isNotEmpty)
           'comment': comment.trim(),
         // Keyed by id as a string, which is what a JSON object gives Laravel
