@@ -26,6 +26,7 @@ import '../../features/profile/devices_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/support/presentation/support_screen.dart';
 import '../../features/wallet/presentation/wallet_screen.dart';
 
 class AppRoutes {
@@ -83,6 +84,19 @@ class AppRoutes {
   static const String locationPermission = '/location';
   static const String addressMap = '/address/map';
   static const String addressBook = '/addresses';
+
+  /// The support chat: an AI assistant first, a person when it cannot help.
+  static const String support = '/support';
+}
+
+/// Argument bundle for [AppRoutes.support]. Optional: the chat opens about
+/// [orderId] when it was asked for from an order, and about nothing in
+/// particular from the bubble or the help page.
+@immutable
+class SupportArgs {
+  const SupportArgs({this.orderId});
+
+  final int? orderId;
 }
 
 /// Argument bundle for [AppRoutes.locationPermission].
@@ -292,6 +306,15 @@ class AppRouter {
 
       case AppRoutes.help:
         return _slideRoute(const HelpScreen(), settings);
+
+      case AppRoutes.support:
+        final Object? args = settings.arguments;
+        return _slideRoute(
+          SupportScreen(
+            args: args is SupportArgs ? args : const SupportArgs(),
+          ),
+          settings,
+        );
 
       case AppRoutes.orders:
         return _slideRoute(const OrdersPage(), settings);

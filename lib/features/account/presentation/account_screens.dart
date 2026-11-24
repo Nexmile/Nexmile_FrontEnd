@@ -13,6 +13,7 @@ import '../../catalogue/presentation/widgets/catalogue_widgets.dart';
 import '../../catalogue/state/storefront_controller.dart';
 import '../data/account_models.dart';
 import '../state/account_controller.dart';
+import '../../support/presentation/support_bubble.dart' show supportChatOn;
 import 'account_sheets.dart';
 import 'profile_widgets.dart';
 
@@ -376,6 +377,8 @@ class _HelpScreenState extends State<HelpScreen> {
     final AccountController account = context.watch<AccountController>();
     final SupportInfo? support = account.support;
 
+    final Widget? chat = supportChatOn(context) ? const _ChatWithUs() : null;
+
     Widget body;
     if (support == null && account.supportLoading) {
       body = const Center(child: CircularProgressIndicator());
@@ -383,6 +386,11 @@ class _HelpScreenState extends State<HelpScreen> {
         (!support.hasContact && support.faqs.isEmpty)) {
       body = ListView(
         children: <Widget>[
+          if (chat != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: chat,
+            ),
           AccountEmptyState(
             icon: Icons.support_agent_rounded,
             title: l10n.profileHelp,
@@ -398,6 +406,7 @@ class _HelpScreenState extends State<HelpScreen> {
       body = ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: <Widget>[
+          if (chat != null) ...<Widget>[chat, const SizedBox(height: 14)],
           if (support.hasContact)
             Container(
               padding: const EdgeInsets.all(16),
@@ -535,6 +544,64 @@ class OrdersPage extends StatelessWidget {
       // "Browse restaurants" from an empty history goes home.
       onBrowse: () =>
           Navigator.of(context).popUntil((Route<void> route) => route.isFirst),
+    );
+  }
+}
+
+/// The support chat, first on the help page: where people look when they
+/// have been let down.
+class _ChatWithUs extends StatelessWidget {
+  const _ChatWithUs();
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final Color green = theme.brightness == Brightness.dark
+        ? AppColors.greenLight
+        : AppColors.greenDeep;
+    return Material(
+      color: profileCardColour(theme),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        key: const ValueKey<String>('help-chat'),
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).pushNamed(AppRoutes.support),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: <Widget>[
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: green.withValues(alpha: 0.14),
+                child: Icon(Icons.forum_rounded, color: green),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      l10n.supportChatWithUs,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.supportChatWithUsBody,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

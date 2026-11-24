@@ -8,6 +8,7 @@ import '../../../../core/motion/pressable.dart';
 import '../../../../core/network/image_disk_cache.dart';
 import '../../../../core/widgets/empty_illustration.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../data/delivery_instruction.dart';
 import '../../data/storefront_models.dart';
 
 /// Formats rupees the way a bill does: no decimals when the amount is whole,
@@ -1522,6 +1523,68 @@ class _FavouriteButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The picture on a doorstep chip, in the cart and on the order.
+IconData instructionIcon(DeliveryInstruction instruction) =>
+    switch (instruction) {
+      DeliveryInstruction.leaveAtDoor => Icons.door_front_door_outlined,
+      DeliveryInstruction.noBell => Icons.notifications_off_outlined,
+      DeliveryInstruction.noCall => Icons.phone_disabled_outlined,
+      DeliveryInstruction.security => Icons.shield_outlined,
+      DeliveryInstruction.pet => Icons.pets_rounded,
+    };
+
+/// What the customer asked for beyond the dishes, as saved on the order:
+/// the doorstep chips and "Don't send cutlery".
+class OrderRequests extends StatelessWidget {
+  const OrderRequests({
+    super.key,
+    required this.instructions,
+    required this.noCutlery,
+  });
+
+  final List<DeliveryInstruction> instructions;
+  final bool noCutlery;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
+
+    Widget chip(IconData icon, String label) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: theme.colorScheme.outline),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(icon, size: 15, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        );
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: <Widget>[
+        for (final DeliveryInstruction instruction in instructions)
+          chip(instructionIcon(instruction), instruction.label(l10n)),
+        if (noCutlery) chip(Icons.no_meals_outlined, l10n.cartNoCutlery),
+      ],
     );
   }
 }

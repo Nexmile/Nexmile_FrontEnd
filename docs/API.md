@@ -123,7 +123,7 @@ recomputing any of them on the client would only drift.
 
 | Method | Path | Called from | Notes |
 |---|---|---|---|
-| `POST` | `/v1/restaurants/{id}/cart/checkout` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | `fulfilment_type` (`delivery`/`pickup`), `payment_method` (`cod`, or `wallet` when the balance covers it all), `use_wallet`, `address_id` on delivery only, optional `note`. The note carries the cart's doorstep chips and "No cutlery" after the typed text, each part split by a vertical bar, and stays within 200 characters. |
+| `POST` | `/v1/restaurants/{id}/cart/checkout` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | `fulfilment_type` (`delivery`/`pickup`), `payment_method` (`cod`, or `wallet` when the balance covers it all), `use_wallet`, `address_id` on delivery only, optional `note` (whole order, up to 500 characters). `delivery_instructions`: codes `leave_at_door`, `no_bell`, `no_call`, `leave_with_security`, `pet_at_home` (at most five, [delivery_instruction.dart](../lib/features/catalogue/data/delivery_instruction.dart)), delivery only, seen by the rider alone after accepting. `no_cutlery: true`, seen by the restaurant alone, kept on pickup. Both are echoed on the order and shown on the order screen. A `422` under `delivery_instructions` is a developer message (a code this server build does not know), never shown: the app places the order again without the chips. |
 | `GET` | `/v1/orders` | [orders_tab.dart](../lib/features/catalogue/presentation/orders_tab.dart) | Optional `active=1`. In-flight orders are lifted above finished ones. |
 | `GET` | `/v1/orders/{id}` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Full order: items, timeline, bill, pickup code. Also the two fixed ends of the journey — `delivery_address.latitude/longitude` and `restaurant.latitude/longitude` — which the tracking map draws as the home and shop pins. **Either can be null** (a merchant who never set a location, an address saved before coordinates were required) and the map draws what it has. Never geocoded from the address text: it costs per call and puts narrow streets on the wrong side. |
 | `GET` | `/v1/orders/{id}/track` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Small and cheap, polled every 8 seconds while in flight. Polling stops the moment the order finishes, so a delivered order does not keep a timer alive. Carries the rider's name, phone and live position. |
@@ -258,6 +258,60 @@ sections (banners, cuisine tiles and collections stay, as merchandising) and ech
 ignored the flag falls back to the plain veg list rather than showing non-veg restaurants.
 
 ---
+
+## 7. Support chat (built, answering 503 until switched on)
+
+The contract is the backend's work item, "Nexmile Support Bubble — Flutter Work Item". **Every
+endpoint is built and returns 503 until the support platform is switched on** (a shared secret, a
+queue worker and a model key on the backend's side). The app handles the 503 as "assistant
+unavailable". Until it answers, builds use a demo
+([demo_support_repository.dart](../lib/features/support/data/demo_support_repository.dart)), which
+answers on the phone with canned English and a banner saying so.
+
+Which one a build uses is `--dart-define=NEXMILE_SUPPORT=…`: `live` for
+[support_repository.dart](../lib/features/support/data/support_repository.dart), `demo` for the
+demo. Debug builds default to the demo. **A release build that does not ask gets neither, and every way
+into the chat is hidden**, so no customer meets sample answers.
+
+| Method | Path | Used for |
+|---|---|---|
+| `GET` | `/v1/app/config` | No token. `{"data": {"support": {"phone", "email", "chat_enabled"}, "locales": […]}}` ([account_models.dart](../lib/features/account/data/account_models.dart), which still reads the older flat `support_phone` style). `phone` is null until a real number is set, and every call button hides on null. **`chat_enabled: false` is the chat's deliberate off switch: the bubble, "Need help?", the History menu item and "Chat with us" all hide** (not the same as `available: false`, which keeps the bubble for the phone number). Read at launch by the bubble. |
+| `GET` | `/v1/support/entry` | Reads without creating a thread: a customer who never asked for help gets `unread: 0, has_open_thread: false, available: true`. The home bubble: `label` (server wording), `unread` (badge), `available` (false when the platform cannot be reached: the bubble still shows, and the chat leads with a person and the phone number). |
+| `POST` | `/v1/support/conversations` | `order_id` (optional) and `language`. Answers with the open thread if there is one; a different `order_id` moves that thread to the new order, with a system line saying so. **Marks the thread read**, so opening the chat is one call and clears the badge. |
+| `GET` | `/v1/support/conversations/{id}` | The thread and `pending_reply`, which brings back the typing indicator after an app restart. Fetching it marks it read. |
+| `GET` | `/v1/support/conversations/{id}/messages?after_id=` | Polled every 2 s while a reply is outstanding, for at most 30 s; never while idle. `meta.pending_reply` keeps the typing dots for a second question, and ends the wait early when a job finished with no answer. |
+| `POST` | `/v1/support/conversations/{id}/messages` | `content` and `client_id` (a UUID made per message, sent again unchanged on retry). `202` with the saved message. |
+| `POST` | `/v1/support/conversations/{id}/handover` | `system_message` is shown exactly as sent; the app writes no promise of its own. |
+| `POST` | `/v1/support/conversations/{id}/close` | The composer becomes "Start a new chat". |
+| `POST` | `/v1/support/messages/{id}/feedback` | `{"value": "up"}` or `{"value": "down"}` (confirmed). |
+
+- Senders `customer`, `ai`, `agent`, `system` are drawn four ways. Every AI message carries the
+  "AI assistant" label; a person shows a first name, an initial and a bordered bubble, never the AI's
+  style. `system` is centred text, not a bubble.
+- Action codes `track_order`, `view_order`, `call_rider`, `reorder`, `leave_review`, `talk_to_person`,
+  `close_thread`. Unknown codes are skipped silently. Order destinations fetch fresh data on arrival
+  (the rider's number comes from `/track`), so nothing shown is read out of the AI's words.
+- The thread and the draft live on the phone (shared preferences) so the chat opens before the network
+  answers and works read-only offline. Both are wiped on sign-out and account deletion.
+- Failures: a message that does not send stays on screen as "Not sent · Try again"; a reply that has
+  not come in 30 s (or that the server says is no longer being written) shows "That took too long"
+  with "Try again", which **asks again**: the last unanswered question is sent again with its own
+  `client_id`, which the server does not store twice but answers again when nothing is in flight (a
+  worker that died mid-job). `429` asks the customer to slow down and is never retried automatically.
+- `503` means the support platform itself cannot be reached, so nothing sent is saved anywhere: the
+  chat offers the phone number and "Try again", not a person (that would not get through either), and
+  a message that fails shows "Not sent". An AI that is merely down is handled on the server: it still
+  answers `202`, keeps the message and hands over to a person.
+- After a handover the customer can keep typing; it is added to the thread and the AI stays quiet.
+- Push `support.reply` (`type` and `conversation_id` only; no preview, by design, since a lock screen
+  is read by whoever holds the phone) opens the chat
+  ([push_destination.dart](../lib/core/push/push_destination.dart)).
+- Ways in: the bubble, docked in the bottom bar beside the Delivery / History tabs (so it never
+  covers the basket bar or a place-order button, and needs no dismissing). It shows the nexmile CX
+  logo where it fits beside the tabs and the logo's mark in a circle where it does not, with a
+  brand-coloured ring that glows for two beats every few seconds and whenever a reply arrives.
+  Also "Need help?" on the order screen and on live tracking (with `order_id`), "Need help?" in a
+  History card's ⋮ menu, and "Chat with us" on Help.
 
 ## Error handling
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show File;
 
 
 import 'package:flutter/material.dart';
@@ -53,7 +54,7 @@ import 'package:nexmile/features/catalogue/data/restaurant_filters.dart';
 import 'package:nexmile/features/catalogue/data/review_models.dart';
 import 'package:nexmile/features/catalogue/presentation/widgets/catalogue_widgets.dart';
 import 'package:nexmile/features/catalogue/data/order_models.dart';
-import 'package:nexmile/features/catalogue/data/order_note.dart';
+import 'package:nexmile/features/catalogue/data/delivery_instruction.dart';
 import 'package:nexmile/features/catalogue/data/storefront_models.dart';
 import 'package:nexmile/features/catalogue/data/storefront_repository.dart';
 import 'package:nexmile/features/catalogue/presentation/cart_screen.dart';
@@ -76,6 +77,10 @@ import 'package:nexmile/features/language/language_screen.dart';
 import 'package:nexmile/features/profile/profile_screen.dart';
 import 'package:nexmile/features/splash/splash_screen.dart';
 import 'package:nexmile/generated/l10n/app_localizations.dart';
+import 'package:nexmile/features/support/data/demo_support_repository.dart';
+import 'package:nexmile/features/support/data/support_models.dart';
+import 'package:nexmile/features/support/data/support_repository.dart';
+import 'package:nexmile/features/support/presentation/support_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'account_fakes.dart';
@@ -615,6 +620,7 @@ Future<void> _pumpApp(
   FakeWalletRepository? walletRepository,
   FakeAccountRepository? accountRepository,
   PushService pushService = const NoopPushService(),
+  SupportRepository? supportRepository,
 }) async {
   final PreferencesService preferences = await _prefs(seed);
   _authRepo = repository ?? FakeAuthRepository();
@@ -643,8 +649,74 @@ Future<void> _pumpApp(
       accountRepository: _accountRepo,
       paymentGateway: FakePaymentGateway(),
       pushService: pushService,
+      supportRepository: supportRepository,
+      supportIsDemo: supportRepository is DemoSupportRepository,
     ),
   );
+}
+
+/// The demo support server, with a record of what was asked of it and a
+/// switch to fail the next send the way a dropped connection does.
+class _RecordingSupport extends DemoSupportRepository {
+  _RecordingSupport({super.pollsBeforeReply});
+
+  int? startedWithOrder;
+  String? startedInLanguage;
+  int fetches = 0;
+
+  @override
+  Future<SupportConversation> conversation(String id) {
+    _check();
+    fetches++;
+    return super.conversation(id);
+  }
+  final List<String> clientIds = <String>[];
+  ApiException? failNextSend;
+  bool offline = false;
+
+  void _check() {
+    if (offline) throw const ApiException(kind: ApiErrorKind.network);
+  }
+
+  @override
+  Future<SupportConversation> start({int? orderId, String? language}) {
+    _check();
+    startedWithOrder = orderId;
+    startedInLanguage = language;
+    return super.start(orderId: orderId, language: language);
+  }
+
+  @override
+  Future<SupportMessage> send(
+    String id, {
+    required String content,
+    required String clientId,
+  }) {
+    _check();
+    clientIds.add(clientId);
+    final ApiException? failure = failNextSend;
+    if (failure != null) {
+      failNextSend = null;
+      throw failure;
+    }
+    return super.send(id, content: content, clientId: clientId);
+  }
+}
+
+/// Sends what is in the support composer, then waits two polls for the
+/// demo's reply. Polling runs on timers, and the typing dots never settle,
+/// so time is pumped rather than settled.
+Future<void> _askSupport(WidgetTester tester, String text) async {
+  await tester.enterText(
+    find.byKey(const ValueKey<String>('support-composer')),
+    text,
+  );
+  await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+  await tester.pump();
+  for (int i = 0; i < 2; i++) {
+    await tester.pump(const Duration(seconds: 2));
+  }
+  await tester.pumpAndSettle();
 }
 
 Future<void> _settleSplash(WidgetTester tester) async {
@@ -950,6 +1022,30 @@ void main() {
         expect(l10n.resendCodeIn(60), contains('60'));
         expect(l10n.greetingNamed('Priya'), contains('Priya'));
         expect(l10n.languagesAvailable(23), contains('23'));
+        expect(l10n.cartSavedBanner('₹50'), contains('₹50'));
+        expect(l10n.cartReadyIn(28), contains('28'));
+        expect(l10n.orderAgainItems('Dosa', 3), contains('Dosa'));
+        expect(l10n.orderAgainItems('Dosa', 3), contains('3'));
+        expect(l10n.reorderSkipped('Vada', 2), contains('Vada'));
+        expect(l10n.menuShowDishes(7), contains('7'));
+      }
+    });
+
+    test('every language carries every string', () {
+      Map<String, dynamic> arb(String code) =>
+          jsonDecode(File('lib/l10n/app_$code.arb').readAsStringSync())
+              as Map<String, dynamic>;
+      final Iterable<String> keys =
+          arb('en').keys.where((String key) => !key.startsWith('@'));
+      for (final String code in AppLanguages.all
+          .map((AppLanguage language) => language.code)
+          .where((String code) => code != 'en')) {
+        final Map<String, dynamic> strings = arb(code);
+        expect(
+          keys.where((String key) => !strings.containsKey(key)).toList(),
+          isEmpty,
+          reason: code,
+        );
       }
     });
   });
@@ -2385,6 +2481,29 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('storefront decoding', () {
+    test('a restaurant reads its rating however the list sends it', () {
+      Restaurant shop(Map<String, dynamic> extra) => Restaurant.fromJson(
+            <String, dynamic>{'id': 'r1', 'name': 'Anjappar', ...extra},
+          );
+      expect(shop(<String, dynamic>{'rating': '4.3', 'rating_count': 120}).rating, 4.3);
+      expect(shop(<String, dynamic>{'rating': '4.3', 'rating_count': 120}).ratingCount, 120);
+      // Laravel's withAvg / withCount names.
+      final Restaurant avg = shop(<String, dynamic>{
+        'reviews_avg_rating': '4.1666',
+        'reviews_count': 37,
+      });
+      expect(avg.rating, closeTo(4.17, 0.01));
+      expect(avg.ratingCount, 37);
+      final Restaurant nested = shop(<String, dynamic>{
+        'rating': <String, dynamic>{'average': 3.9, 'count': 12},
+      });
+      expect(nested.rating, 3.9);
+      expect(nested.ratingCount, 12);
+      // Unrated is no rating, never "0.0".
+      expect(shop(<String, dynamic>{'rating': 0}).hasRating, isFalse);
+      expect(shop(<String, dynamic>{}).hasRating, isFalse);
+    });
+
     test('numbers and booleans survive arriving as strings', () {
       // The generated schema types several of these as `string`, and money
       // comes back as a JSON number in some places and a decimal string in
@@ -3790,6 +3909,18 @@ void main() {
 
       expect(destination?.routeName, AppRoutes.orderStatus);
       expect((destination!.arguments! as OrderArgs).orderId, 42);
+    });
+
+    test('a support reply opens the chat', () {
+      final PushDestination? destination = PushDestination.fromData(
+        <String, Object?>{
+          // No preview, by design: a lock screen is read by whoever holds
+          // the phone.
+          'type': 'support.reply',
+          'conversation_id': '0193f2a1',
+        },
+      );
+      expect(destination?.routeName, AppRoutes.support);
     });
 
     test('a push this build cannot place lands nowhere', () {
@@ -5365,29 +5496,163 @@ void main() {
   });
 
   group('cart page', () {
-    test('the order note keeps its parts in one order and within the limit',
+    test('doorstep chips travel as codes, in one order, and come back',
         () {
-      expect(composeOrderNote(), isNull);
-      expect(composeOrderNote(note: '   '), isNull);
-      expect(composeOrderNote(note: ' Less spicy '), 'Less spicy');
-      // Chips read in a fixed order, whatever order they were tapped in.
       expect(
-        composeOrderNote(
-          instructions: <DeliveryInstruction>{
-            DeliveryInstruction.pet,
-            DeliveryInstruction.leaveAtDoor,
-          },
-          noCutlery: true,
-        ),
-        'Delivery: Leave at door, Pet at home | No cutlery',
+        DeliveryInstruction.codesOf(<DeliveryInstruction>{
+          DeliveryInstruction.pet,
+          DeliveryInstruction.leaveAtDoor,
+        }),
+        <String>['leave_at_door', 'pet_at_home'],
       );
-      // The longest note there can be still fits what checkout takes.
-      final String longest = composeOrderNote(
-        note: 'x' * maxCustomerNoteLength,
-        instructions: DeliveryInstruction.values.toSet(),
+      expect(
+        DeliveryInstruction.codesOf(DeliveryInstruction.values),
+        hasLength(lessThanOrEqualTo(DeliveryInstruction.max)),
+      );
+      expect(
+        DeliveryInstruction.fromCode('leave_with_security'),
+        DeliveryInstruction.security,
+      );
+      expect(DeliveryInstruction.fromCode('ring_twice'), isNull);
+
+      // Echoed on the order; a code from a newer server is left out.
+      final Order order = Order.fromJson(<String, dynamic>{
+        'id': 3,
+        'status': 'placed',
+        'delivery_instructions': <String>['no_bell', 'ring_twice'],
+        'no_cutlery': true,
+      });
+      expect(order.deliveryInstructions, <DeliveryInstruction>[
+        DeliveryInstruction.noBell,
+      ]);
+      expect(order.noCutlery, isTrue);
+      expect(Order.fromJson(<String, dynamic>{'id': 4}).noCutlery, isFalse);
+    });
+
+    ApiStorefrontRepository checkoutRepo(
+      List<Map<String, dynamic>> bodies,
+      List<http.Response> answers,
+    ) =>
+        ApiStorefrontRepository(
+          ApiClient(
+            baseUrl: 'https://api.test/api',
+            httpClient: MockClient((http.Request request) async {
+              bodies.add(jsonDecode(request.body) as Map<String, dynamic>);
+              return answers.length > 1 ? answers.removeAt(0) : answers.single;
+            }),
+          ),
+        );
+
+    final http.Response placed = http.Response(
+      jsonEncode(<String, dynamic>{
+        'data': <String, dynamic>{'id': 9, 'status': 'placed'},
+      }),
+      201,
+    );
+
+    test('checkout sends the chips to the rider and cutlery to the kitchen, '
+        'not in the note', () async {
+      final List<Map<String, dynamic>> bodies = <Map<String, dynamic>>[];
+      final ApiStorefrontRepository repo =
+          checkoutRepo(bodies, <http.Response>[placed]);
+
+      await repo.checkout(
+        'r1',
+        fulfilmentType: FulfilmentType.delivery,
+        paymentMethod: 'cod',
+        addressId: 3,
+        note: ' No onion ',
+        instructions: <DeliveryInstruction>{
+          DeliveryInstruction.noBell,
+          DeliveryInstruction.leaveAtDoor,
+        },
         noCutlery: true,
-      )!;
-      expect(longest.length, lessThanOrEqualTo(maxOrderNoteLength));
+      );
+      expect(bodies.last['note'], 'No onion');
+      expect(
+        bodies.last['delivery_instructions'],
+        <String>['leave_at_door', 'no_bell'],
+      );
+      expect(bodies.last['no_cutlery'], isTrue);
+
+      // Pickup has no one to give the doorstep to; the cutlery still counts.
+      await repo.checkout(
+        'r1',
+        fulfilmentType: FulfilmentType.pickup,
+        paymentMethod: 'cod',
+        instructions: <DeliveryInstruction>{DeliveryInstruction.noCall},
+        noCutlery: true,
+      );
+      expect(bodies.last.containsKey('delivery_instructions'), isFalse);
+      expect(bodies.last['no_cutlery'], isTrue);
+
+      // Nothing chosen, nothing sent.
+      await repo.checkout(
+        'r1',
+        fulfilmentType: FulfilmentType.delivery,
+        paymentMethod: 'cod',
+        addressId: 3,
+      );
+      expect(bodies.last.containsKey('delivery_instructions'), isFalse);
+      expect(bodies.last.containsKey('no_cutlery'), isFalse);
+      expect(bodies.last.containsKey('note'), isFalse);
+    });
+
+    test('a refused chip code still places the order, without the chips',
+        () async {
+      final List<Map<String, dynamic>> bodies = <Map<String, dynamic>>[];
+      final Order order = await checkoutRepo(bodies, <http.Response>[
+        http.Response(
+          jsonEncode(<String, dynamic>{
+            'message': 'The given data was invalid.',
+            'errors': <String, dynamic>{
+              'delivery_instructions.1': <String>['Unknown code: no_bell.'],
+            },
+          }),
+          422,
+        ),
+        placed,
+      ]).checkout(
+        'r1',
+        fulfilmentType: FulfilmentType.delivery,
+        paymentMethod: 'cod',
+        addressId: 3,
+        note: 'No onion',
+        instructions: <DeliveryInstruction>{DeliveryInstruction.noBell},
+        noCutlery: true,
+      );
+
+      expect(order.id, 9);
+      expect(bodies, hasLength(2));
+      expect(bodies.last.containsKey('delivery_instructions'), isFalse);
+      expect(bodies.last['note'], 'No onion');
+      expect(bodies.last['no_cutlery'], isTrue);
+      expect(bodies.last['address_id'], 3);
+    });
+
+    test('any other checkout refusal is the customer\'s to read', () async {
+      final List<Map<String, dynamic>> bodies = <Map<String, dynamic>>[];
+      await expectLater(
+        checkoutRepo(bodies, <http.Response>[
+          http.Response(
+            jsonEncode(<String, dynamic>{
+              'message': 'Closed.',
+              'errors': <String, dynamic>{
+                'restaurant': <String>['This restaurant has just closed.'],
+              },
+            }),
+            422,
+          ),
+        ]).checkout(
+          'r1',
+          fulfilmentType: FulfilmentType.delivery,
+          paymentMethod: 'cod',
+          addressId: 3,
+          instructions: <DeliveryInstruction>{DeliveryInstruction.noBell},
+        ),
+        throwsA(isA<ApiException>()),
+      );
+      expect(bodies, hasLength(1));
     });
 
     testWidgets('the note, the doorstep and no cutlery go with the order',
@@ -5428,10 +5693,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
+      expect(repo.lastCheckout?['note'], 'Less spicy');
       expect(
-        repo.lastCheckout?['note'],
-        "Less spicy | Delivery: Leave at door, Don't ring bell | No cutlery",
+        repo.lastCheckout?['delivery_instructions'],
+        <String>['leave_at_door', 'no_bell'],
       );
+      expect(repo.lastCheckout?['no_cutlery'], isTrue);
       expect(repo.lastCheckout?['address_id'], 1);
       expect(repo.lastCheckout?['payment_method'], 'cod');
       expect(find.byType(OrderPlacedScreen), findsOneWidget);
@@ -5490,8 +5757,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       expect(repo.lastCheckout?['address_id'], 2);
-      // Nothing ticked, nothing typed: no note at all.
+      // Nothing ticked, nothing typed: none of the extras.
       expect(repo.lastCheckout?.containsKey('note'), isFalse);
+      expect(repo.lastCheckout?.containsKey('delivery_instructions'), isFalse);
+      expect(repo.lastCheckout?.containsKey('no_cutlery'), isFalse);
       await tester.pumpAndSettle();
     });
 
@@ -5573,8 +5842,45 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(repo.lastCheckout?['fulfilment_type'], 'pickup');
       expect(repo.lastCheckout?.containsKey('address_id'), isFalse);
+      expect(repo.lastCheckout?.containsKey('delivery_instructions'), isFalse);
       expect(repo.lastCheckout?.containsKey('note'), isFalse);
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('the order shows the doorstep and cutlery requests it saved',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..orderExtra = <String, dynamic>{
+            'delivery_instructions': <String>['leave_at_door', 'pet_at_home'],
+            'no_cutlery': true,
+          },
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.orderStatus,
+        arguments: const OrderArgs(orderId: 1),
+      );
+      await tester.pumpAndSettle();
+
+      final Finder requests = find.byKey(const ValueKey<String>('order-requests'));
+      await tester.scrollUntilVisible(requests, 200,
+          scrollable: find.byType(Scrollable).first);
+      for (final String label in <String>[
+        'Leave at the door',
+        'Pet at home',
+        "Don't send cutlery",
+      ]) {
+        expect(
+          find.descendant(of: requests, matching: find.text(label)),
+          findsOneWidget,
+          reason: label,
+        );
+      }
     });
 
     testWidgets('"Add more items" opens the menu in the cart\'s place',
@@ -5600,6 +5906,644 @@ void main() {
       await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('support chat', () {
+    test('messages read every sender, skip what this build cannot show', () {
+      final SupportMessage ai = SupportMessage.fromJson(<String, dynamic>{
+        'id': '0193f2a1',
+        'sender': 'ai',
+        'content': 'Your order is 600 m away.',
+        'created_at': '2026-11-24T19:44:10+05:30',
+        'actions': <Map<String, dynamic>>[
+          <String, dynamic>{'code': 'track_order', 'label': 'Track it', 'order_id': 10432},
+          // From a newer server: skipped, never a dead button.
+          <String, dynamic>{'code': 'issue_voucher', 'label': 'Get ₹50'},
+          <String, dynamic>{'code': 'view_order', 'label': ''},
+        ],
+        'feedback': 'up',
+      })!;
+      expect(ai.sender, SupportSender.ai);
+      expect(ai.actions.map((SupportAction a) => a.code), <String>['track_order']);
+      expect(ai.actions.single.orderId, 10432);
+      expect(ai.feedback, 'up');
+
+      // A first name only, and only on a person.
+      final SupportMessage agent = SupportMessage.fromJson(<String, dynamic>{
+        'id': '2',
+        'sender': 'agent',
+        'content': 'Looking into it.',
+        'agent_name': 'Priya Raman',
+      })!;
+      expect(agent.agentName, 'Priya');
+      expect(
+        SupportMessage.fromJson(<String, dynamic>{
+          'id': '3',
+          'sender': 'ai',
+          'agent_name': 'Priya',
+        })!.agentName,
+        isNull,
+      );
+      expect(
+        SupportMessage.fromJson(<String, dynamic>{'id': '4', 'sender': 'bot'}),
+        isNull,
+      );
+
+      expect(
+        newClientId(),
+        matches(RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+        )),
+      );
+      expect(newClientId(), isNot(newClientId()));
+    });
+
+    test('the API is the agreed contract', () async {
+      final List<http.Request> seen = <http.Request>[];
+      final SupportRepository repo = ApiSupportRepository(
+        ApiClient(
+          baseUrl: 'https://api.test/api',
+          httpClient: MockClient((http.Request request) async {
+            seen.add(request);
+            final String path = request.url.path;
+            if (path.endsWith('/messages') && request.method == 'POST') {
+              return http.Response(
+                jsonEncode(<String, dynamic>{
+                  'data': <String, dynamic>{
+                    'id': 'm1',
+                    'sender': 'customer',
+                    'content': 'where is my order',
+                    'client_id': 'c-1',
+                  },
+                }),
+                202,
+              );
+            }
+            if (path.endsWith('/handover')) {
+              return http.Response(
+                jsonEncode(<String, dynamic>{
+                  'data': <String, dynamic>{
+                    'status': 'handed_over',
+                    'system_message': 'They reply within 4 working hours.',
+                  },
+                }),
+                200,
+              );
+            }
+            if (path.endsWith('/messages')) {
+              return http.Response(
+                '{"data":[],"meta":{"pending_reply":true}}',
+                200,
+              );
+            }
+            if (path.endsWith('/entry')) {
+              return http.Response(
+                jsonEncode(<String, dynamic>{
+                  'data': <String, dynamic>{
+                    'unread': 1,
+                    'label': 'Help',
+                    'has_open_thread': true,
+                    'available': false,
+                  },
+                }),
+                200,
+              );
+            }
+            return http.Response(
+              jsonEncode(<String, dynamic>{
+                'data': <String, dynamic>{
+                  'id': 't1',
+                  'status': 'open',
+                  'pending_reply': true,
+                  'messages': <Object>[],
+                },
+              }),
+              200,
+            );
+          }),
+        ),
+      );
+
+      final SupportConversation thread =
+          await repo.start(orderId: 10432, language: 'ta');
+      expect(thread.pendingReply, isTrue);
+      expect(seen.last.url.path, '/api/v1/support/conversations');
+      expect(jsonDecode(seen.last.body), <String, dynamic>{
+        'order_id': 10432,
+        'language': 'ta',
+      });
+
+      final SupportMessage saved =
+          await repo.send('t1', content: 'where is my order', clientId: 'c-1');
+      expect(saved.clientId, 'c-1');
+      expect(jsonDecode(seen.last.body), <String, dynamic>{
+        'content': 'where is my order',
+        'client_id': 'c-1',
+      });
+
+      final SupportPoll poll = await repo.messagesAfter('t1', afterId: 'm1');
+      expect(seen.last.url.queryParameters['after_id'], 'm1');
+      expect(poll.messages, isEmpty);
+      expect(poll.pendingReply, isTrue);
+
+      final SupportEntry entry = await repo.entry();
+      expect(entry.unread, 1);
+      expect(entry.available, isFalse);
+      // An older server that says nothing is taken as reachable.
+      expect(SupportEntry.fromJson(const <String, dynamic>{}).available, isTrue);
+
+      final SupportHandover handover = await repo.handover('t1');
+      expect(handover.status, ConversationStatus.handedOver);
+      expect(handover.systemMessage, 'They reply within 4 working hours.');
+
+      await repo.feedback('m9', 'down');
+      expect(seen.last.url.path, '/api/v1/support/messages/m9/feedback');
+    });
+
+    testWidgets('a build without the support server shows no way in',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(tester, seed: _languageChosen, session: _testSession());
+      await _settleSplash(tester);
+      expect(find.byKey(const ValueKey<String>('support-bubble')), findsNothing);
+
+      _nav(tester).pushNamed(AppRoutes.help);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('help-chat')), findsNothing);
+    });
+
+    testWidgets('the bubble opens the chat; the assistant answers, labelled',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+
+      await tester.tap(find.byKey(const ValueKey<String>('support-bubble')));
+      await tester.pumpAndSettle();
+      expect(find.byType(SupportScreen), findsOneWidget);
+      expect(find.text('How can we help?'), findsOneWidget);
+      // Nobody may take a demo answer for the real assistant.
+      expect(
+        find.text(
+          "Demo: these answers are samples. The real assistant isn't connected yet.",
+        ),
+        findsOneWidget,
+      );
+      expect(support.startedInLanguage, 'en');
+      expect(support.startedWithOrder, isNull);
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('support-composer')),
+        'hello',
+      );
+      await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+      await tester.pump();
+      expect(find.text('hello'), findsOneWidget);
+      // The wait is the assistant's, and the box stays open for a second
+      // thought.
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsOneWidget);
+      expect(find.text('AI assistant is typing…'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const ValueKey<String>('support-composer')),
+            )
+            .enabled,
+        isNot(false),
+      );
+
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsNothing);
+      expect(find.textContaining('This is a demo answer'), findsOneWidget);
+      // Labelled as the machine it is.
+      expect(find.text('AI assistant'), findsOneWidget);
+      expect(support.received, <String>['hello']);
+
+      // Thumbs on the answer, shown at once.
+      final SupportMessage answer = (await support.conversation('x')).messages.last;
+      await tester.tap(find.byKey(ValueKey<String>('support-up-${answer.id}')));
+      await tester.pumpAndSettle();
+      expect((await support.conversation('x')).messages.last.feedback, 'up');
+    });
+
+    testWidgets('an answer that never comes stops at 30 seconds, with a retry',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport(pollsBeforeReply: 1000);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('support-composer')),
+        'hello',
+      );
+      await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+      await tester.pump();
+      for (int i = 0; i < 15; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsNothing);
+      expect(find.text('That took too long.'), findsOneWidget);
+      // The question stays.
+      expect(find.text('hello'), findsOneWidget);
+
+      // "Try again" asks again, with the same id: never stored twice.
+      await tester.tap(find.widgetWithText(TextButton, 'Try again'));
+      await tester.pump();
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsOneWidget);
+      expect(support.clientIds, hasLength(2));
+      expect(support.clientIds.toSet(), hasLength(1));
+      expect(support.received, <String>['hello']);
+      for (int i = 0; i < 15; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a reply job that died is asked for again, and answered',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport()..loseNextReply = true;
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('support-composer')),
+        'hello',
+      );
+      await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+      await tester.pump();
+      // Nothing in flight and nothing came: no need to wait out 30 seconds.
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+      expect(find.text('That took too long.'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Try again'));
+      await tester.pump();
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.textContaining('This is a demo answer'), findsOneWidget);
+      expect(find.text('That took too long.'), findsNothing);
+      expect(support.clientIds.toSet(), hasLength(1));
+    });
+
+    testWidgets('a message that does not get through stays, and is retried '
+        'with the same id', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport()
+        ..failNextSend = const ApiException(kind: ApiErrorKind.network);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('support-composer')),
+        'my food is cold',
+      );
+      await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+      await tester.pumpAndSettle();
+      expect(find.text('my food is cold'), findsOneWidget);
+      expect(find.text('Not sent · Try again'), findsOneWidget);
+      expect(support.received, isEmpty);
+
+      await tester.tap(find.text('Not sent · Try again'));
+      await tester.pump();
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('Not sent · Try again'), findsNothing);
+      expect(support.received, <String>['my food is cold']);
+      // One id for both attempts: the server can tell a retry from a repeat.
+      expect(support.clientIds, hasLength(2));
+      expect(support.clientIds.toSet(), hasLength(1));
+    });
+
+    testWidgets('a person is asked for in the server\'s words, and a closed '
+        'chat starts again', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: _RecordingSupport(),
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      await _askSupport(tester, 'I need a refund');
+      await tester.tap(
+        find.byKey(const ValueKey<String>('support-action-talk_to_person')),
+      );
+      await tester.pumpAndSettle();
+      // Exactly as the server wrote it, never the app's own promise.
+      expect(
+        find.text(
+          "I've passed this to the Nexmile team. They reply within 4 working hours.",
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey<String>('support-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mark as solved'));
+      await tester.pumpAndSettle();
+      expect(find.text('This chat is closed.'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('support-composer')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey<String>('support-start-new')));
+      await tester.pumpAndSettle();
+      expect(find.text('How can we help?'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('support-composer')), findsOneWidget);
+    });
+
+    testWidgets('"Need help?" on an order opens the chat about that order',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.orderStatus,
+        arguments: const OrderArgs(orderId: 1),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('need-help-1')));
+      await tester.pumpAndSettle();
+      expect(support.startedWithOrder, 1);
+
+      // The answer's buttons go where they say, and fetch what they show.
+      await _askSupport(tester, 'where is it');
+      expect(find.text('Track it'), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey<String>('support-action-view_order')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderStatusScreen), findsOneWidget);
+      expect(find.byType(SupportScreen, skipOffstage: false), findsOneWidget);
+    });
+
+    testWidgets('the chat is kept on the phone, and read offline with its '
+        'draft', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: _RecordingSupport(),
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      await _askSupport(tester, 'hello');
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('support-composer')),
+        'half a thought',
+      );
+      await tester.pump();
+
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      final Map<String, Object> kept = <String, Object>{
+        ..._languageChosen,
+        'nexmile.support_thread': stored.getString('nexmile.support_thread')!,
+        'nexmile.support_draft': stored.getString('nexmile.support_draft')!,
+      };
+
+      // The app killed, and back with no network.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _pumpApp(
+        tester,
+        seed: kept,
+        session: _testSession(),
+        supportRepository: _RecordingSupport()..offline = true,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey<String>('support-offline')), findsOneWidget);
+      expect(find.text('hello'), findsOneWidget);
+      expect(find.textContaining('This is a demo answer'), findsOneWidget);
+      expect(find.text('half a thought'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const ValueKey<String>('support-composer')),
+            )
+            .enabled,
+        isFalse,
+      );
+    });
+
+    testWidgets('an unreachable platform still shows the bubble, and the chat '
+        'leads with a person and the phone', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: _RecordingSupport()..available = false,
+      );
+      await _settleSplash(tester);
+      expect(find.byKey(const ValueKey<String>('support-bubble')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('support-bubble')));
+      await tester.pumpAndSettle();
+      final Finder card = find.byKey(const ValueKey<String>('support-down'));
+      expect(card, findsOneWidget);
+      // Nothing reaches the platform, so no person is offered: the phone
+      // (when its number is set) and a way to try again.
+      expect(
+        find.descendant(of: card, matching: find.text('Talk to a person')),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey<String>('support-down-retry')), findsOneWidget);
+    });
+
+    testWidgets('opening a chat is one call: starting it marks it read',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      // A new thread has nothing to mark.
+      expect(support.fetches, 0);
+      await _askSupport(tester, 'hello');
+
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      // No second fetch: POST /conversations marks it read on its own.
+      expect(support.fetches, 0);
+      expect(find.text('hello'), findsOneWidget);
+    });
+
+    test('the app config reads the live shape, and the older flat one', () {
+      final SupportInfo live = SupportInfo.fromJson(<String, dynamic>{
+        'support': <String, dynamic>{
+          'phone': null,
+          'email': 'help@nexmile.in',
+          'chat_enabled': false,
+        },
+        'locales': <String>['en', 'ta', 'hi'],
+      });
+      // No number yet: nothing to dial, so no call button.
+      expect(live.phone, isNull);
+      expect(live.email, 'help@nexmile.in');
+      expect(live.chatEnabled, isFalse);
+
+      final SupportInfo flat = SupportInfo.fromJson(<String, dynamic>{
+        'support_phone': '044 4000 1234',
+      });
+      expect(flat.phone, '044 4000 1234');
+      expect(flat.chatEnabled, isNull);
+    });
+
+    testWidgets('chat switched off on the server hides every way in',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: _RecordingSupport(),
+        accountRepository: FakeAccountRepository(
+          supportInfo: const SupportInfo(
+            email: 'help@nexmile.in',
+            chatEnabled: false,
+          ),
+        ),
+      );
+      await _settleSplash(tester);
+      expect(find.byKey(const ValueKey<String>('support-bubble')), findsNothing);
+
+      _nav(tester).pushNamed(AppRoutes.help);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('help-chat')), findsNothing);
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
+
+      _nav(tester).pushNamed(
+        AppRoutes.orderStatus,
+        arguments: const OrderArgs(orderId: 1),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('need-help-1')), findsNothing);
+      expect(find.byKey(const ValueKey<String>('need-help-icon-1')), findsNothing);
+    });
+
+    testWidgets('two questions keep the dots until both are answered',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: _RecordingSupport(),
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      Future<void> type(String text) async {
+        await tester.enterText(
+          find.byKey(const ValueKey<String>('support-composer')),
+          text,
+        );
+        await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+        await tester.pump();
+      }
+
+      await type('hello');
+      await tester.pump(const Duration(seconds: 2));
+      await type('thanks');
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+      // The first answer is in; the second is still being written.
+      expect(find.textContaining('This is a demo answer'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+      expect(find.text('Glad that helped.'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsNothing);
+    });
+
+    testWidgets('signing out takes the chat off the phone',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: _RecordingSupport(),
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      await _askSupport(tester, 'hello');
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getString('nexmile.support_thread'), isNotNull);
+
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
+      _nav(tester).pushNamed(AppRoutes.profile);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Sign out'), 300,
+          scrollable: find.byType(Scrollable).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(stored.getString('nexmile.support_thread'), isNull);
     });
   });
 
@@ -6621,6 +7565,88 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('layout robustness', () {
+    testWidgets('the translated screens fit a small phone in every language',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(360, 690);
+      tester.view.devicePixelRatio = 1.0;
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+      _mockAppVersion(tester);
+
+      final Order order = Order.fromJson(<String, dynamic>{
+        'id': 1,
+        'order_number': 'NX1001',
+        'status': 'delivered',
+        'status_label': 'Delivered',
+        'fulfilment_type': 'delivery',
+        'grand_total': '420',
+        'can_review': true,
+        'restaurant': <String, dynamic>{
+          'id': 'r1',
+          'name': 'Anjappar Chettinad',
+        },
+        'rider': <String, dynamic>{'name': 'Murugan'},
+        'items': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 1,
+            'menu_item_id': 41,
+            'name': 'Mutton Biryani',
+            'quantity': 1,
+            'is_veg': false,
+          },
+        ],
+      });
+
+      for (final String code in AppLanguages.all
+          .map((AppLanguage language) => language.code)) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _pumpApp(
+          tester,
+          seed: _languageChosenAs(code),
+          session: _testSession(),
+          storefrontRepository: FakeStorefrontRepository()
+            ..orderStatus = 'delivered'
+            ..orderList = <String>['delivered']
+            ..orderExtra = <String, dynamic>{
+              'can_review': true,
+              'restaurant': <String, dynamic>{
+                'id': 'r1',
+                'name': 'Anjappar Chettinad',
+                'area': 'Anna Nagar',
+              },
+              'rider': <String, dynamic>{'name': 'Murugan'},
+            },
+          walletRepository: FakeWalletRepository(balance: 100),
+          supportRepository: _RecordingSupport(),
+        );
+        await _settleSplash(tester);
+        expect(tester.takeException(), isNull, reason: '$code home');
+
+        for (final (String route, Object? arguments) in <(String, Object?)>[
+          (AppRoutes.profile, null),
+          (AppRoutes.orders, null),
+          (AppRoutes.orderStatus, const OrderArgs(orderId: 1)),
+          (AppRoutes.rateOrder, RateOrderArgs(order: order)),
+          (AppRoutes.cart, const CartArgs(restaurantId: 'r1')),
+          (AppRoutes.wallet, null),
+          (AppRoutes.coupons, null),
+          (AppRoutes.help, null),
+          (AppRoutes.favourites, null),
+          (AppRoutes.support, const SupportArgs(orderId: 1)),
+        ]) {
+          _nav(tester).pushNamed(route, arguments: arguments);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: '$code $route');
+          _nav(tester).pop();
+          await tester.pumpAndSettle();
+        }
+      }
+    });
+
     testWidgets('the cart holds up on 320x568 at maximum text scale',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(320, 568);
@@ -7304,6 +8330,8 @@ class FakeStorefrontRepository implements StorefrontRepository {
     bool useWallet = false,
     int? addressId,
     String? note,
+    Set<DeliveryInstruction> instructions = const <DeliveryInstruction>{},
+    bool noCutlery = false,
   }) async {
     lastCheckout = <String, Object?>{
       'fulfilment_type': fulfilmentType.name,
@@ -7311,7 +8339,10 @@ class FakeStorefrontRepository implements StorefrontRepository {
       if (useWallet) 'use_wallet': true,
       if (fulfilmentType == FulfilmentType.delivery && addressId != null)
         'address_id': addressId,
-      if (note != null) 'note': note,
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      if (fulfilmentType == FulfilmentType.delivery && instructions.isNotEmpty)
+        'delivery_instructions': DeliveryInstruction.codesOf(instructions),
+      if (noCutlery) 'no_cutlery': true,
     };
     _maybeThrow();
     return Order.fromJson(_orderJson('placed'));

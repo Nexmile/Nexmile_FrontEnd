@@ -30,6 +30,13 @@ class PushDestination {
     const Set<String> notAboutAnOrder = <String>{'promo', 'promotion', 'news'};
     if (notAboutAnOrder.contains(type)) return null;
 
+    // A reply in the support chat opens the chat, whatever order it was
+    // about. The thread is read again on arrival, so the push carries
+    // nothing the screen shows.
+    if (type == 'support.reply') {
+      return const PushDestination(routeName: AppRoutes.support);
+    }
+
     if (orderId != null) {
       return PushDestination(
         routeName: AppRoutes.orderStatus,

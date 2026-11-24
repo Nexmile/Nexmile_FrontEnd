@@ -13,6 +13,7 @@ import '../catalogue/presentation/home_tab.dart';
 import '../catalogue/presentation/orders_tab.dart';
 import '../catalogue/presentation/widgets/catalogue_widgets.dart';
 import '../catalogue/state/cart_controller.dart';
+import '../support/presentation/support_bubble.dart';
 
 /// Signed-in home: Delivery and History on a floating bar, plus the basket
 /// bar. The profile is the avatar at the top of either, not a tab.
@@ -105,7 +106,7 @@ class _AppShellState extends State<AppShell> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             if (_index == 0) const _OpenCartBar(),
-            _FloatingNav(
+            _BottomBar(
               index: _index,
               onSelect: _select,
               items: <_NavItemData>[
@@ -236,50 +237,131 @@ class _FloatingNav extends StatelessWidget {
     required this.index,
     required this.onSelect,
     required this.items,
+    required this.itemPadding,
+  });
+
+  final int index;
+  final ValueChanged<int> onSelect;
+  final List<_NavItemData> items;
+  final double itemPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    return Material(
+      color: theme.colorScheme.surface,
+      elevation: isDark ? 2 : 10,
+      shadowColor: Colors.black.withValues(alpha: 0.28),
+      shape: StadiumBorder(
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            for (int i = 0; i < items.length; i++)
+              Flexible(
+                child: _NavItem(
+                  data: items[i],
+                  selected: i == index,
+                  padding: itemPadding,
+                  onTap: () => onSelect(i),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The tabs, and the support bubble docked beside them where it fits. The
+/// tabs give up some of their padding before the bubble gives up the full
+/// logo; on a narrow phone, or at a large text size, the bubble is the
+/// logo's mark in a circle.
+class _BottomBar extends StatelessWidget {
+  const _BottomBar({
+    required this.index,
+    required this.onSelect,
+    required this.items,
   });
 
   final int index;
   final ValueChanged<int> onSelect;
   final List<_NavItemData> items;
 
+  static const double _margin = 16;
+  static const double _gap = 10;
+
+  /// The tabs' own width at a given item padding, measured as they will be
+  /// drawn: icon, gap, label (at the bar's capped text size).
+  double _tabsWidth(BuildContext context, double padding) {
+    final ThemeData theme = Theme.of(context);
+    final TextScaler scaler = MediaQuery.textScalerOf(context)
+        .clamp(maxScaleFactor: _NavItem.maxTextScale);
+    double width = 10 + 2; // the pill's padding and border
+    for (final _NavItemData item in items) {
+      final TextPainter label = TextPainter(
+        text: TextSpan(
+          text: item.label,
+          style: theme.textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        textDirection: Directionality.of(context),
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      width += padding * 2 + 22 + 10 + label.width;
+    }
+    return width;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final bool isDark = theme.brightness == Brightness.dark;
+    final double screen = MediaQuery.sizeOf(context).width;
+    final double roomy = screen < 360 ? 14 : 22;
+    const double tight = 14;
+    final bool chat = supportChatOn(context);
+
+    double padding = roomy;
+    bool compact = false;
+    if (chat) {
+      final double room = screen - _margin * 2 - _gap;
+      bool fits(double pad, double bubble) =>
+          room - _tabsWidth(context, pad) >= bubble;
+      if (fits(roomy, SupportBubble.fullWidth)) {
+        padding = roomy;
+      } else if (fits(tight, SupportBubble.fullWidth)) {
+        padding = tight;
+      } else {
+        compact = true;
+        padding = fits(roomy, SupportBubble.compactWidth) ? roomy : tight;
+      }
+    }
+
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.only(bottom: 12),
-      child: Center(
-        // Never wider than the screen: on a small phone at large text the
-        // labels shorten rather than push the bar off the edge.
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.sizeOf(context).width - 32,
-          ),
-          child: Material(
-            color: theme.colorScheme.surface,
-            elevation: isDark ? 2 : 10,
-            shadowColor: Colors.black.withValues(alpha: 0.28),
-            shape: StadiumBorder(
-              side: BorderSide(color: theme.colorScheme.outlineVariant),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  for (int i = 0; i < items.length; i++)
-                    Flexible(
-                      child: _NavItem(
-                        data: items[i],
-                        selected: i == index,
-                        onTap: () => onSelect(i),
-                      ),
-                    ),
-                ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: _margin),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Flexible(
+              child: _FloatingNav(
+                index: index,
+                onSelect: onSelect,
+                items: items,
+                itemPadding: padding,
               ),
             ),
-          ),
+            if (chat) ...<Widget>[
+              const SizedBox(width: _gap),
+              SupportBubble(compact: compact),
+            ],
+          ],
         ),
       ),
     );
@@ -290,12 +372,17 @@ class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.data,
     required this.selected,
+    required this.padding,
     required this.onTap,
   });
 
   final _NavItemData data;
   final bool selected;
+  final double padding;
   final VoidCallback onTap;
+
+  /// The bar grows with the text only so far.
+  static const double maxTextScale = 1.3;
 
   @override
   Widget build(BuildContext context) {
@@ -314,10 +401,7 @@ class _NavItem extends StatelessWidget {
           child: AnimatedContainer(
             duration: AppMotion.quick,
             curve: AppMotion.enter,
-            padding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.sizeOf(context).width < 360 ? 14 : 22,
-              vertical: 13,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: padding, vertical: 13),
             decoration: ShapeDecoration(
               shape: const StadiumBorder(),
               color: selected
@@ -325,7 +409,7 @@ class _NavItem extends StatelessWidget {
                   : Colors.transparent,
             ),
             child: MediaQuery.withClampedTextScaling(
-              maxScaleFactor: 1.3,
+              maxScaleFactor: maxTextScale,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[

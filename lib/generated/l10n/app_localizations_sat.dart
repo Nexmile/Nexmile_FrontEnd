@@ -83,16 +83,17 @@ class AppLocalizationsSat extends AppLocalizations {
       'ᱴᱷᱤᱠ ᱤᱢᱮᱞ ᱴᱷᱤᱠᱱᱟ ᱵᱟᱝᱠᱷᱟᱱ 10 ᱮᱞ ᱢᱚᱵᱟᱭᱤᱞ ᱱᱟᱢᱵᱟᱨ ᱚᱞ ᱢᱮ';
 
   @override
-  String get loginHeadline => 'Hot food from shops near you, delivered fast';
+  String get loginHeadline =>
+      'ᱟᱢᱟᱜ ᱡᱟᱹᱛᱤᱭᱟᱹᱨ ᱫᱳᱠᱟᱱ ᱠᱷᱚᱱ ᱨᱟᱹᱲᱟᱹ ᱡᱚᱢᱟᱜ, ᱞᱚᱜᱚᱱ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ';
 
   @override
-  String get loginOrSignUp => 'Log in or sign up';
+  String get loginOrSignUp => 'ᱞᱚᱜ ᱤᱱ ᱵᱟᱝᱠᱷᱟᱱ ᱥᱟᱭᱤᱱ ᱟᱯ ᱢᱮ';
 
   @override
-  String get loginEmailHint => 'Enter your email address';
+  String get loginEmailHint => 'ᱟᱢᱟᱜ ᱤᱢᱮᱞ ᱴᱷᱤᱠᱱᱟ ᱚᱞ ᱢᱮ';
 
   @override
-  String get invalidEmail => 'Enter a valid email address';
+  String get invalidEmail => 'ᱴᱷᱤᱠ ᱤᱢᱮᱞ ᱴᱷᱤᱠᱱᱟ ᱚᱞ ᱢᱮ';
 
   @override
   String get sendCode => 'ᱠᱳᱰ ᱠᱩᱞ ᱢᱮ';
@@ -390,62 +391,62 @@ class AppLocalizationsSat extends AppLocalizations {
 
   @override
   String orderPlacedWith(String restaurant) {
-    return '$restaurant has your order.';
+    return 'ᱟᱢᱟᱜ ᱚᱰᱟᱨ $restaurant ᱴᱷᱮᱱ ᱥᱮᱴᱮᱨ ᱮᱱᱟ᱾';
   }
 
   @override
   String orderPlacedPrep(int minutes) {
-    return 'Ready in about $minutes minutes.';
+    return '$minutes ᱜᱟᱱ ᱢᱤᱱᱤᱴ ᱨᱮ ᱛᱮᱭᱟᱨᱚᱜᱼᱟ᱾';
   }
 
   @override
-  String get trackYourOrder => 'Track your order';
+  String get trackYourOrder => 'ᱟᱢᱟᱜ ᱚᱰᱟᱨ ᱴᱨᱮᱠ ᱢᱮ';
 
   @override
-  String get couponApplyTitle => 'Apply a coupon';
+  String get couponApplyTitle => 'ᱠᱩᱯᱚᱱ ᱞᱟᱜᱟᱣ ᱢᱮ';
 
   @override
-  String get couponCodeLabel => 'Coupon code';
+  String get couponCodeLabel => 'ᱠᱩᱯᱚᱱ ᱠᱳᱰ';
 
   @override
-  String get couponApply => 'Apply';
+  String get couponApply => 'ᱞᱟᱜᱟᱣ ᱢᱮ';
 
   @override
   String couponAppliedTitle(String code) {
-    return '$code applied';
+    return '$code ᱞᱟᱜᱟᱣ ᱮᱱᱟ';
   }
 
   @override
   String couponSaving(String amount) {
-    return 'You save $amount';
+    return 'ᱟᱢᱟᱜ $amount ᱵᱟᱧᱪᱟᱣ ᱮᱱᱟ';
   }
 
   @override
-  String get couponRemove => 'Remove';
+  String get couponRemove => 'ᱚᱪᱚᱜ ᱢᱮ';
 
   @override
   String searchFor(String term) {
-    return 'Search \"$term\"';
+    return '\"$term\" ᱯᱟᱱᱛᱮ ᱢᱮ';
   }
 
   @override
-  String get vegModeBadge => 'Pure veg';
+  String get vegModeBadge => 'ᱥᱩᱫᱷ ᱥᱟᱠᱟᱢ ᱡᱚᱢᱟᱜ';
 
   @override
   String trackingExpectedBy(String time) {
-    return 'Expected by $time';
+    return '$time ᱦᱟᱹᱵᱤᱡ ᱥᱮᱴᱮᱨᱚᱜᱼᱟ';
   }
 
   @override
-  String get orderAgainTitle => 'Order again';
+  String get orderAgainTitle => 'ᱫᱩᱦᱲᱟᱹ ᱚᱰᱟᱨ ᱢᱮ';
 
   @override
   String orderAgainItems(String first, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$first + $count more',
-      one: '$first + 1 more',
+      other: '$first + ᱟᱨᱦᱚᱸ $count',
+      one: '$first + ᱟᱨᱦᱚᱸ 1',
       zero: '$first',
     );
     return '$_temp0';
@@ -453,52 +454,52 @@ class AppLocalizationsSat extends AppLocalizations {
 
   @override
   String etaRange(int min, int max) {
-    return '$min–$max min';
+    return '$min–$max ᱢᱤᱱᱤᱴ';
   }
 
   @override
   String riderRatingLabel(String rating) {
-    return 'Rated $rating out of 5';
+    return '5 ᱠᱷᱚᱱ $rating ᱨᱮᱴᱤᱝ';
   }
 
   @override
-  String get reorderReplaceTitle => 'Replace your basket?';
+  String get reorderReplaceTitle => 'ᱟᱢᱟᱜ ᱠᱟᱨᱴ ᱵᱚᱫᱚᱞᱟ?';
 
   @override
   String reorderReplaceBody(String restaurant) {
-    return 'Your basket from $restaurant will be replaced with the dishes from this order.';
+    return '$restaurant ᱠᱷᱚᱱ ᱟᱢᱟᱜ ᱠᱟᱨᱴ ᱨᱮ ᱢᱮᱱᱟᱜ ᱡᱤᱱᱤᱥ ᱚᱪᱚᱜᱚᱜᱼᱟ ᱟᱨ ᱱᱚᱶᱟ ᱚᱰᱟᱨ ᱨᱮᱭᱟᱜ ᱡᱚᱢᱟᱜ ᱥᱮᱞᱮᱫᱚᱜᱼᱟ᱾';
   }
 
   @override
-  String get reorderReplace => 'Replace';
+  String get reorderReplace => 'ᱵᱚᱫᱚᱞ ᱢᱮ';
 
   @override
   String reorderSkipped(String dishes, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$dishes aren\'t available right now, so they were left out.',
-      one: '$dishes isn\'t available right now, so it was left out.',
+      other: '$dishes ᱱᱤᱛᱚᱜ ᱵᱟᱝ ᱧᱟᱢᱚᱜᱼᱟ, ᱚᱱᱟᱛᱮ ᱚᱱᱟ ᱠᱚ ᱵᱟᱝ ᱥᱮᱞᱮᱫ ᱮᱱᱟ᱾',
+      one: '$dishes ᱱᱤᱛᱚᱜ ᱵᱟᱝ ᱧᱟᱢᱚᱜᱼᱟ, ᱚᱱᱟᱛᱮ ᱚᱱᱟ ᱵᱟᱝ ᱥᱮᱞᱮᱫ ᱮᱱᱟ᱾',
     );
     return '$_temp0';
   }
 
   @override
   String get reorderNothingAvailable =>
-      'None of these dishes are available right now.';
+      'ᱱᱚᱶᱟ ᱡᱚᱢᱟᱜ ᱠᱚ ᱠᱷᱚᱱ ᱢᱤᱫᱴᱟᱝ ᱦᱚᱸ ᱱᱤᱛᱚᱜ ᱵᱟᱝ ᱧᱟᱢᱚᱜᱼᱟ᱾';
 
   @override
-  String get searchShort => 'Search';
+  String get searchShort => 'ᱯᱟᱱᱛᱮ';
 
   @override
-  String get favouriteSave => 'Save to favourites';
+  String get favouriteSave => 'ᱠᱩᱥᱤᱭᱟᱜ ᱨᱮ ᱥᱟᱺᱪᱟᱣ ᱢᱮ';
 
   @override
-  String get restaurantAbout => 'About this restaurant';
+  String get restaurantAbout => 'ᱱᱚᱶᱟ ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱵᱟᱵᱚᱛ';
 
   @override
   String ratingByCount(String count) {
-    return 'By $count';
+    return '$count ᱨᱮᱴᱤᱝ';
   }
 
   @override
@@ -506,179 +507,179 @@ class AppLocalizationsSat extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count offers',
-      one: '1 offer',
+      other: '$count ᱚᱯᱷᱟᱨ',
+      one: '1 ᱚᱯᱷᱟᱨ',
     );
     return '$_temp0';
   }
 
   @override
   String shareRestaurantText(String restaurant) {
-    return 'Order from $restaurant on Nexmile';
+    return 'Nexmile ᱨᱮ $restaurant ᱠᱷᱚᱱ ᱚᱰᱟᱨ ᱢᱮ';
   }
 
   @override
-  String get ordersSearchHint => 'Search by restaurant or dish…';
+  String get ordersSearchHint => 'ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱵᱟᱝᱠᱷᱟᱱ ᱡᱚᱢᱟᱜ ᱧᱩᱛᱩᱢ ᱛᱮ ᱯᱟᱱᱛᱮ ᱢᱮ…';
 
   @override
   String get ordersNoMatch =>
-      'No orders from a restaurant or dish by that name.';
+      'ᱚᱱᱟ ᱧᱩᱛᱩᱢ ᱨᱮᱭᱟᱜ ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱵᱟᱝᱠᱷᱟᱱ ᱡᱚᱢᱟᱜ ᱨᱮᱭᱟᱜ ᱡᱟᱦᱟᱸ ᱚᱰᱟᱨ ᱵᱟᱝᱟ᱾';
 
   @override
   String orderPlacedOn(String date) {
-    return 'Order placed on $date';
+    return '$date ᱨᱮ ᱚᱰᱟᱨ ᱮᱱᱟ';
   }
 
   @override
-  String get viewMenu => 'View menu';
+  String get viewMenu => 'ᱢᱮᱱᱩ ᱧᱮᱞ ᱢᱮ';
 
   @override
-  String get navHistory => 'History';
+  String get navHistory => 'ᱱᱟᱜᱟᱢ';
 
   @override
-  String get exploreMore => 'Explore more';
+  String get exploreMore => 'ᱟᱨᱦᱚᱸ ᱧᱮᱞ ᱢᱮ';
 
   @override
-  String get exploreTopRated => 'Top rated';
+  String get exploreTopRated => 'ᱡᱟᱹᱥᱛᱤ ᱨᱮᱴᱤᱝ';
 
   @override
   String restaurantsDelivering(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count restaurants delivering to you',
-      one: '1 restaurant delivering to you',
+      other: 'ᱟᱢ ᱛᱟᱞᱟ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱮᱢᱚᱜ $count ᱨᱮᱥᱴᱚᱨᱮᱱᱴ',
+      one: 'ᱟᱢ ᱛᱟᱞᱟ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱮᱢᱚᱜ 1 ᱨᱮᱥᱴᱚᱨᱮᱱᱴ',
     );
     return '$_temp0';
   }
 
   @override
-  String get rateHowWasDelivery => 'How was your delivery?';
+  String get rateHowWasDelivery => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱪᱮᱫ ᱞᱮᱠᱟ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ?';
 
   @override
-  String get rateHowWasFood => 'How was the food?';
+  String get rateHowWasFood => 'ᱡᱚᱢᱟᱜ ᱪᱮᱫ ᱞᱮᱠᱟ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ?';
 
   @override
-  String get rateWordTerrible => 'Terrible';
+  String get rateWordTerrible => 'ᱟᱹᱰᱤ ᱵᱟᱹᱲᱤᱡ';
 
   @override
-  String get rateWordBad => 'Bad';
+  String get rateWordBad => 'ᱵᱟᱹᱲᱤᱡ';
 
   @override
-  String get rateWordOkay => 'Okay';
+  String get rateWordOkay => 'ᱴᱷᱤᱠ ᱜᱮ';
 
   @override
-  String get rateWordGood => 'Good';
+  String get rateWordGood => 'ᱵᱮᱥ';
 
   @override
-  String get rateWordLoved => 'Loved it!';
+  String get rateWordLoved => 'ᱟᱹᱰᱤ ᱵᱮᱥ!';
 
   @override
-  String get rateWhatWentWrong => 'What went wrong?';
+  String get rateWhatWentWrong => 'ᱪᱮᱫ ᱵᱷᱩᱞ ᱮᱱᱟ?';
 
   @override
-  String get rateWhatYouLiked => 'What did you like?';
+  String get rateWhatYouLiked => 'ᱪᱮᱫ ᱵᱮᱥ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ?';
 
   @override
-  String get rateRiderNoteHint => 'A note about the delivery (optional)';
+  String get rateRiderNoteHint => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱵᱟᱵᱚᱛ ᱠᱟᱛᱷᱟ (ᱤᱪᱪᱷᱟ ᱞᱮᱠᱟᱛᱮ)';
 
   @override
-  String get rateReviewHeading => 'Write a review';
+  String get rateReviewHeading => 'ᱥᱟᱢᱤᱠᱥᱟ ᱚᱞ ᱢᱮ';
 
   @override
-  String get rateFoodFirst => 'Rate the food to submit';
+  String get rateFoodFirst => 'ᱠᱩᱞ ᱞᱟᱹᱜᱤᱫ ᱡᱚᱢᱟᱜ ᱨᱮᱴ ᱢᱮ';
 
   @override
-  String get rateYouRated => 'You rated this order';
+  String get rateYouRated => 'ᱟᱢ ᱱᱚᱶᱟ ᱚᱰᱟᱨ ᱨᱮᱴ ᱠᱮᱫᱟᱢ';
 
   @override
-  String get ratePromptLater => 'Not now';
+  String get ratePromptLater => 'ᱱᱤᱛᱚᱜ ᱵᱟᱝ';
 
   @override
-  String get tagTasty => 'Tasty';
+  String get tagTasty => 'ᱵᱮᱥ ᱥᱚᱣᱟᱫ';
 
   @override
-  String get tagFreshHot => 'Hot & fresh';
+  String get tagFreshHot => 'ᱨᱟᱹᱲᱟᱹ ᱟᱨ ᱱᱟᱶᱟ';
 
   @override
-  String get tagGoodPortion => 'Good portion';
+  String get tagGoodPortion => 'ᱵᱮᱥ ᱯᱚᱨᱤᱢᱟᱱ';
 
   @override
-  String get tagGoodPackaging => 'Good packaging';
+  String get tagGoodPackaging => 'ᱵᱮᱥ ᱯᱮᱠᱤᱝ';
 
   @override
-  String get tagValueForMoney => 'Value for money';
+  String get tagValueForMoney => 'ᱜᱚᱸᱡ ᱞᱮᱠᱟᱛᱮ ᱵᱮᱥ';
 
   @override
-  String get tagHygienic => 'Hygienic';
+  String get tagHygienic => 'ᱥᱟᱯᱷᱟ ᱥᱩᱛᱷᱨᱟ';
 
   @override
-  String get tagColdFood => 'Cold food';
+  String get tagColdFood => 'ᱨᱟᱵᱟᱝ ᱡᱚᱢᱟᱜ';
 
   @override
-  String get tagPoorTaste => 'Didn\'t taste good';
+  String get tagPoorTaste => 'ᱥᱚᱣᱟᱫ ᱵᱟᱝ ᱵᱮᱥ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ';
 
   @override
-  String get tagSmallPortion => 'Small portion';
+  String get tagSmallPortion => 'ᱠᱚᱢ ᱯᱚᱨᱤᱢᱟᱱ';
 
   @override
-  String get tagWrongItems => 'Wrong items';
+  String get tagWrongItems => 'ᱵᱷᱩᱞ ᱡᱤᱱᱤᱥ';
 
   @override
-  String get tagMissingItems => 'Missing items';
+  String get tagMissingItems => 'ᱛᱤᱸᱜᱩ ᱡᱤᱱᱤᱥ ᱵᱟᱝ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ';
 
   @override
-  String get tagPoorPackaging => 'Poor packaging';
+  String get tagPoorPackaging => 'ᱵᱟᱹᱲᱤᱡ ᱯᱮᱠᱤᱝ';
 
   @override
-  String get tagTooOily => 'Too oily or spicy';
+  String get tagTooOily => 'ᱟᱹᱰᱤ ᱥᱩᱱᱩᱢ ᱵᱟᱝᱠᱷᱟᱱ ᱢᱟᱨᱚᱪ';
 
   @override
-  String get tagOnTime => 'On time';
+  String get tagOnTime => 'ᱚᱠᱛᱚ ᱨᱮ';
 
   @override
-  String get tagPolite => 'Polite';
+  String get tagPolite => 'ᱵᱮᱥ ᱵᱮᱵᱷᱟᱨ';
 
   @override
-  String get tagFollowedInstructions => 'Followed instructions';
+  String get tagFollowedInstructions => 'ᱠᱟᱛᱷᱟ ᱢᱟᱱᱟᱣ ᱠᱮᱫᱟᱭ';
 
   @override
-  String get tagCarefulHandling => 'Handled food with care';
+  String get tagCarefulHandling => 'ᱡᱚᱢᱟᱜ ᱦᱩᱥᱤᱭᱟᱹᱨ ᱛᱮ ᱟᱹᱜᱩ ᱠᱮᱫᱟᱭ';
 
   @override
-  String get tagGoodCommunication => 'Kept me updated';
+  String get tagGoodCommunication => 'ᱠᱷᱚᱵᱚᱨ ᱮᱢ ᱛᱟᱦᱮᱸᱱ ᱠᱮᱫᱟᱭ';
 
   @override
-  String get tagLate => 'Late delivery';
+  String get tagLate => 'ᱵᱤᱞᱚᱢ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ';
 
   @override
-  String get tagRude => 'Rude behaviour';
+  String get tagRude => 'ᱵᱟᱹᱲᱤᱡ ᱵᱮᱵᱷᱟᱨ';
 
   @override
-  String get tagIgnoredInstructions => 'Didn\'t follow instructions';
+  String get tagIgnoredInstructions => 'ᱠᱟᱛᱷᱟ ᱵᱟᱝ ᱢᱟᱱᱟᱣ ᱠᱮᱫᱟᱭ';
 
   @override
-  String get tagFoodSpilled => 'Food spilled';
+  String get tagFoodSpilled => 'ᱡᱚᱢᱟᱜ ᱧᱩᱨ ᱮᱱᱟ';
 
   @override
-  String get tagAskedExtraMoney => 'Asked for extra money';
+  String get tagAskedExtraMoney => 'ᱵᱟᱲᱛᱤ ᱴᱟᱠᱟ ᱢᱟᱹᱜ ᱠᱮᱫᱟᱭ';
 
   @override
-  String get tagUnprofessional => 'Unprofessional';
+  String get tagUnprofessional => 'ᱠᱟᱹᱢᱤ ᱨᱮ ᱵᱮᱯᱚᱨᱚᱣᱟ';
 
   @override
   String rateDeliveredBy(String name) {
-    return 'Delivered by $name';
+    return '$name ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱠᱮᱫᱟᱭ';
   }
 
   @override
   String rateFoodFrom(String restaurant) {
-    return 'From $restaurant';
+    return '$restaurant ᱠᱷᱚᱱ';
   }
 
   @override
   String ratePromptTitle(String restaurant) {
-    return 'How was your order from $restaurant?';
+    return '$restaurant ᱠᱷᱚᱱ ᱟᱢᱟᱜ ᱚᱰᱟᱨ ᱪᱮᱫ ᱞᱮᱠᱟ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ?';
   }
 
   @override
@@ -767,44 +768,45 @@ class AppLocalizationsSat extends AppLocalizations {
 
   @override
   String permStepCount(int step, int total) {
-    return '$step of $total';
+    return '$total ᱠᱷᱚᱱ $step';
   }
 
   @override
-  String get permNotNow => 'Not now';
+  String get permNotNow => 'ᱱᱤᱛᱚᱜ ᱵᱟᱝ';
 
   @override
-  String get permLocationTitle => 'Find food near you';
+  String get permLocationTitle => 'ᱟᱢᱟᱜ ᱡᱟᱹᱛᱤᱭᱟᱹᱨ ᱡᱚᱢᱟᱜ ᱯᱟᱱᱛᱮ ᱢᱮ';
 
   @override
-  String get permNotifyTitle => 'Never miss an order update';
+  String get permNotifyTitle => 'ᱚᱰᱟᱨ ᱨᱮᱭᱟᱜ ᱡᱚᱛᱚ ᱟᱯᱰᱮᱴ ᱧᱟᱢ ᱢᱮ';
 
   @override
   String get permNotifyBody =>
-      'Turn on notifications to know when your order is accepted, picked up and at your door.';
+      'ᱟᱢᱟᱜ ᱚᱰᱟᱨ ᱡᱚᱠᱷᱚᱱ ᱦᱟᱛᱟᱣᱚᱜᱼᱟ, ᱡᱚᱠᱷᱚᱱ ᱤᱫᱤᱚᱜᱼᱟ ᱟᱨ ᱡᱚᱠᱷᱚᱱ ᱟᱢᱟᱜ ᱫᱩᱣᱟᱹᱨ ᱨᱮ ᱥᱮᱴᱮᱨᱚᱜᱼᱟ, ᱚᱱᱟ ᱵᱟᱰᱟᱭ ᱞᱟᱹᱜᱤᱫ ᱱᱳᱴᱤᱯᱷᱤᱠᱮᱥᱚᱱ ᱪᱟᱹᱞᱩ ᱢᱮ᱾';
 
   @override
-  String get permNotifyLiveTitle => 'Live order updates';
+  String get permNotifyLiveTitle => 'ᱞᱟᱭᱤᱵᱷ ᱚᱰᱟᱨ ᱟᱯᱰᱮᱴ';
 
   @override
-  String get permNotifyLiveBody => 'Accepted, cooking, picked up, delivered.';
+  String get permNotifyLiveBody =>
+      'ᱦᱟᱛᱟᱣ ᱮᱱᱟ, ᱛᱮᱭᱟᱨ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ, ᱤᱫᱤ ᱮᱱᱟ, ᱰᱮᱞᱤᱵᱷᱟᱨ ᱮᱱᱟ᱾';
 
   @override
-  String get permNotifyRiderTitle => 'Rider at your door';
+  String get permNotifyRiderTitle => 'ᱨᱟᱭᱰᱟᱨ ᱟᱢᱟᱜ ᱫᱩᱣᱟᱹᱨ ᱨᱮ';
 
   @override
   String get permNotifyRiderBody =>
-      'Know when to step out, without watching the app.';
+      'ᱮᱯ ᱵᱟᱝ ᱧᱮᱞ ᱠᱟᱛᱮ ᱦᱚᱸ ᱵᱟᱰᱟᱭ ᱢᱮ ᱡᱚᱠᱷᱚᱱ ᱵᱟᱦᱨᱮ ᱚᱰᱚᱠ ᱞᱟᱹᱠᱛᱤᱭᱟ᱾';
 
   @override
-  String get permNotifyControlTitle => 'You stay in control';
+  String get permNotifyControlTitle => 'ᱡᱚᱛᱚ ᱟᱢᱟᱜ ᱛᱤ ᱨᱮ';
 
   @override
   String get permNotifyControlBody =>
-      'Turn notifications off any time in your phone\'s Settings.';
+      'ᱟᱢᱟᱜ ᱯᱷᱳᱱ ᱨᱮᱭᱟᱜ ᱥᱮᱴᱤᱝᱥ ᱨᱮ ᱡᱟᱦᱟᱸ ᱚᱠᱛᱚ ᱱᱳᱴᱤᱯᱷᱤᱠᱮᱥᱚᱱ ᱵᱚᱸᱫ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ᱾';
 
   @override
-  String get permNotifyAllow => 'Turn on notifications';
+  String get permNotifyAllow => 'ᱱᱳᱴᱤᱯᱷᱤᱠᱮᱥᱚᱱ ᱪᱟᱹᱞᱩ ᱢᱮ';
 
   @override
   String get openSettings => 'ᱥᱮᱴᱤᱝᱥ';
@@ -969,36 +971,36 @@ class AppLocalizationsSat extends AppLocalizations {
   String get moreDishesTitle => 'ᱟᱨᱦᱚᱸ ᱡᱚᱢᱟᱜ';
 
   @override
-  String get menuSearchHint => 'Search for dishes';
+  String get menuSearchHint => 'ᱡᱚᱢᱟᱜ ᱯᱟᱱᱛᱮ ᱢᱮ';
 
   @override
-  String get filtersShort => 'Filters';
+  String get filtersShort => 'ᱯᱷᱤᱞᱴᱟᱨ';
 
   @override
-  String get dietVeg => 'Veg';
+  String get dietVeg => 'ᱥᱟᱠᱟᱢ';
 
   @override
-  String get dietEgg => 'Egg';
+  String get dietEgg => 'ᱵᱤᱞᱤ';
 
   @override
-  String get dietNonVeg => 'Non-veg';
+  String get dietNonVeg => 'ᱡᱤᱞ';
 
   @override
-  String get menuBestsellerChip => 'Bestseller';
+  String get menuBestsellerChip => 'ᱡᱟᱹᱥᱛᱤ ᱟᱠᱷᱨᱤᱧ';
 
   @override
-  String get menuFoodType => 'Food type';
+  String get menuFoodType => 'ᱡᱚᱢᱟᱜ ᱞᱮᱠᱟᱱ';
 
   @override
-  String get menuShowOnly => 'Show only';
+  String get menuShowOnly => 'ᱮᱥᱠᱟᱨ ᱩᱫᱩᱜ ᱢᱮ';
 
   @override
   String menuMatchCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dishes',
-      one: '1 dish',
+      other: '$count ᱡᱚᱢᱟᱜ',
+      one: '1 ᱡᱚᱢᱟᱜ',
     );
     return '$_temp0';
   }
@@ -1008,19 +1010,19 @@ class AppLocalizationsSat extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Show $count dishes',
-      one: 'Show 1 dish',
-      zero: 'No dishes',
+      other: '$count ᱡᱚᱢᱟᱜ ᱩᱫᱩᱜ ᱢᱮ',
+      one: '1 ᱡᱚᱢᱟᱜ ᱩᱫᱩᱜ ᱢᱮ',
+      zero: 'ᱡᱟᱦᱟᱸ ᱡᱚᱢᱟᱜ ᱵᱟᱝᱟ',
     );
     return '$_temp0';
   }
 
   @override
   String get menuNoMatchSubtitle =>
-      'Try another dish name, or remove a filter.';
+      'ᱮᱴᱟᱜ ᱡᱚᱢᱟᱜ ᱧᱩᱛᱩᱢ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ, ᱵᱟᱝᱠᱷᱟᱱ ᱢᱤᱫᱴᱟᱝ ᱯᱷᱤᱞᱴᱟᱨ ᱚᱪᱚᱜ ᱢᱮ᱾';
 
   @override
-  String get menuBrowse => 'Menu';
+  String get menuBrowse => 'ᱢᱮᱱᱩ';
 
   @override
   String get customisable => 'ᱠᱩᱥᱤ ᱞᱮᱠᱟᱛᱮ';
@@ -1029,7 +1031,7 @@ class AppLocalizationsSat extends AppLocalizations {
   String get requiredLabel => 'ᱞᱟᱹᱠᱛᱤ';
 
   @override
-  String get optionalLabel => 'ᱤᱪ᱄ᱪᱷᱟ ᱞᱮᱠᱟᱛᱮ';
+  String get optionalLabel => 'ᱤᱪᱪᱷᱟ ᱞᱮᱠᱟᱛᱮ';
 
   @override
   String get chooseOne => 'ᱢᱤᱫᱴᱟᱝ ᱵᱟᱪᱷᱟᱣ ᱢᱮ';
@@ -1153,7 +1155,7 @@ class AppLocalizationsSat extends AppLocalizations {
       'ᱚᱨᱰᱟᱨ ᱤᱫᱤ ᱛᱟᱭᱚᱢ ᱨᱟᱭᱰᱟᱨ ᱨᱮᱭᱟᱜ ᱡᱟᱭᱜᱟ ᱱᱚᱰᱮ ᱧᱮᱞᱚᱜᱼᱟ᱾';
 
   @override
-  String get riderLocationStale => 'Updating rider\'s location…';
+  String get riderLocationStale => 'ᱨᱟᱭᱰᱟᱨ ᱨᱮᱭᱟᱜ ᱡᱟᱭᱜᱟ ᱟᱯᱰᱮᱴ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ…';
 
   @override
   String get recentreOnRider => 'ᱨᱟᱭᱰᱟᱨ ᱨᱮ ᱛᱟᱞᱟ ᱢᱮ';
@@ -1184,209 +1186,210 @@ class AppLocalizationsSat extends AppLocalizations {
   String get currentLocationLabel => 'ᱱᱤᱛᱚᱜᱟᱜ ᱡᱟᱭᱜᱟ';
 
   @override
-  String get onLabel => 'On';
+  String get onLabel => 'ᱪᱟᱹᱞᱩ';
 
   @override
-  String get offLabel => 'Off';
+  String get offLabel => 'ᱵᱚᱸᱫ';
 
   @override
-  String get profileCoupons => 'Your coupons';
+  String get profileCoupons => 'ᱟᱢᱟᱜ ᱠᱩᱯᱚᱱ';
 
   @override
   String profileCouponsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count to use',
-      one: '1 to use',
-      zero: 'None yet',
+      other: '$count ᱢᱮᱱᱟᱜᱼᱟ',
+      one: '1 ᱢᱮᱱᱟᱜᱼᱟ',
+      zero: 'ᱦᱟᱲᱮ ᱡᱟᱦᱟᱸ ᱵᱟᱝᱟ',
     );
     return '$_temp0';
   }
 
   @override
-  String get profilePreferences => 'Your preferences';
+  String get profilePreferences => 'ᱟᱢᱟᱜ ᱵᱟᱪᱷᱟᱣ';
 
   @override
-  String get profileVegMode => 'Veg mode';
+  String get profileVegMode => 'ᱥᱟᱠᱟᱢ ᱢᱚᱰ';
 
   @override
-  String get profileVegModeHint => 'Only veg restaurants and dishes';
+  String get profileVegModeHint => 'ᱥᱟᱠᱟᱢ ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱟᱨ ᱡᱚᱢᱟᱜ ᱮᱰᱮ';
 
   @override
-  String get profileAppearance => 'Appearance';
+  String get profileAppearance => 'ᱛᱷᱤᱢ';
 
   @override
-  String get appearanceSystem => 'Same as phone';
+  String get appearanceSystem => 'ᱯᱷᱳᱱ ᱞᱮᱠᱟ';
 
   @override
-  String get appearanceLight => 'Light';
+  String get appearanceLight => 'ᱢᱟᱨᱥᱟᱞ';
 
   @override
-  String get appearanceDark => 'Dark';
+  String get appearanceDark => 'ᱧᱩᱛ';
 
   @override
-  String get profileNotifications => 'Notifications';
+  String get profileNotifications => 'ᱱᱳᱴᱤᱯᱷᱤᱠᱮᱥᱚᱱ';
 
   @override
-  String get profileFoodDelivery => 'Food delivery';
+  String get profileFoodDelivery => 'ᱡᱚᱢᱟᱜ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ';
 
   @override
-  String get profileFavourites => 'Your favourites';
+  String get profileFavourites => 'ᱟᱢᱟᱜ ᱠᱩᱥᱤᱭᱟᱜ';
 
   @override
-  String get profileHelp => 'Help & support';
+  String get profileHelp => 'ᱜᱚᱲᱚ ᱟᱨ ᱥᱟᱯᱚᱨᱴ';
 
   @override
-  String get profileMore => 'More';
+  String get profileMore => 'ᱟᱨᱦᱚᱸ';
 
   @override
-  String get profileFeedback => 'Send feedback';
+  String get profileFeedback => 'ᱢᱚᱱᱮ ᱠᱩᱞ ᱢᱮ';
 
   @override
-  String get profileSafety => 'Report a safety emergency';
+  String get profileSafety => 'ᱨᱩᱠᱷᱤᱭᱟᱹ ᱵᱤᱯᱚᱫ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ ᱮᱢ ᱢᱮ';
 
   @override
-  String get profileAbout => 'About Nexmile';
+  String get profileAbout => 'Nexmile ᱵᱟᱵᱚᱛ';
 
   @override
-  String get couponsEmptyTitle => 'No coupons right now';
+  String get couponsEmptyTitle => 'ᱱᱤᱛᱚᱜ ᱡᱟᱦᱟᱸ ᱠᱩᱯᱚᱱ ᱵᱟᱝᱟ';
 
   @override
   String get couponsEmptyBody =>
-      'When there\'s a coupon you can use, it will show up here.';
+      'ᱟᱢ ᱵᱮᱵᱷᱟᱨ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱩᱯᱚᱱ ᱦᱮᱡ ᱠᱷᱟᱱ, ᱱᱚᱰᱮ ᱩᱫᱩᱜᱚᱜᱼᱟ᱾';
 
   @override
   String couponFlatOff(String amount) {
-    return '$amount OFF';
+    return '$amount ᱠᱚᱢ';
   }
 
   @override
   String couponPercentOff(String percent) {
-    return '$percent% OFF';
+    return '$percent% ᱠᱚᱢ';
   }
 
   @override
   String couponUpTo(String amount) {
-    return 'Up to $amount';
+    return 'ᱵᱟᱲᱛᱤ ᱛᱮ ᱵᱟᱲᱛᱤ $amount';
   }
 
   @override
   String couponMinOrder(String amount) {
-    return 'On orders above $amount';
+    return '$amount ᱠᱷᱚᱱ ᱵᱟᱲᱛᱤ ᱚᱰᱟᱨ ᱨᱮ';
   }
 
   @override
   String couponValidTill(String date) {
-    return 'Valid till $date';
+    return '$date ᱦᱟᱹᱵᱤᱡ ᱪᱟᱹᱞᱩ';
   }
 
   @override
-  String get couponAllRestaurants => 'At all restaurants';
+  String get couponAllRestaurants => 'ᱡᱚᱛᱚ ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱨᱮ';
 
   @override
   String couponAtRestaurant(String restaurant) {
-    return 'At $restaurant';
+    return '$restaurant ᱨᱮ';
   }
 
   @override
   String couponCopied(String code) {
-    return 'Code $code copied';
+    return 'ᱠᱳᱰ $code ᱠᱚᱯᱤ ᱮᱱᱟ';
   }
 
   @override
-  String get favouritesEmptyTitle => 'No favourites yet';
+  String get favouritesEmptyTitle => 'ᱦᱟᱲᱮ ᱡᱟᱦᱟᱸ ᱠᱩᱥᱤᱭᱟᱜ ᱵᱟᱝᱟ';
 
   @override
   String get favouritesEmptyBody =>
-      'Tap the heart on a restaurant to save it here.';
+      'ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱨᱮᱭᱟᱜ ᱦᱟᱨᱴ ᱪᱤᱱᱦᱟᱹ ᱴᱤᱯ ᱠᱟᱛᱮ ᱱᱚᱰᱮ ᱥᱟᱺᱪᱟᱣ ᱢᱮ᱾';
 
   @override
-  String get helpCall => 'Call us';
+  String get helpCall => 'ᱟᱞᱮ ᱴᱷᱮᱱ ᱠᱚᱞ ᱢᱮ';
 
   @override
   String get helpWhatsApp => 'WhatsApp';
 
   @override
-  String get helpEmail => 'Email us';
+  String get helpEmail => 'ᱟᱞᱮ ᱴᱷᱮᱱ ᱤᱢᱮᱞ ᱢᱮ';
 
   @override
   String helpHours(String hours) {
-    return 'We\'re available $hours';
+    return 'ᱟᱞᱮ $hours ᱢᱮᱱᱟᱞᱮᱭᱟ';
   }
 
   @override
-  String get helpFaqs => 'Common questions';
+  String get helpFaqs => 'ᱥᱟᱫᱷᱟᱨᱚᱱ ᱠᱩᱠᱞᱤ';
 
   @override
   String get helpNothing =>
-      'Help details aren\'t available right now. Please try again later.';
+      'ᱱᱤᱛᱚᱜ ᱜᱚᱲᱚ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ ᱵᱟᱝ ᱧᱟᱢᱚᱜᱼᱟ᱾ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱛᱟᱭᱚᱢ ᱛᱮ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
 
   @override
-  String get feedbackPrompt => 'How is Nexmile working for you?';
+  String get feedbackPrompt => 'Nexmile ᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱫ ᱞᱮᱠᱟ ᱠᱟᱹᱢᱤ ᱠᱟᱱᱟ?';
 
   @override
-  String get feedbackHint => 'Tell us what you liked, or what we can do better';
+  String get feedbackHint =>
+      'ᱪᱮᱫ ᱵᱮᱥ ᱛᱟᱦᱮᱸᱠᱟᱱᱟ, ᱵᱟᱝᱠᱷᱟᱱ ᱟᱞᱮ ᱪᱮᱫ ᱥᱩᱫᱷᱨᱟᱹᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱞᱮ, ᱞᱟᱹᱭ ᱢᱮ';
 
   @override
-  String get feedbackNeedRating => 'Choose a rating first';
+  String get feedbackNeedRating => 'ᱯᱩᱭᱞᱩ ᱨᱮᱴᱤᱝ ᱵᱟᱪᱷᱟᱣ ᱢᱮ';
 
   @override
-  String get feedbackThanks => 'Thanks! Your feedback has reached our team.';
+  String get feedbackThanks => 'ᱥᱟᱨᱦᱟᱣ! ᱟᱢᱟᱜ ᱢᱚᱱᱮ ᱟᱞᱮᱭᱟᱜ ᱴᱤᱢ ᱴᱷᱮᱱ ᱥᱮᱴᱮᱨ ᱮᱱᱟ᱾';
 
   @override
   String get safetyIntro =>
-      'If you or someone else is in danger, call the emergency services first.';
+      'ᱡᱩᱫᱤ ᱟᱢ ᱵᱟᱝᱠᱷᱟᱱ ᱮᱴᱟᱜ ᱦᱚᱲ ᱵᱤᱯᱚᱫ ᱨᱮ ᱛᱟᱦᱮᱸᱱ ᱠᱷᱟᱱ, ᱯᱩᱭᱞᱩ ᱤᱢᱟᱨᱡᱮᱱᱥᱤ ᱥᱮᱵᱟ ᱴᱷᱮᱱ ᱠᱚᱞ ᱢᱮ᱾';
 
   @override
-  String get safetyCallEmergency => 'Call 112';
+  String get safetyCallEmergency => '112 ᱛᱮ ᱠᱚᱞ ᱢᱮ';
 
   @override
-  String get safetyCallEmergencyBody => 'Police, fire and ambulance';
+  String get safetyCallEmergencyBody => 'ᱯᱩᱞᱤᱥ, ᱯᱷᱟᱭᱟᱨ ᱵᱨᱤᱜᱮᱰ ᱟᱨ ᱮᱢᱵᱩᱞᱮᱱᱥ';
 
   @override
-  String get safetyCallNexmile => 'Call Nexmile safety line';
+  String get safetyCallNexmile => 'Nexmile ᱨᱩᱠᱷᱤᱭᱟᱹ ᱞᱟᱭᱤᱱ ᱛᱮ ᱠᱚᱞ ᱢᱮ';
 
   @override
-  String get safetyCallNexmileBody => 'Answered at all hours';
+  String get safetyCallNexmileBody => 'ᱡᱚᱛᱚ ᱚᱠᱛᱚ ᱛᱮᱞᱟ ᱮᱢᱚᱜᱼᱟ';
 
   @override
   String aboutVersion(String version) {
-    return 'Version $version';
+    return 'ᱵᱷᱟᱨᱥᱚᱱ $version';
   }
 
   @override
-  String get aboutTerms => 'Terms of service';
+  String get aboutTerms => 'ᱥᱮᱵᱟ ᱱᱮᱢ';
 
   @override
-  String get aboutPrivacy => 'Privacy policy';
+  String get aboutPrivacy => 'ᱩᱠᱩ ᱱᱤᱛᱤ';
 
   @override
-  String get aboutLicences => 'Open-source licences';
+  String get aboutLicences => 'ᱚᱯᱮᱱ-ᱥᱚᱨᱥ ᱞᱟᱭᱥᱮᱱᱥ';
 
   @override
-  String get notifyOrderUpdates => 'Order updates';
+  String get notifyOrderUpdates => 'ᱚᱰᱟᱨ ᱟᱯᱰᱮᱴ';
 
   @override
   String get notifyOrderUpdatesBody =>
-      'Always on, so you know where your food is.';
+      'ᱡᱚᱛᱚ ᱚᱠᱛᱚ ᱪᱟᱹᱞᱩ ᱛᱟᱦᱮᱸᱱᱟ, ᱡᱮᱢᱚᱱ ᱟᱢᱟᱜ ᱡᱚᱢᱟᱜ ᱚᱠᱟᱨᱮ ᱢᱮᱱᱟᱜᱼᱟ ᱵᱟᱰᱟᱭ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ᱾';
 
   @override
-  String get notifyPromotions => 'Offers and promotions';
+  String get notifyPromotions => 'ᱚᱯᱷᱟᱨ ᱟᱨ ᱯᱨᱚᱢᱚᱥᱚᱱ';
 
   @override
   String get notifyPromotionsBody =>
-      'Deals, coupons and new restaurants near you.';
+      'ᱰᱤᱞ, ᱠᱩᱯᱚᱱ ᱟᱨ ᱟᱢᱟᱜ ᱡᱟᱹᱛᱤᱭᱟᱹᱨ ᱱᱟᱶᱟ ᱨᱮᱥᱴᱚᱨᱮᱱᱴ᱾';
 
   @override
   String get notifyPhoneOff =>
-      'Notifications are turned off for Nexmile on this phone.';
+      'ᱱᱚᱶᱟ ᱯᱷᱳᱱ ᱨᱮ Nexmile ᱞᱟᱹᱜᱤᱫ ᱱᱳᱴᱤᱯᱷᱤᱠᱮᱥᱚᱱ ᱵᱚᱸᱫ ᱢᱮᱱᱟᱜᱼᱟ᱾';
 
   @override
-  String get notifyTurnOn => 'Turn on';
+  String get notifyTurnOn => 'ᱪᱟᱹᱞᱩ ᱢᱮ';
 
   @override
-  String get linkOpenFailed => 'That couldn\'t be opened on this phone.';
+  String get linkOpenFailed => 'ᱱᱚᱶᱟ ᱯᱷᱳᱱ ᱨᱮ ᱚᱱᱟ ᱵᱟᱝ ᱡᱷᱤᱡ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾';
 
   @override
   String get editProfileTitle => 'ᱯᱨᱚᱯᱷᱟᱭᱤᱞ ᱵᱚᱫᱚᱞ ᱢᱮ';
@@ -1603,388 +1606,487 @@ class AppLocalizationsSat extends AppLocalizations {
   String get rateThisOrder => 'ᱱᱚᱶᱟ ᱚᱰᱚᱨ ᱨᱮᱴ ᱢᱮ';
 
   @override
-  String get walletTitle => 'Nexmile Wallet';
+  String get walletTitle => 'Nexmile ᱣᱟᱞᱮᱴ';
 
   @override
-  String get walletBalance => 'Wallet balance';
+  String get walletBalance => 'ᱣᱟᱞᱮᱴ ᱵᱮᱞᱮᱱᱥ';
 
   @override
-  String get walletBalanceHint => 'Use it to pay for any order.';
+  String get walletBalanceHint =>
+      'ᱡᱟᱦᱟᱸ ᱚᱰᱟᱨ ᱨᱮᱭᱟᱜ ᱴᱟᱠᱟ ᱮᱢ ᱞᱟᱹᱜᱤᱫ ᱱᱚᱶᱟ ᱵᱮᱵᱷᱟᱨ ᱢᱮ᱾';
 
   @override
-  String get walletAddMoney => 'Add money';
+  String get walletAddMoney => 'ᱴᱟᱠᱟ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
-  String get walletEnterAmount => 'Enter amount';
+  String get walletEnterAmount => 'ᱴᱟᱠᱟ ᱚᱞ ᱢᱮ';
 
   @override
   String walletAmountRange(String min, String max) {
-    return 'Between $min and $max';
+    return '$min ᱠᱷᱚᱱ $max ᱫᱷᱟᱹᱵᱤᱡ';
   }
 
   @override
   String walletAddAmount(String amount) {
-    return 'Add $amount';
+    return '$amount ᱥᱮᱞᱮᱫ ᱢᱮ';
   }
 
   @override
-  String get walletSecuredBy => 'Payments are secured by Razorpay';
+  String get walletSecuredBy => 'ᱯᱮᱢᱮᱱᱴ ᱫᱚ Razorpay ᱦᱚᱛᱮᱛᱮ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱢᱮᱱᱟᱜᱼᱟ';
 
   @override
-  String get walletHistory => 'History';
+  String get walletHistory => 'ᱱᱟᱜᱟᱢ';
 
   @override
   String get walletNoHistory =>
-      'No transactions yet. Money you add or spend will show here.';
+      'ᱦᱟᱲᱮ ᱡᱟᱦᱟᱸ ᱞᱮᱱᱫᱮᱱ ᱵᱟᱝᱟ᱾ ᱟᱢ ᱥᱮᱞᱮᱫ ᱵᱟᱝᱠᱷᱟᱱ ᱠᱷᱚᱨᱚᱪ ᱠᱟᱱ ᱴᱟᱠᱟ ᱱᱚᱰᱮ ᱩᱫᱩᱜᱚᱜᱼᱟ᱾';
 
   @override
-  String get walletEntryTopUp => 'Money added';
+  String get walletEntryTopUp => 'ᱴᱟᱠᱟ ᱥᱮᱞᱮᱫ ᱮᱱᱟ';
 
   @override
-  String get walletEntryOrder => 'Paid for an order';
+  String get walletEntryOrder => 'ᱚᱰᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱴᱟᱠᱟ ᱮᱢ ᱮᱱᱟ';
 
   @override
   String walletEntryOrderNumber(String number) {
-    return 'Paid for order $number';
+    return 'ᱚᱰᱟᱨ $number ᱞᱟᱹᱜᱤᱫ ᱴᱟᱠᱟ ᱮᱢ ᱮᱱᱟ';
   }
 
   @override
-  String get walletEntryRefund => 'Refund';
+  String get walletEntryRefund => 'ᱨᱩᱣᱟᱲ ᱴᱟᱠᱟ';
 
   @override
   String walletMoneyAdded(String amount) {
-    return '$amount added to your wallet';
+    return 'ᱟᱢᱟᱜ ᱣᱟᱞᱮᱴ ᱨᱮ $amount ᱥᱮᱞᱮᱫ ᱮᱱᱟ';
   }
 
   @override
   String get walletPaymentFailed =>
-      'Payment failed. No money was taken from your account.';
+      'ᱯᱮᱢᱮᱱᱴ ᱵᱟᱝ ᱦᱩᱭ ᱞᱮᱱᱟ᱾ ᱟᱢᱟᱜ ᱠᱷᱟᱛᱟ ᱠᱷᱚᱱ ᱡᱟᱦᱟᱸ ᱴᱟᱠᱟ ᱵᱟᱝ ᱦᱟᱛᱟᱣ ᱟᱠᱟᱱᱟ᱾';
 
   @override
   String get walletPaymentConfirming =>
-      'Payment received. Your balance will update in a few minutes.';
+      'ᱯᱮᱢᱮᱱᱴ ᱧᱟᱢ ᱮᱱᱟ᱾ ᱛᱤᱸᱜᱩ ᱢᱤᱱᱤᱴ ᱨᱮ ᱟᱢᱟᱜ ᱵᱮᱞᱮᱱᱥ ᱟᱯᱰᱮᱴᱚᱜᱼᱟ᱾';
 
   @override
-  String get walletUseBalance => 'Use wallet balance';
+  String get walletUseBalance => 'ᱣᱟᱞᱮᱴ ᱵᱮᱞᱮᱱᱥ ᱵᱮᱵᱷᱟᱨ ᱢᱮ';
 
   @override
   String walletAvailable(String amount) {
-    return 'Available: $amount';
+    return 'ᱢᱮᱱᱟᱜᱼᱟ: $amount';
   }
 
   @override
-  String get walletPaidFromWallet => 'Paid from wallet';
+  String get walletPaidFromWallet => 'ᱣᱟᱞᱮᱴ ᱠᱷᱚᱱ ᱮᱢ ᱮᱱᱟ';
 
   @override
-  String get walletPayOnDelivery => 'Pay on delivery';
+  String get walletPayOnDelivery => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱨᱮ ᱴᱟᱠᱟ ᱮᱢ';
 
   @override
-  String get walletCoversOrder => 'Paid fully from your wallet';
+  String get walletCoversOrder => 'ᱯᱩᱨᱟᱹ ᱴᱟᱠᱟ ᱟᱢᱟᱜ ᱣᱟᱞᱮᱴ ᱠᱷᱚᱱ ᱮᱢ ᱮᱱᱟ';
 
   @override
   String walletRestOnDelivery(String wallet, String rest) {
-    return '$wallet from wallet, $rest on delivery';
+    return 'ᱣᱟᱞᱮᱴ ᱠᱷᱚᱱ $wallet, ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱨᱮ $rest';
   }
 
   @override
   String get walletTopUpUnavailable =>
-      'Adding money isn\'t available right now. Please try again later.';
+      'ᱱᱤᱛᱚᱜ ᱴᱟᱠᱟ ᱥᱮᱞᱮᱫ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱛᱟᱭᱚᱢ ᱛᱮ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
 
   @override
   String walletFull(String limit) {
-    return 'Your wallet is at its $limit limit.';
+    return 'ᱟᱢᱟᱜ ᱣᱟᱞᱮᱴ ᱫᱚ ᱟᱡᱟᱜ $limit ᱥᱤᱢᱟᱹ ᱨᱮ ᱥᱮᱴᱮᱨ ᱮᱱᱟ᱾';
   }
 
   @override
-  String get searchAddressHint => 'Search area, street or landmark';
+  String get searchAddressHint => 'ᱡᱟᱭᱜᱟ, ᱦᱚᱨ ᱵᱟᱝᱠᱷᱟᱱ ᱪᱤᱱᱦᱟᱹ ᱯᱟᱱᱛᱮ ᱢᱮ';
 
   @override
-  String get selectLocationTitle => 'Select a location';
+  String get selectLocationTitle => 'ᱢᱤᱫ ᱡᱟᱭᱜᱟ ᱵᱟᱪᱷᱟᱣ ᱢᱮ';
 
   @override
-  String get useCurrentLocation => 'Use current location';
+  String get useCurrentLocation => 'ᱱᱤᱛᱚᱜᱟᱜ ᱡᱟᱭᱜᱟ ᱵᱮᱵᱷᱟᱨ ᱢᱮ';
 
   @override
-  String get locatingYou => 'Finding where you are…';
+  String get locatingYou => 'ᱟᱢ ᱚᱠᱟᱨᱮ ᱢᱮᱱᱟᱢᱟ ᱯᱟᱱᱛᱮ ᱠᱟᱱᱟ…';
 
   @override
-  String get locationOffHint => 'Allow location access to use this';
+  String get locationOffHint => 'ᱱᱚᱶᱟ ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱡᱟᱭᱜᱟ ᱨᱮᱭᱟᱜ ᱦᱩᱠᱩᱢ ᱮᱢ ᱢᱮ';
 
   @override
-  String get savedAddressesHeading => 'Saved addresses';
+  String get savedAddressesHeading => 'ᱥᱟᱺᱪᱟᱣ ᱟᱠᱟᱱ ᱴᱷᱤᱠᱱᱟ';
 
   @override
-  String get recentLocationsHeading => 'Recent locations';
+  String get recentLocationsHeading => 'ᱱᱟᱦᱟᱜ ᱨᱮᱭᱟᱜ ᱡᱟᱭᱜᱟ';
 
   @override
   String get poweredBy => 'powered by';
 
   @override
-  String get selectDeliveryLocationTitle => 'Select delivery location';
+  String get selectDeliveryLocationTitle => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱡᱟᱭᱜᱟ ᱵᱟᱪᱷᱟᱣ ᱢᱮ';
 
   @override
-  String get movePinTooltip => 'Move pin to your exact delivery location';
+  String get movePinTooltip =>
+      'ᱯᱤᱱ ᱩᱪᱟᱹᱲ ᱠᱟᱛᱮ ᱟᱢᱟᱜ ᱴᱷᱤᱠ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱡᱟᱭᱜᱟ ᱨᱮ ᱫᱚᱦᱚ ᱢᱮ';
 
   @override
-  String get locatingPin => 'Finding the address…';
+  String get locatingPin => 'ᱴᱷᱤᱠᱱᱟ ᱯᱟᱱᱛᱮ ᱠᱟᱱᱟ…';
 
   @override
-  String get deliveryDetailsHeading => 'Delivery details';
+  String get deliveryDetailsHeading => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ';
 
   @override
-  String get addressDetailsLabel => 'Address details*';
+  String get addressDetailsLabel => 'ᱴᱷᱤᱠᱱᱟ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ*';
 
   @override
-  String get addressDetailsHint => 'E.g. Floor, House no.';
+  String get addressDetailsHint => 'ᱡᱮᱞᱮᱠᱟ: ᱯᱷᱞᱚᱨ, ᱚᱲᱟᱜ ᱱᱟᱢᱵᱟᱨ';
 
   @override
   String get missingAreaHint =>
-      'We couldn\'t read the full address for this pin. Please fill in the rest.';
+      'ᱱᱚᱶᱟ ᱯᱤᱱ ᱨᱮᱭᱟᱜ ᱯᱩᱨᱟᱹ ᱴᱷᱤᱠᱱᱟ ᱵᱟᱝ ᱧᱟᱢ ᱞᱮᱱᱟ᱾ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱵᱟᱝᱠᱤ ᱠᱷᱚᱵᱚᱨ ᱚᱞ ᱢᱮ᱾';
 
   @override
-  String get whoToContact => 'Who should we contact for this delivery?';
+  String get whoToContact => 'ᱱᱚᱶᱟ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱞᱟᱹᱜᱤᱫ ᱚᱠᱟᱭ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱦᱩᱭᱩᱜᱼᱟ?';
 
   @override
-  String get contactMyself => 'Myself';
+  String get contactMyself => 'ᱤᱧᱜᱮ';
 
   @override
-  String get contactSomeoneElse => 'Someone else';
+  String get contactSomeoneElse => 'ᱮᱴᱟᱜ ᱦᱚᱲ';
 
   @override
-  String get receiverDetailsHeading => 'Receiver details for this address';
+  String get receiverDetailsHeading =>
+      'ᱱᱚᱶᱟ ᱴᱷᱤᱠᱱᱟ ᱞᱟᱹᱜᱤᱫ ᱦᱟᱛᱟᱣᱤᱭᱟᱹ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ';
 
   @override
-  String get receiverAddPrompt => 'Add the receiver\'s name and number';
+  String get receiverAddPrompt => 'ᱦᱟᱛᱟᱣᱤᱭᱟᱹ ᱨᱮᱭᱟᱜ ᱧᱩᱛᱩᱢ ᱟᱨ ᱱᱟᱢᱵᱟᱨ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
-  String get receiverSheetTitle => 'Receiver details';
+  String get receiverSheetTitle => 'ᱦᱟᱛᱟᱣᱤᱭᱟᱹ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ';
 
   @override
-  String get doorPhotoHeading => 'Door/building image (optional)';
+  String get doorPhotoHeading => 'ᱫᱩᱣᱟᱹᱨ/ᱤᱢᱟᱨᱚᱛ ᱨᱮᱭᱟᱜ ᱯᱷᱚᱴᱚ (ᱤᱪᱪᱷᱟ ᱞᱮᱠᱟᱛᱮ)';
 
   @override
-  String get doorPhotoAdd => 'Add an image';
+  String get doorPhotoAdd => 'ᱯᱷᱚᱴᱚ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
   String get doorPhotoBody =>
-      'This helps our delivery partners find your exact location faster';
+      'ᱱᱚᱶᱟ ᱛᱮ ᱟᱞᱮᱭᱟᱜ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱥᱟᱣᱛᱟ ᱠᱚ ᱟᱢᱟᱜ ᱴᱷᱤᱠ ᱡᱟᱭᱜᱟ ᱞᱚᱜᱚᱱ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱠᱚ';
 
   @override
-  String get doorPhotoChange => 'Change';
+  String get doorPhotoChange => 'ᱵᱚᱫᱚᱞ ᱢᱮ';
 
   @override
-  String get doorPhotoRemove => 'Remove';
+  String get doorPhotoRemove => 'ᱚᱪᱚᱜ ᱢᱮ';
 
   @override
-  String get photoFromCamera => 'Take a photo';
+  String get photoFromCamera => 'ᱠᱮᱢᱮᱨᱟ ᱛᱮ ᱯᱷᱚᱴᱚ ᱦᱟᱛᱟᱣ ᱢᱮ';
 
   @override
-  String get photoFromGallery => 'Choose from gallery';
+  String get photoFromGallery => 'ᱜᱮᱞᱮᱨᱤ ᱠᱷᱚᱱ ᱵᱟᱪᱷᱟᱣ ᱢᱮ';
 
   @override
-  String get photoUploaded => 'Photo added';
+  String get photoUploaded => 'ᱯᱷᱚᱴᱚ ᱥᱮᱞᱮᱫ ᱮᱱᱟ';
 
   @override
   String get photoUploadFailed =>
-      'The photo couldn\'t be uploaded. Please try again later.';
+      'ᱯᱷᱚᱴᱚ ᱟᱯᱞᱳᱰ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱛᱟᱭᱚᱢ ᱛᱮ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
 
   @override
   String get addressSavedPhotoFailed =>
-      'Address saved. The photo couldn\'t be uploaded.';
+      'ᱴᱷᱤᱠᱱᱟ ᱥᱟᱺᱪᱟᱣ ᱮᱱᱟ᱾ ᱯᱷᱚᱴᱚ ᱟᱯᱞᱳᱰ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾';
 
   @override
-  String get removePhotoLabel => 'Remove photo';
+  String get removePhotoLabel => 'ᱯᱷᱚᱴᱚ ᱚᱪᱚᱜ ᱢᱮ';
 
   @override
-  String get photoRemoved => 'Photo removed';
+  String get photoRemoved => 'ᱯᱷᱚᱴᱚ ᱚᱪᱚᱜ ᱮᱱᱟ';
 
   @override
-  String get shareLabel => 'Share';
+  String get shareLabel => 'ᱥᱮᱭᱟᱨ ᱢᱮ';
 
   @override
-  String get addDoorPhotoLabel => 'Add a door photo';
+  String get addDoorPhotoLabel => 'ᱫᱩᱣᱟᱹᱨ ᱨᱮᱭᱟᱜ ᱯᱷᱚᱴᱚ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
   String get searchAddressNoResults =>
-      'No places found. Try a nearby landmark, area name or pincode.';
+      'ᱡᱟᱦᱟᱸ ᱡᱟᱭᱜᱟ ᱵᱟᱝ ᱧᱟᱢ ᱞᱮᱱᱟ᱾ ᱡᱟᱹᱛᱤᱭᱟᱹᱨ ᱪᱤᱱᱦᱟᱹ, ᱡᱟᱭᱜᱟ ᱨᱮᱭᱟᱜ ᱧᱩᱛᱩᱢ ᱵᱟᱝᱠᱷᱟᱱ ᱯᱤᱱ ᱠᱳᱰ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
 
   @override
-  String get clearLabel => 'Clear';
+  String get clearLabel => 'ᱠᱷᱟᱹᱞᱤ ᱢᱮ';
 
   @override
-  String get trackingArrivingNow => 'Arriving now';
+  String get trackingArrivingNow => 'ᱱᱤᱛᱚᱜᱜᱮ ᱥᱮᱴᱮᱨᱚᱜᱼᱟ';
 
   @override
-  String get trackingLive => 'Live';
+  String get trackingLive => 'ᱞᱟᱭᱤᱵᱷ';
 
   @override
-  String get trackingStepConfirmed => 'Confirmed';
+  String get trackingStepConfirmed => 'ᱦᱟᱛᱟᱣ ᱮᱱᱟ';
 
   @override
-  String get trackingStepPreparing => 'Preparing';
+  String get trackingStepPreparing => 'ᱛᱮᱭᱟᱨ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ';
 
   @override
-  String get trackingStepOnTheWay => 'On the way';
+  String get trackingStepOnTheWay => 'ᱦᱚᱨ ᱨᱮ';
 
   @override
-  String get trackingStepDelivered => 'Delivered';
+  String get trackingStepDelivered => 'ᱰᱮᱞᱤᱵᱷᱟᱨ ᱮᱱᱟ';
 
   @override
-  String get trackingFindingRider => 'Assigning a delivery partner…';
+  String get trackingFindingRider => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱥᱟᱣᱛᱟ ᱴᱷᱤᱠ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ…';
 
   @override
-  String get trackingPinYou => 'You';
+  String get trackingPinYou => 'ᱟᱢ';
 
   @override
   String trackingRiderAway(String name, String distance) {
-    return '$name is $distance away';
+    return '$name $distance ᱥᱟᱹᱝᱜᱤᱧ ᱨᱮ ᱢᱮᱱᱟᱭ';
   }
 
   @override
   String trackingMessageRider(String name) {
-    return 'Message $name';
+    return '$name ᱴᱷᱮᱱ ᱢᱮᱥᱮᱡ ᱠᱩᱞ ᱢᱮ';
   }
 
   @override
-  String get trackingDeliveringTo => 'Delivering to';
+  String get trackingDeliveringTo => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱴᱷᱤᱠᱱᱟ';
 
   @override
-  String get trackingOrderDetails => 'Order details';
+  String get trackingOrderDetails => 'ᱚᱰᱟᱨ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ';
 
   @override
   String get dispatchSearching =>
-      'Finding a delivery partner near the restaurant…';
+      'ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱡᱟᱹᱛᱤᱭᱟᱹᱨ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱥᱟᱣᱛᱟ ᱯᱟᱱᱛᱮ ᱠᱟᱱᱟ…';
 
   @override
   String get dispatchNoRider =>
-      'No delivery partner has taken it yet. Our team is assigning one now.';
+      'ᱦᱟᱲᱮ ᱡᱟᱦᱟᱸ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱥᱟᱣᱛᱟ ᱵᱟᱝ ᱦᱟᱛᱟᱣ ᱟᱠᱟᱫᱟ᱾ ᱟᱞᱮᱭᱟᱜ ᱴᱤᱢ ᱱᱤᱛᱚᱜ ᱢᱤᱫᱦᱚᱲ ᱠᱩᱞ ᱠᱟᱱᱟ᱾';
 
   @override
-  String get vehicleBike => 'Bike';
+  String get vehicleBike => 'ᱵᱟᱭᱤᱠ';
 
   @override
-  String get vehicleScooter => 'Scooter';
+  String get vehicleScooter => 'ᱥᱠᱩᱴᱟᱨ';
 
   @override
-  String get vehicleBicycle => 'Bicycle';
+  String get vehicleBicycle => 'ᱥᱟᱭᱠᱮᱞ';
 
   @override
-  String get vehicleElectric => 'Electric scooter';
+  String get vehicleElectric => 'ᱤᱞᱮᱠᱴᱨᱤᱠ ᱥᱠᱩᱴᱟᱨ';
 
   @override
-  String get exitTitle => 'Exit Nexmile?';
+  String get exitTitle => 'Nexmile ᱠᱷᱚᱱ ᱚᱰᱚᱠᱟ?';
 
   @override
-  String get exitBody => 'Are you sure you want to exit the app?';
+  String get exitBody => 'ᱟᱢ ᱥᱟᱹᱨᱤ ᱜᱮ ᱮᱯ ᱠᱷᱚᱱ ᱚᱰᱚᱠ ᱥᱟᱱᱟᱢ ᱠᱟᱱᱟ?';
 
   @override
-  String get exitConfirm => 'Exit';
+  String get exitConfirm => 'ᱚᱰᱚᱠ';
 
   @override
   String cartSavedBanner(String amount) {
-    return 'You saved $amount on this order';
+    return 'ᱱᱚᱶᱟ ᱚᱰᱟᱨ ᱨᱮ ᱟᱢᱟᱜ $amount ᱵᱟᱧᱪᱟᱣ ᱮᱱᱟ';
   }
 
   @override
-  String get cartAddMoreItems => 'Add more items';
+  String get cartAddMoreItems => 'ᱟᱨᱦᱚᱸ ᱡᱤᱱᱤᱥ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
-  String get cartAddNote => 'Add a note for the restaurant';
+  String get cartAddNote => 'ᱨᱮᱥᱴᱚᱨᱮᱱᱴ ᱞᱟᱹᱜᱤᱫ ᱠᱟᱛᱷᱟ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
-  String get cartNoteHint => 'Less spicy, no onions, extra chutney…';
+  String get cartOrderNoteHint =>
+      'ᱡᱮᱞᱮᱠᱟ: ᱡᱟᱦᱟᱸ ᱨᱮ ᱦᱚᱸ ᱯᱮᱭᱟᱡ ᱵᱟᱝᱠᱷᱟᱱ ᱨᱟᱥᱩᱱ ᱵᱟᱝ';
 
   @override
-  String get cartNoteSave => 'Save';
+  String get cartNoteSave => 'ᱥᱟᱺᱪᱟᱣ ᱢᱮ';
 
   @override
-  String get cartNoCutlery => 'Don\'t send cutlery';
+  String get cartNoCutlery => 'ᱪᱟᱢᱪ-ᱠᱟᱸᱴᱟ ᱟᱞᱚᱢ ᱠᱩᱞᱟ';
 
   @override
-  String get cartNoCutleryThanks => 'Thank you for helping cut plastic waste';
+  String get cartNoCutleryThanks =>
+      'ᱯᱞᱟᱥᱴᱤᱠ ᱡᱚᱵᱨᱟ ᱠᱚᱢ ᱨᱮ ᱜᱚᱲᱚ ᱮᱢ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱨᱦᱟᱣ';
 
   @override
-  String get cartSavingsCorner => 'Savings corner';
+  String get cartSavingsCorner => 'ᱵᱟᱧᱪᱟᱣ ᱠᱚᱱᱟ';
 
   @override
-  String get cartDeliveryInstructions => 'Delivery instructions';
+  String get cartDeliveryInstructions => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱞᱟᱹᱜᱤᱫ ᱠᱟᱛᱷᱟ';
 
   @override
-  String get cartInstructionsNote => 'Sent with your order';
+  String get cartInstructionsRider =>
+      'ᱱᱚᱶᱟ ᱠᱚ ᱮᱥᱠᱟᱨ ᱟᱢᱟᱜ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱥᱟᱣᱛᱟ ᱜᱮ ᱧᱮᱞᱚᱜᱼᱟ';
 
   @override
-  String get instructionLeaveAtDoor => 'Leave at the door';
+  String get instructionLeaveAtDoor => 'ᱫᱩᱣᱟᱹᱨ ᱨᱮ ᱫᱚᱦᱚ ᱢᱮ';
 
   @override
-  String get instructionNoBell => 'Avoid ringing the bell';
+  String get instructionNoBell => 'ᱜᱷᱟᱱᱴᱤ ᱟᱞᱚᱢ ᱨᱩᱭᱟ';
 
   @override
-  String get instructionNoCall => 'Avoid calling';
+  String get instructionNoCall => 'ᱯᱷᱳᱱ ᱟᱞᱚᱢ ᱠᱚᱞᱟ';
 
   @override
-  String get instructionSecurity => 'Leave with security';
+  String get instructionSecurity => 'ᱥᱤᱠᱭᱩᱨᱤᱴᱤ ᱴᱷᱮᱱ ᱮᱢ ᱢᱮ';
 
   @override
-  String get instructionPet => 'Pet at home';
+  String get instructionPet => 'ᱚᱲᱟᱜ ᱨᱮ ᱯᱚᱥᱟ ᱡᱟᱱᱣᱟᱨ ᱢᱮᱱᱟᱭ';
 
   @override
-  String get cartInclTaxes => 'Incl. taxes and charges';
+  String get cartInclTaxes => 'ᱠᱷᱟᱡᱱᱟ ᱟᱨ ᱠᱷᱚᱨᱚᱡ ᱥᱟᱶᱛᱮ';
 
   @override
   String cartSavedTag(String amount) {
-    return '$amount saved';
+    return '$amount ᱵᱟᱧᱪᱟᱣ';
   }
 
   @override
-  String get cartPayUsing => 'Pay using';
+  String get cartPayUsing => 'ᱯᱮᱢᱮᱱᱴ ᱞᱮᱠᱟᱱ';
 
   @override
-  String get cartWalletAndCash => 'Wallet + cash';
+  String get cartWalletAndCash => 'ᱣᱟᱞᱮᱴ + ᱱᱚᱜᱚᱫ';
 
   @override
   String cartCashRest(String amount) {
-    return 'Pay $amount when it arrives';
+    return 'ᱥᱮᱴᱮᱨ ᱠᱷᱟᱱ $amount ᱮᱢ ᱢᱮ';
   }
 
   @override
-  String get cartCashFull => 'Pay when your order arrives';
+  String get cartCashFull => 'ᱚᱰᱟᱨ ᱥᱮᱴᱮᱨ ᱠᱷᱟᱱ ᱴᱟᱠᱟ ᱮᱢ ᱢᱮ';
 
   @override
-  String get cartCashNothing => 'Nothing to pay on delivery';
+  String get cartCashNothing => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱨᱮ ᱡᱟᱦᱟᱸ ᱦᱚᱸ ᱮᱢ ᱵᱟᱝ ᱞᱟᱹᱠᱛᱤᱭᱟ';
 
   @override
-  String get cartTotal => 'Total';
+  String get cartTotal => 'ᱡᱚᱛᱚ';
 
   @override
-  String get cartPlaceOrder => 'Place order';
+  String get cartPlaceOrder => 'ᱚᱰᱟᱨ ᱢᱮ';
 
   @override
   String cartDeliverTo(String place) {
-    return 'Delivering to $place';
+    return '$place ᱨᱮ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ';
   }
 
   @override
-  String get cartChange => 'Change';
+  String get cartChange => 'ᱵᱚᱫᱚᱞ ᱢᱮ';
 
   @override
-  String get cartNoAddress => 'Where should we deliver?';
+  String get cartNoAddress => 'ᱚᱠᱟᱨᱮ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱦᱩᱭᱩᱜᱼᱟ?';
 
   @override
-  String get cartNoAddressHint => 'Add an address to place your order';
+  String get cartNoAddressHint => 'ᱚᱰᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱢᱤᱫ ᱴᱷᱤᱠᱱᱟ ᱥᱮᱞᱮᱫ ᱢᱮ';
 
   @override
   String cartPickupFrom(String restaurant) {
-    return 'Pick up from $restaurant';
+    return '$restaurant ᱠᱷᱚᱱ ᱟᱡ ᱛᱮ ᱤᱫᱤ ᱢᱮ';
   }
 
   @override
   String cartReadyIn(int minutes) {
-    return 'Ready in about $minutes mins';
+    return '$minutes ᱜᱟᱱ ᱢᱤᱱᱤᱴ ᱨᱮ ᱛᱮᱭᱟᱨᱚᱜᱼᱟ';
   }
 
   @override
-  String get cartChooseAddress => 'Choose a delivery address';
+  String get cartChooseAddress => 'ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱴᱷᱤᱠᱱᱟ ᱵᱟᱪᱷᱟᱣ ᱢᱮ';
 
   @override
-  String get cartDone => 'Done';
+  String get cartDone => 'ᱦᱩᱭᱮᱱᱟ';
+
+  @override
+  String get supportTitle => 'Nexmile ᱜᱚᱲᱚ';
+
+  @override
+  String get supportBubble => 'ᱜᱚᱲᱚ';
+
+  @override
+  String get supportAiLabel => 'AI ᱜᱚᱲᱚᱭᱤᱡ';
+
+  @override
+  String supportAgentLabel(String name) {
+    return '$name · Nexmile ᱴᱤᱢ';
+  }
+
+  @override
+  String get supportDemoBanner =>
+      'ᱰᱮᱢᱚ: ᱱᱚᱶᱟ ᱛᱮᱞᱟ ᱠᱚ ᱫᱚ ᱱᱟᱡᱩᱱᱟ ᱠᱟᱱᱟ᱾ ᱴᱷᱤᱠ ᱜᱚᱲᱚᱭᱤᱡ ᱫᱚ ᱦᱟᱲᱮ ᱵᱟᱝ ᱡᱚᱲᱟᱣ ᱟᱠᱟᱱᱟ᱾';
+
+  @override
+  String get supportEmptyTitle => 'ᱟᱞᱮ ᱪᱮᱫ ᱞᱮᱠᱟ ᱜᱚᱲᱚ ᱫᱟᱲᱮᱭᱟᱜ-ᱟᱞᱮ?';
+
+  @override
+  String get supportEmptyBody =>
+      'ᱚᱰᱟᱨ, ᱴᱟᱠᱟ ᱮᱢ ᱟᱨ ᱵᱟᱝ ᱮᱴᱟᱜ ᱡᱟᱦᱟᱸ ᱠᱟᱛᱷᱟ ᱵᱟᱵᱚᱛ ᱠᱩᱞᱤ ᱢᱮ᱾ ᱯᱩᱭᱞᱩ ᱫᱚ ᱟᱞᱮᱭᱟᱜ AI ᱜᱚᱲᱚᱭᱤᱡ ᱛᱮᱞᱟ ᱮᱢᱟ, ᱟᱨ ᱡᱩᱫᱤ ᱩᱱᱤ ᱜᱚᱲᱚ ᱵᱟᱝ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ, ᱮᱱᱠᱷᱟᱱ ᱟᱞᱮᱭᱟᱜ ᱴᱤᱢ ᱨᱮᱭᱟᱜ ᱢᱤᱫᱦᱚᱲ ᱦᱚᱲ ᱥᱟᱢᱵᱷᱟᱞᱟᱭ᱾';
+
+  @override
+  String get supportSuggestWhere => 'ᱤᱧᱟᱜ ᱚᱰᱟᱨ ᱚᱠᱟᱨᱮ ᱢᱮᱱᱟᱜ-ᱟ?';
+
+  @override
+  String get supportSuggestMissing => 'ᱛᱤᱸᱜᱩ ᱡᱤᱱᱤᱥ ᱵᱟᱹᱱᱩᱜ-ᱟ';
+
+  @override
+  String get supportSuggestRefund =>
+      'ᱨᱩᱣᱟᱲ ᱴᱟᱠᱟ ᱵᱟᱵᱚᱛ ᱤᱧᱟᱜ ᱢᱤᱫᱴᱟᱝ ᱠᱩᱠᱞᱤ ᱢᱮᱱᱟᱜ-ᱟ';
+
+  @override
+  String get supportComposerHint => 'ᱢᱮᱥᱮᱡ ᱴᱟᱭᱤᱯ ᱢᱮ';
+
+  @override
+  String get supportSend => 'ᱠᱩᱞ ᱢᱮ';
+
+  @override
+  String get supportTyping => 'AI ᱜᱚᱲᱚᱭᱤᱡ ᱴᱟᱭᱤᱯ ᱠᱟᱱᱟᱭ…';
+
+  @override
+  String get supportNotSent => 'ᱵᱟᱝ ᱠᱩᱞ ᱞᱮᱱᱟ';
+
+  @override
+  String get supportTookTooLong => 'ᱟᱹᱰᱤ ᱡᱟᱹᱥᱛᱤ ᱚᱠᱛᱚ ᱞᱟᱹᱜ ᱮᱱᱟ᱾';
+
+  @override
+  String get supportSlowDown => 'ᱟᱨᱦᱚᱸ ᱢᱮᱥᱮᱡ ᱠᱩᱞ ᱞᱟᱦᱟ ᱛᱤᱸᱜᱩ ᱛᱟᱸᱜᱤ ᱢᱮ᱾';
+
+  @override
+  String get supportUnreachable =>
+      'ᱱᱤᱛᱚᱜ ᱪᱮᱴ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾ ᱟᱞᱮ ᱴᱷᱮᱱ ᱠᱚᱞ ᱢᱮ, ᱵᱟᱝᱠᱷᱟᱱ ᱛᱤᱱᱟᱹᱜ ᱜᱟᱱ ᱢᱤᱱᱤᱴ ᱛᱟᱭᱚᱢ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
+
+  @override
+  String get supportOffline =>
+      'ᱟᱢ ᱚᱯᱷᱞᱟᱭᱤᱱ ᱢᱮᱱᱟᱢᱟ᱾ ᱱᱚᱶᱟ ᱫᱚ ᱟᱢᱟᱜ ᱢᱩᱪᱟᱹᱫ ᱥᱟᱺᱪᱟᱣ ᱟᱠᱟᱱ ᱪᱮᱴ ᱠᱟᱱᱟ᱾';
+
+  @override
+  String get supportClosed => 'ᱱᱚᱶᱟ ᱪᱮᱴ ᱵᱚᱸᱫᱚ ᱮᱱᱟ᱾';
+
+  @override
+  String get supportStartNew => 'ᱱᱟᱶᱟ ᱪᱮᱴ ᱮᱦᱚᱵ ᱢᱮ';
+
+  @override
+  String get supportTalkToPerson => 'ᱢᱤᱫᱦᱚᱲ ᱦᱚᱲ ᱥᱟᱶ ᱜᱟᱞᱚᱪ ᱢᱮ';
+
+  @override
+  String get supportMarkSolved => 'ᱥᱚᱢᱟᱫᱷᱟᱱ ᱮᱱᱟ';
+
+  @override
+  String get supportHelpful => 'ᱜᱚᱲᱚ ᱮᱱᱟ';
+
+  @override
+  String get supportNotHelpful => 'ᱵᱟᱝ ᱜᱚᱲᱚ ᱞᱮᱱᱟ';
+
+  @override
+  String get supportNeedHelp => 'ᱜᱚᱲᱚ ᱞᱟᱹᱠᱛᱤ ᱢᱮᱱᱟᱜ-ᱟ?';
+
+  @override
+  String get supportChatWithUs => 'ᱟᱞᱮ ᱥᱟᱶ ᱪᱮᱴ ᱢᱮ';
+
+  @override
+  String get supportChatWithUsBody =>
+      'ᱟᱞᱮᱭᱟᱜ AI ᱜᱚᱲᱚᱭᱤᱡ ᱛᱤᱸᱜᱩ ᱥᱮᱠᱮᱱᱰ ᱨᱮ ᱛᱮᱞᱟ ᱮᱢᱟ, ᱟᱨ ᱞᱟᱹᱠᱛᱤ ᱠᱷᱟᱱ ᱢᱤᱫᱦᱚᱲ ᱦᱚᱲ ᱥᱟᱢᱵᱷᱟᱞᱟᱭ᱾';
+
+  @override
+  String get supportActionFailed =>
+      'ᱱᱚᱶᱟ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
 }

@@ -16,7 +16,7 @@ import '../../auth/data/auth_failure.dart';
 import '../../wallet/state/wallet_controller.dart';
 import '../data/cart_models.dart';
 import '../data/order_models.dart';
-import '../data/order_note.dart';
+import '../data/delivery_instruction.dart';
 import '../state/cart_controller.dart';
 import '../state/orders_controller.dart';
 import 'widgets/cart_sheets.dart';
@@ -252,13 +252,10 @@ class _CartScreenState extends State<CartScreen> {
       paymentMethod: share > 0 && share >= total ? 'wallet' : 'cod',
       useWallet: share > 0,
       addressId: delivery ? address?.id : null,
-      note: composeOrderNote(
-        note: _note,
-        // The doorstep means nothing at the counter.
-        instructions:
-            delivery ? _instructions : const <DeliveryInstruction>{},
-        noCutlery: _noCutlery,
-      ),
+      note: _note,
+      // The doorstep means nothing at the counter.
+      instructions: delivery ? _instructions : const <DeliveryInstruction>{},
+      noCutlery: _noCutlery,
     );
 
     // The balance can change between reading it and ordering, on another
@@ -482,7 +479,7 @@ class _CartScreenState extends State<CartScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: Text(
-                l10n.cartInstructionsNote,
+                l10n.cartInstructionsRider,
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -1122,24 +1119,6 @@ class _InstructionChips extends StatelessWidget {
   final Set<DeliveryInstruction> selected;
   final ValueChanged<DeliveryInstruction>? onToggle;
 
-  static IconData _icon(DeliveryInstruction instruction) =>
-      switch (instruction) {
-        DeliveryInstruction.leaveAtDoor => Icons.door_front_door_outlined,
-        DeliveryInstruction.noBell => Icons.notifications_off_outlined,
-        DeliveryInstruction.noCall => Icons.phone_disabled_outlined,
-        DeliveryInstruction.security => Icons.shield_outlined,
-        DeliveryInstruction.pet => Icons.pets_rounded,
-      };
-
-  static String _label(AppLocalizations l10n, DeliveryInstruction instruction) =>
-      switch (instruction) {
-        DeliveryInstruction.leaveAtDoor => l10n.instructionLeaveAtDoor,
-        DeliveryInstruction.noBell => l10n.instructionNoBell,
-        DeliveryInstruction.noCall => l10n.instructionNoCall,
-        DeliveryInstruction.security => l10n.instructionSecurity,
-        DeliveryInstruction.pet => l10n.instructionPet,
-      };
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -1197,7 +1176,7 @@ class _InstructionChips extends StatelessWidget {
                                 Row(
                                   children: <Widget>[
                                     Icon(
-                                      _icon(instruction),
+                                      instructionIcon(instruction),
                                       size: 22,
                                       color: on
                                           ? green
@@ -1218,7 +1197,7 @@ class _InstructionChips extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  _label(l10n, instruction),
+                                  instruction.label(l10n),
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
                                     height: 1.25,

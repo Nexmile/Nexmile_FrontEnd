@@ -18,6 +18,7 @@ import 'reorder_flow.dart';
 import 'widgets/catalogue_widgets.dart';
 import 'widgets/rate_prompt.dart';
 import 'widgets/rating_stars.dart';
+import '../../support/presentation/support_bubble.dart' show supportChatOn;
 import '../../../core/motion/nexmile_loader.dart';
 
 /// Order history, newest first, with the in-flight ones lifted to the top.
@@ -470,11 +471,16 @@ class _OrderCard extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
-                                  Text(
-                                    l10n.viewMenu,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: AppColors.orangeDeep,
-                                      fontWeight: FontWeight.w600,
+                                  Flexible(
+                                    child: Text(
+                                      l10n.viewMenu,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
+                                        color: AppColors.orangeDeep,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                   const Icon(
@@ -589,13 +595,18 @@ class _OrderCard extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-                child: Row(
+                // Side by side where they fit; a long word for "Reorder" at
+                // a large text size puts the button under the stars instead
+                // of squeezing them.
+                child: OverflowBar(
+                  alignment: MainAxisAlignment.spaceBetween,
+                  overflowAlignment: OverflowBarAlignment.start,
+                  overflowSpacing: 10,
                   children: <Widget>[
-                    Expanded(
-                      child: order.status == OrderStatus.delivered
-                          ? _CardRating(order: order)
-                          : const SizedBox.shrink(),
-                    ),
+                    if (order.status == OrderStatus.delivered)
+                      _CardRating(order: order)
+                    else
+                      const SizedBox.shrink(),
                     if (order.status.isActive || canReorder(order))
                       order.status.isActive
                         ? FilledButton.icon(
@@ -686,6 +697,11 @@ class _MoreMenu extends StatelessWidget {
               AppRoutes.rateOrder,
               arguments: RateOrderArgs(order: order),
             );
+          case 'help':
+            Navigator.of(context).pushNamed(
+              AppRoutes.support,
+              arguments: SupportArgs(orderId: order.id),
+            );
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -697,6 +713,8 @@ class _MoreMenu extends StatelessWidget {
           PopupMenuItem<String>(value: 'reorder', child: Text(l10n.reorder)),
         if (order.status == OrderStatus.delivered)
           PopupMenuItem<String>(value: 'rate', child: Text(l10n.rateThisOrder)),
+        if (supportChatOn(context, listen: false))
+          PopupMenuItem<String>(value: 'help', child: Text(l10n.supportNeedHelp)),
       ],
     );
   }

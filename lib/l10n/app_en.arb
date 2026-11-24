@@ -1848,8 +1848,8 @@
   "cartAddNote": "Add a note for the restaurant",
   "@cartAddNote": {"description": "Row in the cart that opens the note for the kitchen."},
 
-  "cartNoteHint": "Less spicy, no onions, extra chutney…",
-  "@cartNoteHint": {"description": "Hint in the note-for-the-restaurant field."},
+  "cartOrderNoteHint": "E.g. No onion or garlic in anything",
+  "@cartOrderNoteHint": {"description": "Hint in the note-for-the-restaurant field in the cart. A request about one dish belongs on that dish, so the example is about the whole order."},
 
   "cartNoteSave": "Save",
   "@cartNoteSave": {"description": "Button that keeps the note for the restaurant."},
@@ -1866,8 +1866,8 @@
   "cartDeliveryInstructions": "Delivery instructions",
   "@cartDeliveryInstructions": {"description": "Heading over the delivery instruction chips in the cart. Shown in capitals."},
 
-  "cartInstructionsNote": "Sent with your order",
-  "@cartInstructionsNote": {"description": "Small line under the delivery instruction chips."},
+  "cartInstructionsRider": "Only your delivery partner sees these",
+  "@cartInstructionsRider": {"description": "Small line under the delivery instruction chips in the cart. They reach the delivery partner and nobody else."},
 
   "instructionLeaveAtDoor": "Leave at the door",
   "@instructionLeaveAtDoor": {"description": "Delivery instruction chip."},
@@ -1933,5 +1933,89 @@
   "@cartChooseAddress": {"description": "Title of the address sheet opened from the cart."},
 
   "cartDone": "Done",
-  "@cartDone": {"description": "Closes the payment sheet."}
+  "@cartDone": {"description": "Closes the payment sheet."},
+
+  "supportTitle": "Nexmile Support",
+  "@supportTitle": {"description": "Title of the support chat screen."},
+
+  "supportBubble": "Help",
+  "@supportBubble": {"description": "Short label on the floating help bubble on the home screen, when the server sends none. Must stay very short."},
+
+  "supportAiLabel": "AI assistant",
+  "@supportAiLabel": {"description": "Label on every message the AI writes, so the customer always knows it is a machine. Also used as the typing indicator's name."},
+
+  "supportAgentLabel": "{name} · Nexmile team",
+  "@supportAgentLabel": {"description": "Label on a message written by a person on the Nexmile team. The name is a first name.", "placeholders": {"name": {"type": "String", "example": "Priya"}}},
+
+  "supportDemoBanner": "Demo: these answers are samples. The real assistant isn't connected yet.",
+  "@supportDemoBanner": {"description": "Banner at the top of the support chat in demo builds, so nobody takes sample answers for real ones."},
+
+  "supportEmptyTitle": "How can we help?",
+  "@supportEmptyTitle": {"description": "Heading of an empty support chat."},
+
+  "supportEmptyBody": "Ask about an order, a payment or anything else. Our AI assistant answers first, and a person from our team takes over when it can't help.",
+  "@supportEmptyBody": {"description": "Under the heading of an empty support chat. Says plainly that an AI answers first."},
+
+  "supportSuggestWhere": "Where is my order?",
+  "@supportSuggestWhere": {"description": "Suggested first message in an empty support chat."},
+
+  "supportSuggestMissing": "Something is missing",
+  "@supportSuggestMissing": {"description": "Suggested first message in an empty support chat."},
+
+  "supportSuggestRefund": "I have a refund question",
+  "@supportSuggestRefund": {"description": "Suggested first message in an empty support chat."},
+
+  "supportComposerHint": "Type a message",
+  "@supportComposerHint": {"description": "Hint in the support chat's message box."},
+
+  "supportSend": "Send",
+  "@supportSend": {"description": "Tooltip on the send button in the support chat."},
+
+  "supportTyping": "AI assistant is typing…",
+  "@supportTyping": {"description": "Shown while the AI is writing its answer."},
+
+  "supportNotSent": "Not sent",
+  "@supportNotSent": {"description": "Under a message that failed to send, beside the retry button."},
+
+  "supportTookTooLong": "That took too long.",
+  "@supportTookTooLong": {"description": "When no answer came within 30 seconds; shown with a retry button."},
+
+  "supportSlowDown": "Give it a moment before sending more.",
+  "@supportSlowDown": {"description": "When the customer sent too many messages too fast."},
+
+  "supportUnreachable": "Chat can't be reached right now. Call us, or try again in a few minutes.",
+  "@supportUnreachable": {"description": "When the support platform cannot be reached at all, so nothing typed would be saved. Shown with a call button and a try-again button."},
+
+  "supportOffline": "You're offline. This is your last saved chat.",
+  "@supportOffline": {"description": "Banner when the support chat cannot reach the server."},
+
+  "supportClosed": "This chat is closed.",
+  "@supportClosed": {"description": "In place of the message box once a support chat is closed."},
+
+  "supportStartNew": "Start a new chat",
+  "@supportStartNew": {"description": "Button that opens a new support chat after the last one was closed."},
+
+  "supportTalkToPerson": "Talk to a person",
+  "@supportTalkToPerson": {"description": "Asks for a person on the Nexmile team instead of the AI. Not a live chat: the team replies later."},
+
+  "supportMarkSolved": "Mark as solved",
+  "@supportMarkSolved": {"description": "Closes the support chat."},
+
+  "supportHelpful": "Helpful",
+  "@supportHelpful": {"description": "Tooltip on the thumbs-up under an AI answer."},
+
+  "supportNotHelpful": "Not helpful",
+  "@supportNotHelpful": {"description": "Tooltip on the thumbs-down under an AI answer."},
+
+  "supportNeedHelp": "Need help?",
+  "@supportNeedHelp": {"description": "Opens the support chat about this order, from an order screen."},
+
+  "supportChatWithUs": "Chat with us",
+  "@supportChatWithUs": {"description": "Card on the help screen that opens the support chat."},
+
+  "supportChatWithUsBody": "Our AI assistant answers in seconds, and a person takes over when you need one.",
+  "@supportChatWithUsBody": {"description": "Under 'Chat with us' on the help screen."},
+
+  "supportActionFailed": "That didn't go through. Try again.",
+  "@supportActionFailed": {"description": "When asking for a person or closing the chat failed."}
 }

@@ -12,6 +12,8 @@ class PreferencesService {
   static const String _themeModeKey = 'nexmile.theme_mode';
   static const String _vegModeKey = 'nexmile.veg_mode';
   static const String _ratedOrdersKey = 'nexmile.rated_orders';
+  static const String _supportThreadKey = 'nexmile.support_thread';
+  static const String _supportDraftKey = 'nexmile.support_draft';
 
   final SharedPreferences _prefs;
 
@@ -83,4 +85,26 @@ class PreferencesService {
 
   Future<void> saveRatedOrdersJson(String json) =>
       _prefs.setString(_ratedOrdersKey, json);
+
+  /// The support thread as last seen, so it opens before the network answers.
+  String? get supportThreadJson => _prefs.getString(_supportThreadKey);
+
+  Future<void> saveSupportThreadJson(String json) =>
+      _prefs.setString(_supportThreadKey, json);
+
+  /// What the customer was typing to support, kept across an app kill.
+  String get supportDraft => _prefs.getString(_supportDraftKey) ?? '';
+
+  Future<void> saveSupportDraft(String text) => text.isEmpty
+      ? _prefs.remove(_supportDraftKey)
+      : _prefs.setString(_supportDraftKey, text);
+
+  Future<void> forgetSupportThread() => _prefs.remove(_supportThreadKey);
+
+  /// A conversation about someone's orders is theirs alone: gone from the
+  /// phone when they sign out or delete the account.
+  Future<void> clearSupport() async {
+    await _prefs.remove(_supportThreadKey);
+    await _prefs.remove(_supportDraftKey);
+  }
 }

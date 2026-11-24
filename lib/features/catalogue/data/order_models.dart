@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'cart_models.dart';
+import 'delivery_instruction.dart';
 import 'storefront_models.dart';
 
 /// Order lifecycle. Delivery and pickup share states up to [readyForPickup],
@@ -280,6 +281,8 @@ class Order {
     this.deliveryAddress = '',
     this.deliveryLocation,
     this.customerNote,
+    this.deliveryInstructions = const <DeliveryInstruction>[],
+    this.noCutlery = false,
     this.pickupCode,
     this.estimatedPrepMinutes,
     this.distanceMetres,
@@ -342,6 +345,13 @@ class Order {
   final String deliveryAddress;
 
   final String? customerNote;
+
+  /// The doorstep chips as saved, echoed by the server. Empty on a pickup,
+  /// where the server drops them; codes this build cannot name are left out.
+  final List<DeliveryInstruction> deliveryInstructions;
+
+  /// "Don't send cutlery", as saved. Kept on pickup too.
+  final bool noCutlery;
 
   final double itemsTotal;
   final double packagingFee;
@@ -408,6 +418,15 @@ class Order {
       ),
       deliveryAddress: _addressLine(json['delivery_address']),
       customerNote: json['customer_note'] as String?,
+      deliveryInstructions: <DeliveryInstruction>[
+        for (final Object? code in json['delivery_instructions'] is List
+            ? json['delivery_instructions'] as List<Object?>
+            : const <Object?>[])
+          if (DeliveryInstruction.fromCode(code)
+              case final DeliveryInstruction instruction)
+            instruction,
+      ],
+      noCutlery: asBool(json['no_cutlery']),
       itemsTotal: asDouble(json['items_total']),
       packagingFee: asDouble(json['packaging_fee']),
       deliveryFee: asDouble(json['delivery_fee']),

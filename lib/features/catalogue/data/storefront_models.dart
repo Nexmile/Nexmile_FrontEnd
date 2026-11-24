@@ -193,6 +193,37 @@ class Restaurant {
       ? null
       : (distanceMetres! / 1000).toStringAsFixed(1);
 
+  /// The rating as the agreed `rating`, or under the names Laravel gives it
+  /// on the way there (`withAvg` makes `reviews_avg_rating`), or as an object
+  /// (`{"average": 4.2, "count": 120}`). Null, never zero, when there is none
+  /// or it is not a sensible 0–5: an unrated shop is new, not bad.
+  static double? _ratingOf(Map<String, dynamic> json) {
+    Object? raw = json['rating'];
+    if (raw is Map<String, dynamic>) {
+      raw = raw['average'] ?? raw['avg'] ?? raw['value'] ?? raw['rating'];
+    }
+    raw ??= json['avg_rating'] ??
+        json['average_rating'] ??
+        json['rating_avg'] ??
+        json['reviews_avg_rating'];
+    if (raw == null) return null;
+    final double value = asDouble(raw);
+    return value > 0 && value <= 5 ? value : null;
+  }
+
+  static int _ratingCountOf(Map<String, dynamic> json) {
+    final Object? rating = json['rating'];
+    if (rating is Map<String, dynamic>) {
+      final int nested = asInt(rating['count'] ?? rating['total']);
+      if (nested > 0) return nested;
+    }
+    return asInt(
+      json['rating_count'] ??
+          json['ratings_count'] ??
+          json['reviews_count'],
+    );
+  }
+
   static Restaurant fromJson(Map<String, dynamic> json) => Restaurant(
         id: asString(json['id']),
         name: asString(json['name']),
@@ -216,8 +247,8 @@ class Restaurant {
         area: asString(json['area']),
         distanceMetres:
             json['distance_metres'] == null ? null : asInt(json['distance_metres']),
-        rating: json['rating'] == null ? null : asDouble(json['rating']),
-        ratingCount: asInt(json['rating_count']),
+        rating: _ratingOf(json),
+        ratingCount: _ratingCountOf(json),
         isPureVeg: asBool(json['is_pure_veg']),
         costForTwo:
             json['cost_for_two'] == null ? null : asInt(json['cost_for_two']),

@@ -25,6 +25,8 @@ import 'features/catalogue/state/cart_controller.dart';
 import 'features/catalogue/state/orders_controller.dart';
 import 'features/catalogue/state/rated_orders.dart';
 import 'features/catalogue/state/storefront_controller.dart';
+import 'features/support/data/support_repository.dart';
+import 'features/support/state/support_controller.dart';
 import 'features/wallet/data/payment_gateway.dart';
 import 'features/wallet/data/wallet_repository.dart';
 import 'features/wallet/state/wallet_controller.dart';
@@ -42,6 +44,8 @@ class NexmileApp extends StatefulWidget {
     required this.accountRepository,
     this.paymentGateway,
     this.pushService = const NoopPushService(),
+    this.supportRepository,
+    this.supportIsDemo = false,
   });
 
   final PreferencesService preferences;
@@ -71,6 +75,13 @@ class NexmileApp extends StatefulWidget {
   /// Notification taps arrive here. Defaults to the no-op transport, which is
   /// what every test and every build without Firebase runs on.
   final PushService pushService;
+
+  /// The support chat. Null hides every way into it, which is what a build
+  /// gets until the server exists, unless it asks for the demo.
+  final SupportRepository? supportRepository;
+
+  /// Answers come from the demo, and the chat says so.
+  final bool supportIsDemo;
 
   @override
   State<NexmileApp> createState() => _NexmileAppState();
@@ -187,6 +198,13 @@ class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
                 repository: widget.walletRepository,
                 gateway: widget.paymentGateway,
               ),
+        ),
+        ChangeNotifierProvider<SupportController>(
+          create: (_) => SupportController(
+            preferences: preferences,
+            repository: widget.supportRepository,
+            isDemo: widget.supportIsDemo,
+          ),
         ),
       ],
       child: Consumer<LocaleController>(

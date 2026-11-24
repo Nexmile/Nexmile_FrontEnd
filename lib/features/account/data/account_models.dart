@@ -69,8 +69,11 @@ class SupportInfo {
     this.termsUrl,
     this.privacyUrl,
     this.faqs = const <Faq>[],
+    this.chatEnabled,
   });
 
+  /// Null until a real number is set; the call buttons hide rather than
+  /// dial a number that rings nowhere.
   final String? phone;
 
   /// A number in international form without "+", for a wa.me link.
@@ -87,14 +90,31 @@ class SupportInfo {
   final String? privacyUrl;
   final List<Faq> faqs;
 
+  /// The support chat's deliberate off switch, `support.chat_enabled`.
+  /// False hides every way into the chat. Not the same as the chat being
+  /// unreachable, which still shows the bubble for the phone number. Null
+  /// when the server did not say.
+  final bool? chatEnabled;
+
   bool get hasContact => phone != null || whatsapp != null || email != null;
 
-  static SupportInfo fromJson(Map<String, dynamic> json) => SupportInfo(
-        phone: _text(json['support_phone']),
-        whatsapp: _text(json['support_whatsapp']),
-        email: _text(json['support_email']),
-        safetyPhone: _text(json['safety_phone']),
-        hours: _text(json['support_hours']),
+  /// The live shape nests the contacts under `support`
+  /// (`{"support": {"phone", "email", "chat_enabled"}, "locales": […]}`);
+  /// the flat `support_phone` style is still read, for an older server.
+  static SupportInfo fromJson(Map<String, dynamic> json) {
+    final Object? nested = json['support'];
+    final Map<String, dynamic> support =
+        nested is Map<String, dynamic> ? nested : const <String, dynamic>{};
+    String? field(String key, String flat) =>
+        _text(support[key]) ?? _text(json[flat]);
+    final Object? chat = support['chat_enabled'];
+    return SupportInfo(
+        phone: field('phone', 'support_phone'),
+        whatsapp: field('whatsapp', 'support_whatsapp'),
+        email: field('email', 'support_email'),
+        safetyPhone: field('safety_phone', 'safety_phone'),
+        hours: field('hours', 'support_hours'),
+        chatEnabled: chat is bool ? chat : null,
         termsUrl: _text(json['terms_url']),
         privacyUrl: _text(json['privacy_url']),
         faqs: <Faq>[
@@ -103,6 +123,7 @@ class SupportInfo {
               Faq(question: _text(faq['question'])!, answer: _text(faq['answer'])!),
         ],
       );
+  }
 
   static String? _text(Object? raw) {
     final String text = asString(raw).trim();

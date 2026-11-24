@@ -3368,11 +3368,11 @@ abstract class AppLocalizations {
   /// **'Add a note for the restaurant'**
   String get cartAddNote;
 
-  /// Hint in the note-for-the-restaurant field.
+  /// Hint in the note-for-the-restaurant field in the cart. A request about one dish belongs on that dish, so the example is about the whole order.
   ///
   /// In en, this message translates to:
-  /// **'Less spicy, no onions, extra chutney…'**
-  String get cartNoteHint;
+  /// **'E.g. No onion or garlic in anything'**
+  String get cartOrderNoteHint;
 
   /// Button that keeps the note for the restaurant.
   ///
@@ -3404,11 +3404,11 @@ abstract class AppLocalizations {
   /// **'Delivery instructions'**
   String get cartDeliveryInstructions;
 
-  /// Small line under the delivery instruction chips.
+  /// Small line under the delivery instruction chips in the cart. They reach the delivery partner and nobody else.
   ///
   /// In en, this message translates to:
-  /// **'Sent with your order'**
-  String get cartInstructionsNote;
+  /// **'Only your delivery partner sees these'**
+  String get cartInstructionsRider;
 
   /// Delivery instruction chip.
   ///
@@ -3541,6 +3541,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get cartDone;
+
+  /// Title of the support chat screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Nexmile Support'**
+  String get supportTitle;
+
+  /// Short label on the floating help bubble on the home screen, when the server sends none. Must stay very short.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get supportBubble;
+
+  /// Label on every message the AI writes, so the customer always knows it is a machine. Also used as the typing indicator's name.
+  ///
+  /// In en, this message translates to:
+  /// **'AI assistant'**
+  String get supportAiLabel;
+
+  /// Label on a message written by a person on the Nexmile team. The name is a first name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · Nexmile team'**
+  String supportAgentLabel(String name);
+
+  /// Banner at the top of the support chat in demo builds, so nobody takes sample answers for real ones.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo: these answers are samples. The real assistant isn\'t connected yet.'**
+  String get supportDemoBanner;
+
+  /// Heading of an empty support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'How can we help?'**
+  String get supportEmptyTitle;
+
+  /// Under the heading of an empty support chat. Says plainly that an AI answers first.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about an order, a payment or anything else. Our AI assistant answers first, and a person from our team takes over when it can\'t help.'**
+  String get supportEmptyBody;
+
+  /// Suggested first message in an empty support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Where is my order?'**
+  String get supportSuggestWhere;
+
+  /// Suggested first message in an empty support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Something is missing'**
+  String get supportSuggestMissing;
+
+  /// Suggested first message in an empty support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a refund question'**
+  String get supportSuggestRefund;
+
+  /// Hint in the support chat's message box.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message'**
+  String get supportComposerHint;
+
+  /// Tooltip on the send button in the support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get supportSend;
+
+  /// Shown while the AI is writing its answer.
+  ///
+  /// In en, this message translates to:
+  /// **'AI assistant is typing…'**
+  String get supportTyping;
+
+  /// Under a message that failed to send, beside the retry button.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent'**
+  String get supportNotSent;
+
+  /// When no answer came within 30 seconds; shown with a retry button.
+  ///
+  /// In en, this message translates to:
+  /// **'That took too long.'**
+  String get supportTookTooLong;
+
+  /// When the customer sent too many messages too fast.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a moment before sending more.'**
+  String get supportSlowDown;
+
+  /// When the support platform cannot be reached at all, so nothing typed would be saved. Shown with a call button and a try-again button.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat can\'t be reached right now. Call us, or try again in a few minutes.'**
+  String get supportUnreachable;
+
+  /// Banner when the support chat cannot reach the server.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. This is your last saved chat.'**
+  String get supportOffline;
+
+  /// In place of the message box once a support chat is closed.
+  ///
+  /// In en, this message translates to:
+  /// **'This chat is closed.'**
+  String get supportClosed;
+
+  /// Button that opens a new support chat after the last one was closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new chat'**
+  String get supportStartNew;
+
+  /// Asks for a person on the Nexmile team instead of the AI. Not a live chat: the team replies later.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk to a person'**
+  String get supportTalkToPerson;
+
+  /// Closes the support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as solved'**
+  String get supportMarkSolved;
+
+  /// Tooltip on the thumbs-up under an AI answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Helpful'**
+  String get supportHelpful;
+
+  /// Tooltip on the thumbs-down under an AI answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Not helpful'**
+  String get supportNotHelpful;
+
+  /// Opens the support chat about this order, from an order screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help?'**
+  String get supportNeedHelp;
+
+  /// Card on the help screen that opens the support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with us'**
+  String get supportChatWithUs;
+
+  /// Under 'Chat with us' on the help screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Our AI assistant answers in seconds, and a person takes over when you need one.'**
+  String get supportChatWithUsBody;
+
+  /// When asking for a person or closing the chat failed.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t go through. Try again.'**
+  String get supportActionFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -776,12 +776,9 @@ class _HomeHeader extends StatelessWidget {
 
     return SizedBox(
       height: height,
-      child: ClipRRect(
-        borderRadius: BorderRadius.vertical(
-          // Square by the time it is a bar: a rounded strip pinned to the top
-          // of the screen reads as a card that failed to scroll away.
-          bottom: Radius.circular(28 * (1 - collapse)),
-        ),
+      // A straight bottom edge: the banner runs into the page rather than
+      // sitting on it as a card.
+      child: ClipRect(
         child: Stack(
           fit: StackFit.expand,
           children: <Widget>[
@@ -1399,50 +1396,62 @@ class _OrderAgainCard extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 6),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          meta,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                  LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints box) => Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            meta,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      // Its own target: the card opens the restaurant, this
-                      // puts the whole order back in the basket.
-                      InkWell(
-                        onTap: () => reorder(context, order),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              const Icon(
-                                Icons.replay_rounded,
-                                size: 15,
-                                color: AppColors.orangeDeep,
+                        const SizedBox(width: 6),
+                        // Its own target: the card opens the restaurant, this
+                        // puts the whole order back in the basket. Its own
+                        // size where it fits; a longer word ("വീണ്ടും ഓർഡർ")
+                        // shrinks a little rather than push the card apart.
+                        ConstrainedBox(
+                          constraints:
+                              BoxConstraints(maxWidth: box.maxWidth * 0.6),
+                          child: InkWell(
+                            onTap: () => reorder(context, order),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 4,
                               ),
-                              const SizedBox(width: 3),
-                              Text(
-                                l10n.reorder,
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: AppColors.orangeDeep,
-                                  fontWeight: FontWeight.w800,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    const Icon(
+                                      Icons.replay_rounded,
+                                      size: 15,
+                                      color: AppColors.orangeDeep,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      l10n.reorder,
+                                      style:
+                                          theme.textTheme.labelMedium?.copyWith(
+                                        color: AppColors.orangeDeep,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1513,13 +1522,14 @@ class _ExploreMore extends StatelessWidget {
       children: <Widget>[
         SectionHeader(title: l10n.exploreMore, caps: true),
         SizedBox(
+          // Compact: four across on a phone, a glance rather than a feature.
           height:
-              MediaQuery.textScalerOf(context).scale(124).clamp(124.0, 176.0),
+              MediaQuery.textScalerOf(context).scale(96).clamp(96.0, 140.0),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: tiles.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (BuildContext context, int i) => Reveal(
               index: i,
               child: tiles[i],
@@ -1556,11 +1566,11 @@ class _ExploreTile extends StatelessWidget {
         onTap();
       },
       child: Container(
-        width: 108,
-        padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+        width: 84,
+        padding: const EdgeInsets.fromLTRB(6, 9, 6, 8),
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: theme.colorScheme.outline.withValues(alpha: 0.6),
           ),
@@ -1568,8 +1578,8 @@ class _ExploreTile extends StatelessWidget {
         child: Column(
           children: <Widget>[
             Container(
-              width: 56,
-              height: 56,
+              width: 40,
+              height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -1580,9 +1590,9 @@ class _ExploreTile extends StatelessWidget {
                   ],
                 ),
               ),
-              child: Text(emoji, style: const TextStyle(fontSize: 30)),
+              child: Text(emoji, style: const TextStyle(fontSize: 22)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Expanded(
               child: Center(
                 child: Text(
@@ -1590,9 +1600,9 @@ class _ExploreTile extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
+                  style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    height: 1.2,
+                    height: 1.15,
                   ),
                 ),
               ),

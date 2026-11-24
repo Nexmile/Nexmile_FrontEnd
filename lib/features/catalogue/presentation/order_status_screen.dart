@@ -17,6 +17,7 @@ import 'widgets/catalogue_widgets.dart';
 import 'widgets/rate_prompt.dart';
 import 'widgets/rider_map.dart';
 import 'widgets/tracking/order_progress.dart';
+import '../../support/presentation/support_bubble.dart';
 import '../../../core/motion/nexmile_loader.dart';
 
 /// One order: where it is, what is in it, and what it cost.
@@ -184,6 +185,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       appBar: AppBar(
         title: Text(l10n.orderTitle(order.orderNumber)),
         actions: <Widget>[
+          NeedHelpButton(orderId: order.id, iconOnly: true),
           IconButton(
             tooltip: l10n.viewInvoice,
             icon: const Icon(Icons.receipt_long_outlined),
@@ -208,11 +210,19 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            order.fulfilmentType == FulfilmentType.pickup
-                ? l10n.pickupLabel
-                : l10n.deliveryLabel,
-            style: theme.textTheme.bodySmall,
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  order.fulfilmentType == FulfilmentType.pickup
+                      ? l10n.pickupLabel
+                      : l10n.deliveryLabel,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+              // In words, near the top, for whoever is looking for it.
+              Flexible(child: NeedHelpButton(orderId: order.id, dense: true)),
+            ],
           ),
           // The four steps, so where the order is reads at a glance rather
           // than from the status word alone.
@@ -316,6 +326,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               order.customerNote!,
               style: theme.textTheme.bodySmall
                   ?.copyWith(fontStyle: FontStyle.italic),
+            ),
+          ],
+          if (order.deliveryInstructions.isNotEmpty || order.noCutlery) ...<Widget>[
+            const SizedBox(height: 12),
+            OrderRequests(
+              key: const ValueKey<String>('order-requests'),
+              instructions: order.deliveryInstructions,
+              noCutlery: order.noCutlery,
             ),
           ],
           const SizedBox(height: 24),

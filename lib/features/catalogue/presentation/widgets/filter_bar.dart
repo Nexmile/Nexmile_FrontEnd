@@ -111,14 +111,22 @@ class VegToggle extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(
-              l10n.vegOnly,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.6,
+            // No wider than about twice the switch: a long word for "Veg
+            // only" shrinks to fit rather than squeeze the search bar
+            // beside it.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 76),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  l10n.vegOnly,
+                  maxLines: 1,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 3),

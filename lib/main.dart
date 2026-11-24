@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart'
-    show LicenseEntryWithLineBreaks, LicenseRegistry;
+    show kDebugMode, LicenseEntryWithLineBreaks, LicenseRegistry;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -22,6 +22,8 @@ import 'features/auth/data/device_repository.dart';
 import 'features/auth/data/token_store.dart';
 import 'features/auth/state/auth_controller.dart';
 import 'features/catalogue/data/storefront_repository.dart';
+import 'features/support/data/demo_support_repository.dart';
+import 'features/support/data/support_repository.dart';
 import 'features/wallet/data/wallet_repository.dart';
 
 Future<void> main() async {
@@ -91,6 +93,19 @@ Future<void> main() async {
   // never re-registered means notifications stop arriving with nothing to see.
   if (authController.isSignedIn) unawaited(deviceRegistrar.register());
 
+  // The support chat's server is agreed but not built. `--dart-define=
+  // NEXMILE_SUPPORT=live` talks to it once it is; `demo` plays it out on the
+  // phone, saying so on screen; anything else, and every release build
+  // that does not ask, hides the chat entirely, so no customer meets sample
+  // answers by accident. Debug builds show the demo.
+  const String supportMode = String.fromEnvironment('NEXMILE_SUPPORT');
+  final SupportRepository? supportRepository = switch (supportMode) {
+    'live' => ApiSupportRepository(apiClient),
+    'demo' => DemoSupportRepository(),
+    '' when kDebugMode => DemoSupportRepository(),
+    _ => null,
+  };
+
   runApp(
     NexmileApp(
       preferences: preferences,
@@ -104,6 +119,8 @@ Future<void> main() async {
       walletRepository: ApiWalletRepository(apiClient),
       accountRepository: ApiAccountRepository(apiClient),
       pushService: pushService,
+      supportRepository: supportRepository,
+      supportIsDemo: supportRepository is DemoSupportRepository,
     ),
   );
 }

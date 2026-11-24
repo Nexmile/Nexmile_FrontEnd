@@ -12,6 +12,7 @@ import 'order_status_screen.dart' show dispatchMessage;
 import 'widgets/rider_map.dart';
 import 'widgets/tracking/order_progress.dart';
 import 'widgets/tracking/route_geometry.dart';
+import '../../support/presentation/support_bubble.dart';
 
 /// The rider, full screen, for as long as the customer wants to watch.
 ///
@@ -391,6 +392,11 @@ class _TrackingSheet extends StatelessWidget {
                   child: Text(l10n.trackingOrderDetails),
                 ),
               ],
+            ),
+            // The question people actually have, at the moment they have it.
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: NeedHelpButton(orderId: o.id, dense: true),
             ),
           ],
         ],

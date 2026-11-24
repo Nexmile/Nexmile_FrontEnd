@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/data/auth_failure.dart';
 import '../data/cart_models.dart';
+import '../data/delivery_instruction.dart';
 import '../data/order_models.dart';
 import '../data/storefront_repository.dart';
 
@@ -233,6 +234,8 @@ class CartController extends ChangeNotifier {
     bool useWallet = false,
     int? addressId,
     String? note,
+    Set<DeliveryInstruction> instructions = const <DeliveryInstruction>{},
+    bool noCutlery = false,
   }) async {
     _isMutating = true;
     _fieldErrors = const <String, List<String>>{};
@@ -245,6 +248,8 @@ class CartController extends ChangeNotifier {
         useWallet: useWallet,
         addressId: addressId,
         note: note,
+        instructions: instructions,
+        noCutlery: noCutlery,
       );
       _cart = null;
       return (order, null);

@@ -10,7 +10,7 @@ import '../../../address/presentation/address_flow.dart';
 import '../../../address/state/address_controller.dart';
 import '../../../auth/data/auth_failure.dart';
 import '../../../wallet/state/wallet_controller.dart';
-import '../../data/order_note.dart';
+import '../../data/delivery_instruction.dart';
 import '../../state/cart_controller.dart';
 import 'catalogue_widgets.dart';
 
@@ -234,14 +234,14 @@ class _NoteSheetState extends State<_NoteSheet> {
             key: const ValueKey<String>('cart-note-field'),
             controller: _note,
             autofocus: true,
-            // Room is kept for the doorstep chips, which travel in the same
-            // note.
-            maxLength: maxCustomerNoteLength,
+            // For the whole order; a request about one dish goes on that
+            // dish, where the kitchen sees it printed under it.
+            maxLength: maxOrderNoteLength,
             maxLines: 3,
             minLines: 2,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
-              hintText: l10n.cartNoteHint,
+              hintText: l10n.cartOrderNoteHint,
               border: const OutlineInputBorder(),
             ),
           ),

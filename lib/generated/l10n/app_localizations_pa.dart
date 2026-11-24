@@ -83,16 +83,17 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਸਹੀ ਈਮੇਲ ਪਤਾ ਜਾਂ 10 ਅੰਕਾਂ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ ਦਰਜ ਕਰੋ';
 
   @override
-  String get loginHeadline => 'Hot food from shops near you, delivered fast';
+  String get loginHeadline =>
+      'ਤੁਹਾਡੇ ਨੇੜਲੀਆਂ ਦੁਕਾਨਾਂ ਤੋਂ ਗਰਮ ਖਾਣਾ, ਫਟਾਫਟ ਡਿਲੀਵਰੀ';
 
   @override
-  String get loginOrSignUp => 'Log in or sign up';
+  String get loginOrSignUp => 'ਸਾਈਨ ਇਨ ਜਾਂ ਸਾਈਨ ਅੱਪ ਕਰੋ';
 
   @override
-  String get loginEmailHint => 'Enter your email address';
+  String get loginEmailHint => 'ਆਪਣਾ ਈਮੇਲ ਪਤਾ ਦਰਜ ਕਰੋ';
 
   @override
-  String get invalidEmail => 'Enter a valid email address';
+  String get invalidEmail => 'ਸਹੀ ਈਮੇਲ ਪਤਾ ਦਰਜ ਕਰੋ';
 
   @override
   String get sendCode => 'ਕੋਡ ਭੇਜੋ';
@@ -389,62 +390,62 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String orderPlacedWith(String restaurant) {
-    return '$restaurant has your order.';
+    return '$restaurant ਨੂੰ ਤੁਹਾਡਾ ਆਰਡਰ ਮਿਲ ਗਿਆ ਹੈ।';
   }
 
   @override
   String orderPlacedPrep(int minutes) {
-    return 'Ready in about $minutes minutes.';
+    return 'ਲਗਭਗ $minutes ਮਿੰਟਾਂ ਵਿੱਚ ਤਿਆਰ ਹੋ ਜਾਵੇਗਾ।';
   }
 
   @override
-  String get trackYourOrder => 'Track your order';
+  String get trackYourOrder => 'ਆਪਣਾ ਆਰਡਰ ਟਰੈਕ ਕਰੋ';
 
   @override
-  String get couponApplyTitle => 'Apply a coupon';
+  String get couponApplyTitle => 'ਕੂਪਨ ਲਗਾਓ';
 
   @override
-  String get couponCodeLabel => 'Coupon code';
+  String get couponCodeLabel => 'ਕੂਪਨ ਕੋਡ';
 
   @override
-  String get couponApply => 'Apply';
+  String get couponApply => 'ਲਗਾਓ';
 
   @override
   String couponAppliedTitle(String code) {
-    return '$code applied';
+    return '$code ਲੱਗ ਗਿਆ';
   }
 
   @override
   String couponSaving(String amount) {
-    return 'You save $amount';
+    return 'ਤੁਹਾਡੀ $amount ਦੀ ਬਚਤ';
   }
 
   @override
-  String get couponRemove => 'Remove';
+  String get couponRemove => 'ਹਟਾਓ';
 
   @override
   String searchFor(String term) {
-    return 'Search \"$term\"';
+    return '\"$term\" ਖੋਜੋ';
   }
 
   @override
-  String get vegModeBadge => 'Pure veg';
+  String get vegModeBadge => 'ਸ਼ੁੱਧ ਸ਼ਾਕਾਹਾਰੀ';
 
   @override
   String trackingExpectedBy(String time) {
-    return 'Expected by $time';
+    return '$time ਤੱਕ ਪਹੁੰਚੇਗਾ';
   }
 
   @override
-  String get orderAgainTitle => 'Order again';
+  String get orderAgainTitle => 'ਦੁਬਾਰਾ ਆਰਡਰ ਕਰੋ';
 
   @override
   String orderAgainItems(String first, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$first + $count more',
-      one: '$first + 1 more',
+      other: '$first + $count ਹੋਰ',
+      one: '$first + 1 ਹੋਰ',
       zero: '$first',
     );
     return '$_temp0';
@@ -452,52 +453,52 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String etaRange(int min, int max) {
-    return '$min–$max min';
+    return '$min–$max ਮਿੰਟ';
   }
 
   @override
   String riderRatingLabel(String rating) {
-    return 'Rated $rating out of 5';
+    return '5 ਵਿੱਚੋਂ $rating ਰੇਟਿੰਗ';
   }
 
   @override
-  String get reorderReplaceTitle => 'Replace your basket?';
+  String get reorderReplaceTitle => 'ਆਪਣੀ ਕਾਰਟ ਬਦਲਣੀ ਹੈ?';
 
   @override
   String reorderReplaceBody(String restaurant) {
-    return 'Your basket from $restaurant will be replaced with the dishes from this order.';
+    return '$restaurant ਵਾਲੀ ਤੁਹਾਡੀ ਕਾਰਟ ਨੂੰ ਇਸ ਆਰਡਰ ਦੇ ਪਕਵਾਨਾਂ ਨਾਲ ਬਦਲ ਦਿੱਤਾ ਜਾਵੇਗਾ।';
   }
 
   @override
-  String get reorderReplace => 'Replace';
+  String get reorderReplace => 'ਬਦਲੋ';
 
   @override
   String reorderSkipped(String dishes, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$dishes aren\'t available right now, so they were left out.',
-      one: '$dishes isn\'t available right now, so it was left out.',
+      other: '$dishes ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹਨ, ਇਸ ਲਈ ਇਹਨਾਂ ਨੂੰ ਛੱਡ ਦਿੱਤਾ ਗਿਆ।',
+      one: '$dishes ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹੈ, ਇਸ ਲਈ ਇਸਨੂੰ ਛੱਡ ਦਿੱਤਾ ਗਿਆ।',
     );
     return '$_temp0';
   }
 
   @override
   String get reorderNothingAvailable =>
-      'None of these dishes are available right now.';
+      'ਇਹਨਾਂ ਵਿੱਚੋਂ ਕੋਈ ਵੀ ਪਕਵਾਨ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।';
 
   @override
-  String get searchShort => 'Search';
+  String get searchShort => 'ਖੋਜੋ';
 
   @override
-  String get favouriteSave => 'Save to favourites';
+  String get favouriteSave => 'ਮਨਪਸੰਦ ਵਿੱਚ ਸੰਭਾਲੋ';
 
   @override
-  String get restaurantAbout => 'About this restaurant';
+  String get restaurantAbout => 'ਇਸ ਰੈਸਟੋਰੈਂਟ ਬਾਰੇ';
 
   @override
   String ratingByCount(String count) {
-    return 'By $count';
+    return '$count ਲੋਕਾਂ ਵੱਲੋਂ';
   }
 
   @override
@@ -505,179 +506,179 @@ class AppLocalizationsPa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count offers',
-      one: '1 offer',
+      other: '$count ਆਫ਼ਰ',
+      one: '1 ਆਫ਼ਰ',
     );
     return '$_temp0';
   }
 
   @override
   String shareRestaurantText(String restaurant) {
-    return 'Order from $restaurant on Nexmile';
+    return 'Nexmile \'ਤੇ $restaurant ਤੋਂ ਆਰਡਰ ਕਰੋ';
   }
 
   @override
-  String get ordersSearchHint => 'Search by restaurant or dish…';
+  String get ordersSearchHint => 'ਰੈਸਟੋਰੈਂਟ ਜਾਂ ਪਕਵਾਨ ਖੋਜੋ…';
 
   @override
   String get ordersNoMatch =>
-      'No orders from a restaurant or dish by that name.';
+      'ਇਸ ਨਾਮ ਦੇ ਕਿਸੇ ਰੈਸਟੋਰੈਂਟ ਜਾਂ ਪਕਵਾਨ ਦਾ ਕੋਈ ਆਰਡਰ ਨਹੀਂ ਮਿਲਿਆ।';
 
   @override
   String orderPlacedOn(String date) {
-    return 'Order placed on $date';
+    return '$date ਨੂੰ ਆਰਡਰ ਕੀਤਾ';
   }
 
   @override
-  String get viewMenu => 'View menu';
+  String get viewMenu => 'ਮੀਨੂ ਦੇਖੋ';
 
   @override
-  String get navHistory => 'History';
+  String get navHistory => 'ਹਿਸਟਰੀ';
 
   @override
-  String get exploreMore => 'Explore more';
+  String get exploreMore => 'ਹੋਰ ਦੇਖੋ';
 
   @override
-  String get exploreTopRated => 'Top rated';
+  String get exploreTopRated => 'ਉੱਚੀ ਰੇਟਿੰਗ';
 
   @override
   String restaurantsDelivering(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count restaurants delivering to you',
-      one: '1 restaurant delivering to you',
+      other: '$count ਰੈਸਟੋਰੈਂਟ ਤੁਹਾਡੇ ਤੱਕ ਡਿਲੀਵਰੀ ਕਰਦੇ ਹਨ',
+      one: '1 ਰੈਸਟੋਰੈਂਟ ਤੁਹਾਡੇ ਤੱਕ ਡਿਲੀਵਰੀ ਕਰਦਾ ਹੈ',
     );
     return '$_temp0';
   }
 
   @override
-  String get rateHowWasDelivery => 'How was your delivery?';
+  String get rateHowWasDelivery => 'ਤੁਹਾਡੀ ਡਿਲੀਵਰੀ ਕਿਵੇਂ ਰਹੀ?';
 
   @override
-  String get rateHowWasFood => 'How was the food?';
+  String get rateHowWasFood => 'ਖਾਣਾ ਕਿਵੇਂ ਲੱਗਿਆ?';
 
   @override
-  String get rateWordTerrible => 'Terrible';
+  String get rateWordTerrible => 'ਬਹੁਤ ਮਾੜਾ';
 
   @override
-  String get rateWordBad => 'Bad';
+  String get rateWordBad => 'ਮਾੜਾ';
 
   @override
-  String get rateWordOkay => 'Okay';
+  String get rateWordOkay => 'ਠੀਕ-ਠਾਕ';
 
   @override
-  String get rateWordGood => 'Good';
+  String get rateWordGood => 'ਵਧੀਆ';
 
   @override
-  String get rateWordLoved => 'Loved it!';
+  String get rateWordLoved => 'ਬਹੁਤ ਪਸੰਦ ਆਇਆ!';
 
   @override
-  String get rateWhatWentWrong => 'What went wrong?';
+  String get rateWhatWentWrong => 'ਕੀ ਗਲਤ ਹੋਇਆ?';
 
   @override
-  String get rateWhatYouLiked => 'What did you like?';
+  String get rateWhatYouLiked => 'ਤੁਹਾਨੂੰ ਕੀ ਪਸੰਦ ਆਇਆ?';
 
   @override
-  String get rateRiderNoteHint => 'A note about the delivery (optional)';
+  String get rateRiderNoteHint => 'ਡਿਲੀਵਰੀ ਬਾਰੇ ਨੋਟ (ਵਿਕਲਪਿਕ)';
 
   @override
-  String get rateReviewHeading => 'Write a review';
+  String get rateReviewHeading => 'ਸਮੀਖਿਆ ਲਿਖੋ';
 
   @override
-  String get rateFoodFirst => 'Rate the food to submit';
+  String get rateFoodFirst => 'ਭੇਜਣ ਲਈ ਖਾਣੇ ਨੂੰ ਰੇਟ ਕਰੋ';
 
   @override
-  String get rateYouRated => 'You rated this order';
+  String get rateYouRated => 'ਤੁਸੀਂ ਇਸ ਆਰਡਰ ਨੂੰ ਰੇਟ ਕੀਤਾ';
 
   @override
-  String get ratePromptLater => 'Not now';
+  String get ratePromptLater => 'ਹੁਣ ਨਹੀਂ';
 
   @override
-  String get tagTasty => 'Tasty';
+  String get tagTasty => 'ਸੁਆਦੀ';
 
   @override
-  String get tagFreshHot => 'Hot & fresh';
+  String get tagFreshHot => 'ਗਰਮ ਤੇ ਤਾਜ਼ਾ';
 
   @override
-  String get tagGoodPortion => 'Good portion';
+  String get tagGoodPortion => 'ਚੰਗੀ ਮਾਤਰਾ';
 
   @override
-  String get tagGoodPackaging => 'Good packaging';
+  String get tagGoodPackaging => 'ਵਧੀਆ ਪੈਕਿੰਗ';
 
   @override
-  String get tagValueForMoney => 'Value for money';
+  String get tagValueForMoney => 'ਪੈਸਾ ਵਸੂਲ';
 
   @override
-  String get tagHygienic => 'Hygienic';
+  String get tagHygienic => 'ਸਾਫ਼-ਸੁਥਰਾ';
 
   @override
-  String get tagColdFood => 'Cold food';
+  String get tagColdFood => 'ਠੰਢਾ ਖਾਣਾ';
 
   @override
-  String get tagPoorTaste => 'Didn\'t taste good';
+  String get tagPoorTaste => 'ਸੁਆਦ ਨਹੀਂ ਸੀ';
 
   @override
-  String get tagSmallPortion => 'Small portion';
+  String get tagSmallPortion => 'ਘੱਟ ਮਾਤਰਾ';
 
   @override
-  String get tagWrongItems => 'Wrong items';
+  String get tagWrongItems => 'ਗਲਤ ਚੀਜ਼ਾਂ';
 
   @override
-  String get tagMissingItems => 'Missing items';
+  String get tagMissingItems => 'ਚੀਜ਼ਾਂ ਗਾਇਬ';
 
   @override
-  String get tagPoorPackaging => 'Poor packaging';
+  String get tagPoorPackaging => 'ਮਾੜੀ ਪੈਕਿੰਗ';
 
   @override
-  String get tagTooOily => 'Too oily or spicy';
+  String get tagTooOily => 'ਬਹੁਤ ਤੇਲ ਵਾਲਾ ਜਾਂ ਤਿੱਖਾ';
 
   @override
-  String get tagOnTime => 'On time';
+  String get tagOnTime => 'ਸਮੇਂ ਸਿਰ';
 
   @override
-  String get tagPolite => 'Polite';
+  String get tagPolite => 'ਨਿਮਰ';
 
   @override
-  String get tagFollowedInstructions => 'Followed instructions';
+  String get tagFollowedInstructions => 'ਹਦਾਇਤਾਂ ਮੰਨੀਆਂ';
 
   @override
-  String get tagCarefulHandling => 'Handled food with care';
+  String get tagCarefulHandling => 'ਖਾਣਾ ਧਿਆਨ ਨਾਲ ਲਿਆਂਦਾ';
 
   @override
-  String get tagGoodCommunication => 'Kept me updated';
+  String get tagGoodCommunication => 'ਅੱਪਡੇਟ ਮਿਲਦੀ ਰਹੀ';
 
   @override
-  String get tagLate => 'Late delivery';
+  String get tagLate => 'ਦੇਰ ਨਾਲ ਡਿਲੀਵਰੀ';
 
   @override
-  String get tagRude => 'Rude behaviour';
+  String get tagRude => 'ਰੁੱਖਾ ਵਿਹਾਰ';
 
   @override
-  String get tagIgnoredInstructions => 'Didn\'t follow instructions';
+  String get tagIgnoredInstructions => 'ਹਦਾਇਤਾਂ ਨਹੀਂ ਮੰਨੀਆਂ';
 
   @override
-  String get tagFoodSpilled => 'Food spilled';
+  String get tagFoodSpilled => 'ਖਾਣਾ ਡੁੱਲ੍ਹਿਆ ਹੋਇਆ';
 
   @override
-  String get tagAskedExtraMoney => 'Asked for extra money';
+  String get tagAskedExtraMoney => 'ਵਾਧੂ ਪੈਸੇ ਮੰਗੇ';
 
   @override
-  String get tagUnprofessional => 'Unprofessional';
+  String get tagUnprofessional => 'ਗ਼ੈਰ-ਪੇਸ਼ੇਵਰ';
 
   @override
   String rateDeliveredBy(String name) {
-    return 'Delivered by $name';
+    return '$name ਨੇ ਡਿਲੀਵਰ ਕੀਤਾ';
   }
 
   @override
   String rateFoodFrom(String restaurant) {
-    return 'From $restaurant';
+    return '$restaurant ਤੋਂ';
   }
 
   @override
   String ratePromptTitle(String restaurant) {
-    return 'How was your order from $restaurant?';
+    return '$restaurant ਤੋਂ ਤੁਹਾਡਾ ਆਰਡਰ ਕਿਵੇਂ ਰਿਹਾ?';
   }
 
   @override
@@ -766,44 +767,45 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String permStepCount(int step, int total) {
-    return '$step of $total';
+    return '$total ਵਿੱਚੋਂ $step';
   }
 
   @override
-  String get permNotNow => 'Not now';
+  String get permNotNow => 'ਹੁਣ ਨਹੀਂ';
 
   @override
-  String get permLocationTitle => 'Find food near you';
+  String get permLocationTitle => 'ਆਪਣੇ ਨੇੜੇ ਖਾਣਾ ਲੱਭੋ';
 
   @override
-  String get permNotifyTitle => 'Never miss an order update';
+  String get permNotifyTitle => 'ਆਰਡਰ ਦੀ ਕੋਈ ਅੱਪਡੇਟ ਨਾ ਖੁੰਝਾਓ';
 
   @override
   String get permNotifyBody =>
-      'Turn on notifications to know when your order is accepted, picked up and at your door.';
+      'ਨੋਟੀਫਿਕੇਸ਼ਨ ਚਾਲੂ ਕਰੋ ਤਾਂ ਜੋ ਪਤਾ ਲੱਗੇ ਕਿ ਤੁਹਾਡਾ ਆਰਡਰ ਕਦੋਂ ਸਵੀਕਾਰ ਹੋਇਆ, ਕਦੋਂ ਚੁੱਕਿਆ ਗਿਆ ਅਤੇ ਕਦੋਂ ਤੁਹਾਡੇ ਦਰਵਾਜ਼ੇ \'ਤੇ ਪਹੁੰਚਿਆ।';
 
   @override
-  String get permNotifyLiveTitle => 'Live order updates';
+  String get permNotifyLiveTitle => 'ਆਰਡਰ ਦੀਆਂ ਲਾਈਵ ਅੱਪਡੇਟਾਂ';
 
   @override
-  String get permNotifyLiveBody => 'Accepted, cooking, picked up, delivered.';
+  String get permNotifyLiveBody =>
+      'ਸਵੀਕਾਰ, ਤਿਆਰ ਹੋ ਰਿਹਾ, ਚੁੱਕ ਲਿਆ, ਡਿਲੀਵਰ ਹੋ ਗਿਆ।';
 
   @override
-  String get permNotifyRiderTitle => 'Rider at your door';
+  String get permNotifyRiderTitle => 'ਰਾਈਡਰ ਤੁਹਾਡੇ ਦਰਵਾਜ਼ੇ \'ਤੇ';
 
   @override
   String get permNotifyRiderBody =>
-      'Know when to step out, without watching the app.';
+      'ਐਪ ਦੇਖੇ ਬਿਨਾਂ ਪਤਾ ਲੱਗੇ ਕਿ ਕਦੋਂ ਬਾਹਰ ਨਿਕਲਣਾ ਹੈ।';
 
   @override
-  String get permNotifyControlTitle => 'You stay in control';
+  String get permNotifyControlTitle => 'ਕੰਟਰੋਲ ਤੁਹਾਡੇ ਹੱਥ ਵਿੱਚ';
 
   @override
   String get permNotifyControlBody =>
-      'Turn notifications off any time in your phone\'s Settings.';
+      'ਤੁਸੀਂ ਕਿਸੇ ਵੀ ਸਮੇਂ ਆਪਣੇ ਫ਼ੋਨ ਦੀਆਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਨੋਟੀਫਿਕੇਸ਼ਨ ਬੰਦ ਕਰ ਸਕਦੇ ਹੋ।';
 
   @override
-  String get permNotifyAllow => 'Turn on notifications';
+  String get permNotifyAllow => 'ਨੋਟੀਫਿਕੇਸ਼ਨ ਚਾਲੂ ਕਰੋ';
 
   @override
   String get openSettings => 'ਸੈਟਿੰਗਾਂ';
@@ -967,36 +969,36 @@ class AppLocalizationsPa extends AppLocalizations {
   String get moreDishesTitle => 'ਹੋਰ ਪਕਵਾਨ';
 
   @override
-  String get menuSearchHint => 'Search for dishes';
+  String get menuSearchHint => 'ਪਕਵਾਨ ਖੋਜੋ';
 
   @override
-  String get filtersShort => 'Filters';
+  String get filtersShort => 'ਫਿਲਟਰ';
 
   @override
-  String get dietVeg => 'Veg';
+  String get dietVeg => 'ਸ਼ਾਕਾਹਾਰੀ';
 
   @override
-  String get dietEgg => 'Egg';
+  String get dietEgg => 'ਅੰਡਾ';
 
   @override
-  String get dietNonVeg => 'Non-veg';
+  String get dietNonVeg => 'ਮਾਸਾਹਾਰੀ';
 
   @override
-  String get menuBestsellerChip => 'Bestseller';
+  String get menuBestsellerChip => 'ਬੈਸਟਸੈਲਰ';
 
   @override
-  String get menuFoodType => 'Food type';
+  String get menuFoodType => 'ਖਾਣੇ ਦੀ ਕਿਸਮ';
 
   @override
-  String get menuShowOnly => 'Show only';
+  String get menuShowOnly => 'ਸਿਰਫ਼ ਦਿਖਾਓ';
 
   @override
   String menuMatchCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dishes',
-      one: '1 dish',
+      other: '$count ਪਕਵਾਨ',
+      one: '1 ਪਕਵਾਨ',
     );
     return '$_temp0';
   }
@@ -1006,19 +1008,19 @@ class AppLocalizationsPa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Show $count dishes',
-      one: 'Show 1 dish',
-      zero: 'No dishes',
+      other: '$count ਪਕਵਾਨ ਦਿਖਾਓ',
+      one: '1 ਪਕਵਾਨ ਦਿਖਾਓ',
+      zero: 'ਕੋਈ ਪਕਵਾਨ ਨਹੀਂ',
     );
     return '$_temp0';
   }
 
   @override
   String get menuNoMatchSubtitle =>
-      'Try another dish name, or remove a filter.';
+      'ਕਿਸੇ ਹੋਰ ਪਕਵਾਨ ਦਾ ਨਾਮ ਅਜ਼ਮਾਓ, ਜਾਂ ਕੋਈ ਫਿਲਟਰ ਹਟਾਓ।';
 
   @override
-  String get menuBrowse => 'Menu';
+  String get menuBrowse => 'ਮੀਨੂ';
 
   @override
   String get customisable => 'ਪਸੰਦ ਮੁਤਾਬਕ';
@@ -1151,7 +1153,7 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਆਰਡਰ ਚੁੱਕਣ ਤੋਂ ਬਾਅਦ ਰਾਈਡਰ ਦੀ ਥਾਂ ਇੱਥੇ ਦਿਖੇਗੀ।';
 
   @override
-  String get riderLocationStale => 'Updating rider\'s location…';
+  String get riderLocationStale => 'ਰਾਈਡਰ ਦੀ ਥਾਂ ਅੱਪਡੇਟ ਹੋ ਰਹੀ ਹੈ…';
 
   @override
   String get recentreOnRider => 'ਰਾਈਡਰ ’ਤੇ ਕੇਂਦਰਿਤ ਕਰੋ';
@@ -1182,209 +1184,210 @@ class AppLocalizationsPa extends AppLocalizations {
   String get currentLocationLabel => 'ਮੌਜੂਦਾ ਟਿਕਾਣਾ';
 
   @override
-  String get onLabel => 'On';
+  String get onLabel => 'ਚਾਲੂ';
 
   @override
-  String get offLabel => 'Off';
+  String get offLabel => 'ਬੰਦ';
 
   @override
-  String get profileCoupons => 'Your coupons';
+  String get profileCoupons => 'ਤੁਹਾਡੇ ਕੂਪਨ';
 
   @override
   String profileCouponsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count to use',
-      one: '1 to use',
-      zero: 'None yet',
+      other: '$count ਉਪਲਬਧ',
+      one: '1 ਉਪਲਬਧ',
+      zero: 'ਅਜੇ ਕੋਈ ਨਹੀਂ',
     );
     return '$_temp0';
   }
 
   @override
-  String get profilePreferences => 'Your preferences';
+  String get profilePreferences => 'ਤੁਹਾਡੀਆਂ ਪਸੰਦਾਂ';
 
   @override
-  String get profileVegMode => 'Veg mode';
+  String get profileVegMode => 'ਸ਼ਾਕਾਹਾਰੀ ਮੋਡ';
 
   @override
-  String get profileVegModeHint => 'Only veg restaurants and dishes';
+  String get profileVegModeHint => 'ਸਿਰਫ਼ ਸ਼ਾਕਾਹਾਰੀ ਰੈਸਟੋਰੈਂਟ ਅਤੇ ਪਕਵਾਨ';
 
   @override
-  String get profileAppearance => 'Appearance';
+  String get profileAppearance => 'ਦਿੱਖ';
 
   @override
-  String get appearanceSystem => 'Same as phone';
+  String get appearanceSystem => 'ਫ਼ੋਨ ਵਾਂਗ';
 
   @override
-  String get appearanceLight => 'Light';
+  String get appearanceLight => 'ਹਲਕਾ';
 
   @override
-  String get appearanceDark => 'Dark';
+  String get appearanceDark => 'ਗੂੜ੍ਹਾ';
 
   @override
-  String get profileNotifications => 'Notifications';
+  String get profileNotifications => 'ਨੋਟੀਫਿਕੇਸ਼ਨ';
 
   @override
-  String get profileFoodDelivery => 'Food delivery';
+  String get profileFoodDelivery => 'ਖਾਣੇ ਦੀ ਡਿਲੀਵਰੀ';
 
   @override
-  String get profileFavourites => 'Your favourites';
+  String get profileFavourites => 'ਤੁਹਾਡੇ ਮਨਪਸੰਦ';
 
   @override
-  String get profileHelp => 'Help & support';
+  String get profileHelp => 'ਮਦਦ ਅਤੇ ਸਹਾਇਤਾ';
 
   @override
-  String get profileMore => 'More';
+  String get profileMore => 'ਹੋਰ';
 
   @override
-  String get profileFeedback => 'Send feedback';
+  String get profileFeedback => 'ਫੀਡਬੈਕ ਭੇਜੋ';
 
   @override
-  String get profileSafety => 'Report a safety emergency';
+  String get profileSafety => 'ਸੁਰੱਖਿਆ ਐਮਰਜੈਂਸੀ ਦੀ ਰਿਪੋਰਟ ਕਰੋ';
 
   @override
-  String get profileAbout => 'About Nexmile';
+  String get profileAbout => 'Nexmile ਬਾਰੇ';
 
   @override
-  String get couponsEmptyTitle => 'No coupons right now';
+  String get couponsEmptyTitle => 'ਹੁਣ ਕੋਈ ਕੂਪਨ ਨਹੀਂ';
 
   @override
   String get couponsEmptyBody =>
-      'When there\'s a coupon you can use, it will show up here.';
+      'ਜਦੋਂ ਕੋਈ ਕੂਪਨ ਤੁਹਾਡੇ ਵਰਤਣ ਲਈ ਹੋਵੇਗਾ, ਉਹ ਇੱਥੇ ਦਿਖੇਗਾ।';
 
   @override
   String couponFlatOff(String amount) {
-    return '$amount OFF';
+    return '$amount ਛੋਟ';
   }
 
   @override
   String couponPercentOff(String percent) {
-    return '$percent% OFF';
+    return '$percent% ਛੋਟ';
   }
 
   @override
   String couponUpTo(String amount) {
-    return 'Up to $amount';
+    return '$amount ਤੱਕ';
   }
 
   @override
   String couponMinOrder(String amount) {
-    return 'On orders above $amount';
+    return '$amount ਤੋਂ ਵੱਧ ਦੇ ਆਰਡਰਾਂ \'ਤੇ';
   }
 
   @override
   String couponValidTill(String date) {
-    return 'Valid till $date';
+    return '$date ਤੱਕ ਵੈਧ';
   }
 
   @override
-  String get couponAllRestaurants => 'At all restaurants';
+  String get couponAllRestaurants => 'ਸਾਰੇ ਰੈਸਟੋਰੈਂਟਾਂ \'ਤੇ';
 
   @override
   String couponAtRestaurant(String restaurant) {
-    return 'At $restaurant';
+    return '$restaurant \'ਤੇ';
   }
 
   @override
   String couponCopied(String code) {
-    return 'Code $code copied';
+    return 'ਕੋਡ $code ਕਾਪੀ ਹੋ ਗਿਆ';
   }
 
   @override
-  String get favouritesEmptyTitle => 'No favourites yet';
+  String get favouritesEmptyTitle => 'ਅਜੇ ਕੋਈ ਮਨਪਸੰਦ ਨਹੀਂ';
 
   @override
   String get favouritesEmptyBody =>
-      'Tap the heart on a restaurant to save it here.';
+      'ਕਿਸੇ ਰੈਸਟੋਰੈਂਟ ਨੂੰ ਇੱਥੇ ਸੰਭਾਲਣ ਲਈ ਉਸਦੇ ਦਿਲ \'ਤੇ ਟੈਪ ਕਰੋ।';
 
   @override
-  String get helpCall => 'Call us';
+  String get helpCall => 'ਸਾਨੂੰ ਕਾਲ ਕਰੋ';
 
   @override
   String get helpWhatsApp => 'WhatsApp';
 
   @override
-  String get helpEmail => 'Email us';
+  String get helpEmail => 'ਸਾਨੂੰ ਈਮੇਲ ਕਰੋ';
 
   @override
   String helpHours(String hours) {
-    return 'We\'re available $hours';
+    return 'ਅਸੀਂ $hours ਉਪਲਬਧ ਹਾਂ';
   }
 
   @override
-  String get helpFaqs => 'Common questions';
+  String get helpFaqs => 'ਆਮ ਸਵਾਲ';
 
   @override
   String get helpNothing =>
-      'Help details aren\'t available right now. Please try again later.';
+      'ਮਦਦ ਦੀ ਜਾਣਕਾਰੀ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
 
   @override
-  String get feedbackPrompt => 'How is Nexmile working for you?';
+  String get feedbackPrompt => 'Nexmile ਤੁਹਾਡੇ ਲਈ ਕਿਵੇਂ ਕੰਮ ਕਰ ਰਿਹਾ ਹੈ?';
 
   @override
-  String get feedbackHint => 'Tell us what you liked, or what we can do better';
+  String get feedbackHint =>
+      'ਦੱਸੋ ਤੁਹਾਨੂੰ ਕੀ ਪਸੰਦ ਆਇਆ, ਜਾਂ ਅਸੀਂ ਕੀ ਬਿਹਤਰ ਕਰ ਸਕਦੇ ਹਾਂ';
 
   @override
-  String get feedbackNeedRating => 'Choose a rating first';
+  String get feedbackNeedRating => 'ਪਹਿਲਾਂ ਰੇਟਿੰਗ ਚੁਣੋ';
 
   @override
-  String get feedbackThanks => 'Thanks! Your feedback has reached our team.';
+  String get feedbackThanks =>
+      'ਧੰਨਵਾਦ! ਤੁਹਾਡਾ ਫੀਡਬੈਕ ਸਾਡੀ ਟੀਮ ਤੱਕ ਪਹੁੰਚ ਗਿਆ ਹੈ।';
 
   @override
   String get safetyIntro =>
-      'If you or someone else is in danger, call the emergency services first.';
+      'ਜੇ ਤੁਸੀਂ ਜਾਂ ਕੋਈ ਹੋਰ ਖ਼ਤਰੇ ਵਿੱਚ ਹੈ, ਤਾਂ ਪਹਿਲਾਂ ਐਮਰਜੈਂਸੀ ਸੇਵਾਵਾਂ ਨੂੰ ਕਾਲ ਕਰੋ।';
 
   @override
-  String get safetyCallEmergency => 'Call 112';
+  String get safetyCallEmergency => '112 \'ਤੇ ਕਾਲ ਕਰੋ';
 
   @override
-  String get safetyCallEmergencyBody => 'Police, fire and ambulance';
+  String get safetyCallEmergencyBody => 'ਪੁਲਿਸ, ਫਾਇਰ ਅਤੇ ਐਂਬੂਲੈਂਸ';
 
   @override
-  String get safetyCallNexmile => 'Call Nexmile safety line';
+  String get safetyCallNexmile => 'Nexmile ਸੁਰੱਖਿਆ ਲਾਈਨ \'ਤੇ ਕਾਲ ਕਰੋ';
 
   @override
-  String get safetyCallNexmileBody => 'Answered at all hours';
+  String get safetyCallNexmileBody => 'ਹਰ ਵੇਲੇ ਜਵਾਬ ਮਿਲਦਾ ਹੈ';
 
   @override
   String aboutVersion(String version) {
-    return 'Version $version';
+    return 'ਵਰਜ਼ਨ $version';
   }
 
   @override
-  String get aboutTerms => 'Terms of service';
+  String get aboutTerms => 'ਸੇਵਾ ਸ਼ਰਤਾਂ';
 
   @override
-  String get aboutPrivacy => 'Privacy policy';
+  String get aboutPrivacy => 'ਪਰਦੇਦਾਰੀ ਨੀਤੀ';
 
   @override
-  String get aboutLicences => 'Open-source licences';
+  String get aboutLicences => 'ਓਪਨ-ਸੋਰਸ ਲਾਇਸੈਂਸ';
 
   @override
-  String get notifyOrderUpdates => 'Order updates';
+  String get notifyOrderUpdates => 'ਆਰਡਰ ਅੱਪਡੇਟ';
 
   @override
   String get notifyOrderUpdatesBody =>
-      'Always on, so you know where your food is.';
+      'ਹਮੇਸ਼ਾ ਚਾਲੂ, ਤਾਂ ਜੋ ਤੁਹਾਨੂੰ ਪਤਾ ਰਹੇ ਕਿ ਤੁਹਾਡਾ ਖਾਣਾ ਕਿੱਥੇ ਹੈ।';
 
   @override
-  String get notifyPromotions => 'Offers and promotions';
+  String get notifyPromotions => 'ਆਫ਼ਰ ਅਤੇ ਪ੍ਰੋਮੋਸ਼ਨ';
 
   @override
   String get notifyPromotionsBody =>
-      'Deals, coupons and new restaurants near you.';
+      'ਡੀਲਾਂ, ਕੂਪਨ ਅਤੇ ਤੁਹਾਡੇ ਨੇੜੇ ਦੇ ਨਵੇਂ ਰੈਸਟੋਰੈਂਟ।';
 
   @override
-  String get notifyPhoneOff =>
-      'Notifications are turned off for Nexmile on this phone.';
+  String get notifyPhoneOff => 'ਇਸ ਫ਼ੋਨ \'ਤੇ Nexmile ਲਈ ਨੋਟੀਫਿਕੇਸ਼ਨ ਬੰਦ ਹਨ।';
 
   @override
-  String get notifyTurnOn => 'Turn on';
+  String get notifyTurnOn => 'ਚਾਲੂ ਕਰੋ';
 
   @override
-  String get linkOpenFailed => 'That couldn\'t be opened on this phone.';
+  String get linkOpenFailed => 'ਇਹ ਇਸ ਫ਼ੋਨ \'ਤੇ ਨਹੀਂ ਖੁੱਲ੍ਹ ਸਕਿਆ।';
 
   @override
   String get editProfileTitle => 'ਪ੍ਰੋਫਾਈਲ ਸੋਧੋ';
@@ -1600,388 +1603,481 @@ class AppLocalizationsPa extends AppLocalizations {
   String get rateThisOrder => 'ਇਸ ਆਰਡਰ ਨੂੰ ਰੇਟ ਕਰੋ';
 
   @override
-  String get walletTitle => 'Nexmile Wallet';
+  String get walletTitle => 'Nexmile ਵਾਲਿਟ';
 
   @override
-  String get walletBalance => 'Wallet balance';
+  String get walletBalance => 'ਵਾਲਿਟ ਬੈਲੰਸ';
 
   @override
-  String get walletBalanceHint => 'Use it to pay for any order.';
+  String get walletBalanceHint => 'ਇਸ ਨਾਲ ਕਿਸੇ ਵੀ ਆਰਡਰ ਦਾ ਭੁਗਤਾਨ ਕਰੋ।';
 
   @override
-  String get walletAddMoney => 'Add money';
+  String get walletAddMoney => 'ਪੈਸੇ ਪਾਓ';
 
   @override
-  String get walletEnterAmount => 'Enter amount';
+  String get walletEnterAmount => 'ਰਕਮ ਦਰਜ ਕਰੋ';
 
   @override
   String walletAmountRange(String min, String max) {
-    return 'Between $min and $max';
+    return '$min ਤੋਂ $max ਤੱਕ';
   }
 
   @override
   String walletAddAmount(String amount) {
-    return 'Add $amount';
+    return '$amount ਪਾਓ';
   }
 
   @override
-  String get walletSecuredBy => 'Payments are secured by Razorpay';
+  String get walletSecuredBy => 'ਭੁਗਤਾਨ Razorpay ਰਾਹੀਂ ਸੁਰੱਖਿਅਤ ਹਨ';
 
   @override
-  String get walletHistory => 'History';
+  String get walletHistory => 'ਹਿਸਟਰੀ';
 
   @override
   String get walletNoHistory =>
-      'No transactions yet. Money you add or spend will show here.';
+      'ਅਜੇ ਕੋਈ ਲੈਣ-ਦੇਣ ਨਹੀਂ। ਤੁਸੀਂ ਜੋ ਪੈਸੇ ਪਾਓਗੇ ਜਾਂ ਖ਼ਰਚੋਗੇ, ਉਹ ਇੱਥੇ ਦਿਖਣਗੇ।';
 
   @override
-  String get walletEntryTopUp => 'Money added';
+  String get walletEntryTopUp => 'ਪੈਸੇ ਪਾਏ';
 
   @override
-  String get walletEntryOrder => 'Paid for an order';
+  String get walletEntryOrder => 'ਆਰਡਰ ਲਈ ਭੁਗਤਾਨ';
 
   @override
   String walletEntryOrderNumber(String number) {
-    return 'Paid for order $number';
+    return 'ਆਰਡਰ $number ਲਈ ਭੁਗਤਾਨ';
   }
 
   @override
-  String get walletEntryRefund => 'Refund';
+  String get walletEntryRefund => 'ਰਿਫੰਡ';
 
   @override
   String walletMoneyAdded(String amount) {
-    return '$amount added to your wallet';
+    return 'ਤੁਹਾਡੇ ਵਾਲਿਟ ਵਿੱਚ $amount ਜੁੜ ਗਏ';
   }
 
   @override
   String get walletPaymentFailed =>
-      'Payment failed. No money was taken from your account.';
+      'ਭੁਗਤਾਨ ਨਹੀਂ ਹੋਇਆ। ਤੁਹਾਡੇ ਖਾਤੇ ਵਿੱਚੋਂ ਕੋਈ ਪੈਸਾ ਨਹੀਂ ਕੱਟਿਆ ਗਿਆ।';
 
   @override
   String get walletPaymentConfirming =>
-      'Payment received. Your balance will update in a few minutes.';
+      'ਭੁਗਤਾਨ ਮਿਲ ਗਿਆ। ਤੁਹਾਡਾ ਬੈਲੰਸ ਕੁਝ ਮਿੰਟਾਂ ਵਿੱਚ ਅੱਪਡੇਟ ਹੋ ਜਾਵੇਗਾ।';
 
   @override
-  String get walletUseBalance => 'Use wallet balance';
+  String get walletUseBalance => 'ਵਾਲਿਟ ਬੈਲੰਸ ਵਰਤੋ';
 
   @override
   String walletAvailable(String amount) {
-    return 'Available: $amount';
+    return 'ਉਪਲਬਧ: $amount';
   }
 
   @override
-  String get walletPaidFromWallet => 'Paid from wallet';
+  String get walletPaidFromWallet => 'ਵਾਲਿਟ ਤੋਂ ਭੁਗਤਾਨ';
 
   @override
-  String get walletPayOnDelivery => 'Pay on delivery';
+  String get walletPayOnDelivery => 'ਡਿਲੀਵਰੀ ਵੇਲੇ ਨਕਦ';
 
   @override
-  String get walletCoversOrder => 'Paid fully from your wallet';
+  String get walletCoversOrder => 'ਪੂਰਾ ਭੁਗਤਾਨ ਤੁਹਾਡੇ ਵਾਲਿਟ ਤੋਂ';
 
   @override
   String walletRestOnDelivery(String wallet, String rest) {
-    return '$wallet from wallet, $rest on delivery';
+    return '$wallet ਵਾਲਿਟ ਤੋਂ, $rest ਡਿਲੀਵਰੀ ਵੇਲੇ';
   }
 
   @override
   String get walletTopUpUnavailable =>
-      'Adding money isn\'t available right now. Please try again later.';
+      'ਹੁਣ ਪੈਸੇ ਨਹੀਂ ਪਾਏ ਜਾ ਸਕਦੇ। ਕਿਰਪਾ ਕਰਕੇ ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
 
   @override
   String walletFull(String limit) {
-    return 'Your wallet is at its $limit limit.';
+    return 'ਤੁਹਾਡਾ ਵਾਲਿਟ ਆਪਣੀ $limit ਦੀ ਹੱਦ \'ਤੇ ਹੈ।';
   }
 
   @override
-  String get searchAddressHint => 'Search area, street or landmark';
+  String get searchAddressHint => 'ਇਲਾਕਾ, ਗਲੀ ਜਾਂ ਨਿਸ਼ਾਨੀ ਖੋਜੋ';
 
   @override
-  String get selectLocationTitle => 'Select a location';
+  String get selectLocationTitle => 'ਟਿਕਾਣਾ ਚੁਣੋ';
 
   @override
-  String get useCurrentLocation => 'Use current location';
+  String get useCurrentLocation => 'ਮੌਜੂਦਾ ਟਿਕਾਣਾ ਵਰਤੋ';
 
   @override
-  String get locatingYou => 'Finding where you are…';
+  String get locatingYou => 'ਤੁਹਾਡਾ ਟਿਕਾਣਾ ਲੱਭ ਰਹੇ ਹਾਂ…';
 
   @override
-  String get locationOffHint => 'Allow location access to use this';
+  String get locationOffHint => 'ਇਸਨੂੰ ਵਰਤਣ ਲਈ ਟਿਕਾਣੇ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ';
 
   @override
-  String get savedAddressesHeading => 'Saved addresses';
+  String get savedAddressesHeading => 'ਸੰਭਾਲੇ ਪਤੇ';
 
   @override
-  String get recentLocationsHeading => 'Recent locations';
+  String get recentLocationsHeading => 'ਹਾਲੀਆ ਟਿਕਾਣੇ';
 
   @override
   String get poweredBy => 'powered by';
 
   @override
-  String get selectDeliveryLocationTitle => 'Select delivery location';
+  String get selectDeliveryLocationTitle => 'ਡਿਲੀਵਰੀ ਟਿਕਾਣਾ ਚੁਣੋ';
 
   @override
-  String get movePinTooltip => 'Move pin to your exact delivery location';
+  String get movePinTooltip => 'ਪਿੰਨ ਨੂੰ ਆਪਣੇ ਸਹੀ ਡਿਲੀਵਰੀ ਟਿਕਾਣੇ \'ਤੇ ਲਿਜਾਓ';
 
   @override
-  String get locatingPin => 'Finding the address…';
+  String get locatingPin => 'ਪਤਾ ਲੱਭ ਰਹੇ ਹਾਂ…';
 
   @override
-  String get deliveryDetailsHeading => 'Delivery details';
+  String get deliveryDetailsHeading => 'ਡਿਲੀਵਰੀ ਵੇਰਵੇ';
 
   @override
-  String get addressDetailsLabel => 'Address details*';
+  String get addressDetailsLabel => 'ਪਤੇ ਦੇ ਵੇਰਵੇ*';
 
   @override
-  String get addressDetailsHint => 'E.g. Floor, House no.';
+  String get addressDetailsHint => 'ਜਿਵੇਂ ਮੰਜ਼ਿਲ, ਘਰ ਨੰ.';
 
   @override
   String get missingAreaHint =>
-      'We couldn\'t read the full address for this pin. Please fill in the rest.';
+      'ਅਸੀਂ ਇਸ ਪਿੰਨ ਦਾ ਪੂਰਾ ਪਤਾ ਨਹੀਂ ਪੜ੍ਹ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਕੀ ਆਪ ਭਰੋ।';
 
   @override
-  String get whoToContact => 'Who should we contact for this delivery?';
+  String get whoToContact => 'ਇਸ ਡਿਲੀਵਰੀ ਲਈ ਅਸੀਂ ਕਿਸ ਨਾਲ ਸੰਪਰਕ ਕਰੀਏ?';
 
   @override
-  String get contactMyself => 'Myself';
+  String get contactMyself => 'ਮੈਂ ਖ਼ੁਦ';
 
   @override
-  String get contactSomeoneElse => 'Someone else';
+  String get contactSomeoneElse => 'ਕੋਈ ਹੋਰ';
 
   @override
-  String get receiverDetailsHeading => 'Receiver details for this address';
+  String get receiverDetailsHeading => 'ਇਸ ਪਤੇ ਲਈ ਲੈਣ ਵਾਲੇ ਦੇ ਵੇਰਵੇ';
 
   @override
-  String get receiverAddPrompt => 'Add the receiver\'s name and number';
+  String get receiverAddPrompt => 'ਲੈਣ ਵਾਲੇ ਦਾ ਨਾਮ ਅਤੇ ਨੰਬਰ ਜੋੜੋ';
 
   @override
-  String get receiverSheetTitle => 'Receiver details';
+  String get receiverSheetTitle => 'ਲੈਣ ਵਾਲੇ ਦੇ ਵੇਰਵੇ';
 
   @override
-  String get doorPhotoHeading => 'Door/building image (optional)';
+  String get doorPhotoHeading => 'ਦਰਵਾਜ਼ੇ/ਇਮਾਰਤ ਦੀ ਫ਼ੋਟੋ (ਵਿਕਲਪਿਕ)';
 
   @override
-  String get doorPhotoAdd => 'Add an image';
+  String get doorPhotoAdd => 'ਫ਼ੋਟੋ ਜੋੜੋ';
 
   @override
   String get doorPhotoBody =>
-      'This helps our delivery partners find your exact location faster';
+      'ਇਸ ਨਾਲ ਸਾਡੇ ਡਿਲੀਵਰੀ ਪਾਰਟਨਰ ਤੁਹਾਡਾ ਸਹੀ ਟਿਕਾਣਾ ਜਲਦੀ ਲੱਭ ਲੈਂਦੇ ਹਨ';
 
   @override
-  String get doorPhotoChange => 'Change';
+  String get doorPhotoChange => 'ਬਦਲੋ';
 
   @override
-  String get doorPhotoRemove => 'Remove';
+  String get doorPhotoRemove => 'ਹਟਾਓ';
 
   @override
-  String get photoFromCamera => 'Take a photo';
+  String get photoFromCamera => 'ਫ਼ੋਟੋ ਖਿੱਚੋ';
 
   @override
-  String get photoFromGallery => 'Choose from gallery';
+  String get photoFromGallery => 'ਗੈਲਰੀ ਵਿੱਚੋਂ ਚੁਣੋ';
 
   @override
-  String get photoUploaded => 'Photo added';
+  String get photoUploaded => 'ਫ਼ੋਟੋ ਜੁੜ ਗਈ';
 
   @override
   String get photoUploadFailed =>
-      'The photo couldn\'t be uploaded. Please try again later.';
+      'ਫ਼ੋਟੋ ਅੱਪਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀ। ਕਿਰਪਾ ਕਰਕੇ ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
 
   @override
   String get addressSavedPhotoFailed =>
-      'Address saved. The photo couldn\'t be uploaded.';
+      'ਪਤਾ ਸੰਭਾਲ ਲਿਆ। ਫ਼ੋਟੋ ਅੱਪਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀ।';
 
   @override
-  String get removePhotoLabel => 'Remove photo';
+  String get removePhotoLabel => 'ਫ਼ੋਟੋ ਹਟਾਓ';
 
   @override
-  String get photoRemoved => 'Photo removed';
+  String get photoRemoved => 'ਫ਼ੋਟੋ ਹਟਾ ਦਿੱਤੀ';
 
   @override
-  String get shareLabel => 'Share';
+  String get shareLabel => 'ਸਾਂਝਾ ਕਰੋ';
 
   @override
-  String get addDoorPhotoLabel => 'Add a door photo';
+  String get addDoorPhotoLabel => 'ਦਰਵਾਜ਼ੇ ਦੀ ਫ਼ੋਟੋ ਜੋੜੋ';
 
   @override
   String get searchAddressNoResults =>
-      'No places found. Try a nearby landmark, area name or pincode.';
+      'ਕੋਈ ਥਾਂ ਨਹੀਂ ਮਿਲੀ। ਨੇੜਲੀ ਨਿਸ਼ਾਨੀ, ਇਲਾਕੇ ਦਾ ਨਾਮ ਜਾਂ ਪਿੰਨ ਕੋਡ ਅਜ਼ਮਾਓ।';
 
   @override
-  String get clearLabel => 'Clear';
+  String get clearLabel => 'ਸਾਫ਼ ਕਰੋ';
 
   @override
-  String get trackingArrivingNow => 'Arriving now';
+  String get trackingArrivingNow => 'ਹੁਣੇ ਪਹੁੰਚ ਰਿਹਾ';
 
   @override
-  String get trackingLive => 'Live';
+  String get trackingLive => 'ਲਾਈਵ';
 
   @override
-  String get trackingStepConfirmed => 'Confirmed';
+  String get trackingStepConfirmed => 'ਪੱਕਾ ਹੋਇਆ';
 
   @override
-  String get trackingStepPreparing => 'Preparing';
+  String get trackingStepPreparing => 'ਤਿਆਰ ਹੋ ਰਿਹਾ';
 
   @override
-  String get trackingStepOnTheWay => 'On the way';
+  String get trackingStepOnTheWay => 'ਰਸਤੇ ਵਿੱਚ';
 
   @override
-  String get trackingStepDelivered => 'Delivered';
+  String get trackingStepDelivered => 'ਡਿਲੀਵਰ ਹੋ ਗਿਆ';
 
   @override
-  String get trackingFindingRider => 'Assigning a delivery partner…';
+  String get trackingFindingRider => 'ਡਿਲੀਵਰੀ ਪਾਰਟਨਰ ਲਗਾਇਆ ਜਾ ਰਿਹਾ ਹੈ…';
 
   @override
-  String get trackingPinYou => 'You';
+  String get trackingPinYou => 'ਤੁਸੀਂ';
 
   @override
   String trackingRiderAway(String name, String distance) {
-    return '$name is $distance away';
+    return '$name $distance ਦੂਰ ਹੈ';
   }
 
   @override
   String trackingMessageRider(String name) {
-    return 'Message $name';
+    return '$name ਨੂੰ ਮੈਸੇਜ ਕਰੋ';
   }
 
   @override
-  String get trackingDeliveringTo => 'Delivering to';
+  String get trackingDeliveringTo => 'ਡਿਲੀਵਰੀ ਪਤਾ';
 
   @override
-  String get trackingOrderDetails => 'Order details';
+  String get trackingOrderDetails => 'ਆਰਡਰ ਦੇ ਵੇਰਵੇ';
 
   @override
   String get dispatchSearching =>
-      'Finding a delivery partner near the restaurant…';
+      'ਰੈਸਟੋਰੈਂਟ ਦੇ ਨੇੜੇ ਡਿਲੀਵਰੀ ਪਾਰਟਨਰ ਲੱਭ ਰਹੇ ਹਾਂ…';
 
   @override
   String get dispatchNoRider =>
-      'No delivery partner has taken it yet. Our team is assigning one now.';
+      'ਅਜੇ ਤੱਕ ਕਿਸੇ ਡਿਲੀਵਰੀ ਪਾਰਟਨਰ ਨੇ ਇਹ ਨਹੀਂ ਲਿਆ। ਸਾਡੀ ਟੀਮ ਹੁਣ ਕੋਈ ਲਗਾ ਰਹੀ ਹੈ।';
 
   @override
-  String get vehicleBike => 'Bike';
+  String get vehicleBike => 'ਬਾਈਕ';
 
   @override
-  String get vehicleScooter => 'Scooter';
+  String get vehicleScooter => 'ਸਕੂਟਰ';
 
   @override
-  String get vehicleBicycle => 'Bicycle';
+  String get vehicleBicycle => 'ਸਾਈਕਲ';
 
   @override
-  String get vehicleElectric => 'Electric scooter';
+  String get vehicleElectric => 'ਇਲੈਕਟ੍ਰਿਕ ਸਕੂਟਰ';
 
   @override
-  String get exitTitle => 'Exit Nexmile?';
+  String get exitTitle => 'Nexmile ਤੋਂ ਬਾਹਰ ਜਾਣਾ ਹੈ?';
 
   @override
-  String get exitBody => 'Are you sure you want to exit the app?';
+  String get exitBody => 'ਕੀ ਤੁਸੀਂ ਸੱਚਮੁੱਚ ਐਪ ਤੋਂ ਬਾਹਰ ਜਾਣਾ ਚਾਹੁੰਦੇ ਹੋ?';
 
   @override
-  String get exitConfirm => 'Exit';
+  String get exitConfirm => 'ਬਾਹਰ ਜਾਓ';
 
   @override
   String cartSavedBanner(String amount) {
-    return 'You saved $amount on this order';
+    return 'ਤੁਸੀਂ ਇਸ ਆਰਡਰ \'ਤੇ $amount ਬਚਾਏ';
   }
 
   @override
-  String get cartAddMoreItems => 'Add more items';
+  String get cartAddMoreItems => 'ਹੋਰ ਚੀਜ਼ਾਂ ਜੋੜੋ';
 
   @override
-  String get cartAddNote => 'Add a note for the restaurant';
+  String get cartAddNote => 'ਰੈਸਟੋਰੈਂਟ ਲਈ ਨੋਟ ਜੋੜੋ';
 
   @override
-  String get cartNoteHint => 'Less spicy, no onions, extra chutney…';
+  String get cartOrderNoteHint =>
+      'ਜਿਵੇਂ: ਕਿਸੇ ਵੀ ਚੀਜ਼ ਵਿੱਚ ਪਿਆਜ਼ ਜਾਂ ਲਸਣ ਨਾ ਪਾਓ';
 
   @override
-  String get cartNoteSave => 'Save';
+  String get cartNoteSave => 'ਸੰਭਾਲੋ';
 
   @override
-  String get cartNoCutlery => 'Don\'t send cutlery';
+  String get cartNoCutlery => 'ਚਮਚੇ-ਕਾਂਟੇ ਨਾ ਭੇਜੋ';
 
   @override
-  String get cartNoCutleryThanks => 'Thank you for helping cut plastic waste';
+  String get cartNoCutleryThanks => 'ਪਲਾਸਟਿਕ ਦਾ ਕੂੜਾ ਘਟਾਉਣ ਵਿੱਚ ਮਦਦ ਲਈ ਧੰਨਵਾਦ';
 
   @override
-  String get cartSavingsCorner => 'Savings corner';
+  String get cartSavingsCorner => 'ਬਚਤ ਕੋਨਾ';
 
   @override
-  String get cartDeliveryInstructions => 'Delivery instructions';
+  String get cartDeliveryInstructions => 'ਡਿਲੀਵਰੀ ਹਦਾਇਤਾਂ';
 
   @override
-  String get cartInstructionsNote => 'Sent with your order';
+  String get cartInstructionsRider =>
+      'ਇਹ ਸਿਰਫ਼ ਤੁਹਾਡੇ ਡਿਲੀਵਰੀ ਪਾਰਟਨਰ ਨੂੰ ਹੀ ਦਿਸਦੀਆਂ ਹਨ';
 
   @override
-  String get instructionLeaveAtDoor => 'Leave at the door';
+  String get instructionLeaveAtDoor => 'ਦਰਵਾਜ਼ੇ \'ਤੇ ਰੱਖ ਦਿਓ';
 
   @override
-  String get instructionNoBell => 'Avoid ringing the bell';
+  String get instructionNoBell => 'ਘੰਟੀ ਨਾ ਵਜਾਓ';
 
   @override
-  String get instructionNoCall => 'Avoid calling';
+  String get instructionNoCall => 'ਕਾਲ ਨਾ ਕਰੋ';
 
   @override
-  String get instructionSecurity => 'Leave with security';
+  String get instructionSecurity => 'ਸਿਕਿਓਰਿਟੀ ਗਾਰਡ ਨੂੰ ਦਿਓ';
 
   @override
-  String get instructionPet => 'Pet at home';
+  String get instructionPet => 'ਘਰ ਵਿੱਚ ਪਾਲਤੂ ਜਾਨਵਰ';
 
   @override
-  String get cartInclTaxes => 'Incl. taxes and charges';
+  String get cartInclTaxes => 'ਟੈਕਸ ਅਤੇ ਖਰਚੇ ਸ਼ਾਮਲ';
 
   @override
   String cartSavedTag(String amount) {
-    return '$amount saved';
+    return '$amount ਦੀ ਬਚਤ';
   }
 
   @override
-  String get cartPayUsing => 'Pay using';
+  String get cartPayUsing => 'ਭੁਗਤਾਨ ਦਾ ਤਰੀਕਾ';
 
   @override
-  String get cartWalletAndCash => 'Wallet + cash';
+  String get cartWalletAndCash => 'ਵਾਲਿਟ + ਨਕਦ';
 
   @override
   String cartCashRest(String amount) {
-    return 'Pay $amount when it arrives';
+    return 'ਪਹੁੰਚਣ \'ਤੇ $amount ਦਿਓ';
   }
 
   @override
-  String get cartCashFull => 'Pay when your order arrives';
+  String get cartCashFull => 'ਆਰਡਰ ਪਹੁੰਚਣ \'ਤੇ ਭੁਗਤਾਨ ਕਰੋ';
 
   @override
-  String get cartCashNothing => 'Nothing to pay on delivery';
+  String get cartCashNothing => 'ਡਿਲੀਵਰੀ ਵੇਲੇ ਕੁਝ ਨਹੀਂ ਦੇਣਾ';
 
   @override
-  String get cartTotal => 'Total';
+  String get cartTotal => 'ਕੁੱਲ';
 
   @override
-  String get cartPlaceOrder => 'Place order';
+  String get cartPlaceOrder => 'ਆਰਡਰ ਕਰੋ';
 
   @override
   String cartDeliverTo(String place) {
-    return 'Delivering to $place';
+    return '$place \'ਤੇ ਡਿਲੀਵਰੀ';
   }
 
   @override
-  String get cartChange => 'Change';
+  String get cartChange => 'ਬਦਲੋ';
 
   @override
-  String get cartNoAddress => 'Where should we deliver?';
+  String get cartNoAddress => 'ਡਿਲੀਵਰੀ ਕਿੱਥੇ ਕਰਨੀ ਹੈ?';
 
   @override
-  String get cartNoAddressHint => 'Add an address to place your order';
+  String get cartNoAddressHint => 'ਆਰਡਰ ਕਰਨ ਲਈ ਪਤਾ ਜੋੜੋ';
 
   @override
   String cartPickupFrom(String restaurant) {
-    return 'Pick up from $restaurant';
+    return '$restaurant ਤੋਂ ਆਪ ਲਓ';
   }
 
   @override
   String cartReadyIn(int minutes) {
-    return 'Ready in about $minutes mins';
+    return 'ਲਗਭਗ $minutes ਮਿੰਟਾਂ ਵਿੱਚ ਤਿਆਰ';
   }
 
   @override
-  String get cartChooseAddress => 'Choose a delivery address';
+  String get cartChooseAddress => 'ਡਿਲੀਵਰੀ ਪਤਾ ਚੁਣੋ';
 
   @override
-  String get cartDone => 'Done';
+  String get cartDone => 'ਹੋ ਗਿਆ';
+
+  @override
+  String get supportTitle => 'Nexmile ਸਹਾਇਤਾ';
+
+  @override
+  String get supportBubble => 'ਮਦਦ';
+
+  @override
+  String get supportAiLabel => 'AI ਸਹਾਇਕ';
+
+  @override
+  String supportAgentLabel(String name) {
+    return '$name · Nexmile ਟੀਮ';
+  }
+
+  @override
+  String get supportDemoBanner =>
+      'ਡੈਮੋ: ਇਹ ਜਵਾਬ ਨਮੂਨੇ ਹਨ। ਅਸਲੀ ਸਹਾਇਕ ਅਜੇ ਜੁੜਿਆ ਨਹੀਂ ਹੈ।';
+
+  @override
+  String get supportEmptyTitle => 'ਅਸੀਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦੇ ਹਾਂ?';
+
+  @override
+  String get supportEmptyBody =>
+      'ਕਿਸੇ ਆਰਡਰ, ਭੁਗਤਾਨ ਜਾਂ ਕਿਸੇ ਵੀ ਹੋਰ ਚੀਜ਼ ਬਾਰੇ ਪੁੱਛੋ। ਪਹਿਲਾਂ ਸਾਡਾ AI ਸਹਾਇਕ ਜਵਾਬ ਦਿੰਦਾ ਹੈ, ਅਤੇ ਜਦੋਂ ਉਹ ਮਦਦ ਨਹੀਂ ਕਰ ਸਕਦਾ ਤਾਂ ਸਾਡੀ ਟੀਮ ਦਾ ਕੋਈ ਵਿਅਕਤੀ ਗੱਲ ਸੰਭਾਲ ਲੈਂਦਾ ਹੈ।';
+
+  @override
+  String get supportSuggestWhere => 'ਮੇਰਾ ਆਰਡਰ ਕਿੱਥੇ ਹੈ?';
+
+  @override
+  String get supportSuggestMissing => 'ਕੋਈ ਚੀਜ਼ ਗਾਇਬ ਹੈ';
+
+  @override
+  String get supportSuggestRefund => 'ਮੇਰਾ ਰਿਫੰਡ ਬਾਰੇ ਇੱਕ ਸਵਾਲ ਹੈ';
+
+  @override
+  String get supportComposerHint => 'ਮੈਸੇਜ ਟਾਈਪ ਕਰੋ';
+
+  @override
+  String get supportSend => 'ਭੇਜੋ';
+
+  @override
+  String get supportTyping => 'AI ਸਹਾਇਕ ਟਾਈਪ ਕਰ ਰਿਹਾ ਹੈ…';
+
+  @override
+  String get supportNotSent => 'ਨਹੀਂ ਭੇਜਿਆ ਗਿਆ';
+
+  @override
+  String get supportTookTooLong => 'ਬਹੁਤ ਜ਼ਿਆਦਾ ਸਮਾਂ ਲੱਗ ਗਿਆ।';
+
+  @override
+  String get supportSlowDown => 'ਹੋਰ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਥੋੜ੍ਹਾ ਰੁਕੋ।';
+
+  @override
+  String get supportUnreachable =>
+      'ਹੁਣ ਚੈਟ ਨਾਲ ਸੰਪਰਕ ਨਹੀਂ ਹੋ ਸਕਦਾ। ਸਾਨੂੰ ਕਾਲ ਕਰੋ, ਜਾਂ ਕੁਝ ਮਿੰਟਾਂ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
+
+  @override
+  String get supportOffline =>
+      'ਤੁਸੀਂ ਔਫਲਾਈਨ ਹੋ। ਇਹ ਤੁਹਾਡੀ ਆਖਰੀ ਸੰਭਾਲੀ ਹੋਈ ਚੈਟ ਹੈ।';
+
+  @override
+  String get supportClosed => 'ਇਹ ਚੈਟ ਬੰਦ ਹੋ ਗਈ ਹੈ।';
+
+  @override
+  String get supportStartNew => 'ਨਵੀਂ ਚੈਟ ਸ਼ੁਰੂ ਕਰੋ';
+
+  @override
+  String get supportTalkToPerson => 'ਕਿਸੇ ਵਿਅਕਤੀ ਨਾਲ ਗੱਲ ਕਰੋ';
+
+  @override
+  String get supportMarkSolved => 'ਹੱਲ ਹੋ ਗਿਆ';
+
+  @override
+  String get supportHelpful => 'ਮਦਦਗਾਰ';
+
+  @override
+  String get supportNotHelpful => 'ਮਦਦਗਾਰ ਨਹੀਂ';
+
+  @override
+  String get supportNeedHelp => 'ਮਦਦ ਚਾਹੀਦੀ ਹੈ?';
+
+  @override
+  String get supportChatWithUs => 'ਸਾਡੇ ਨਾਲ ਚੈਟ ਕਰੋ';
+
+  @override
+  String get supportChatWithUsBody =>
+      'ਸਾਡਾ AI ਸਹਾਇਕ ਕੁਝ ਸਕਿੰਟਾਂ ਵਿੱਚ ਜਵਾਬ ਦਿੰਦਾ ਹੈ, ਅਤੇ ਲੋੜ ਪੈਣ \'ਤੇ ਕੋਈ ਵਿਅਕਤੀ ਗੱਲ ਸੰਭਾਲ ਲੈਂਦਾ ਹੈ।';
+
+  @override
+  String get supportActionFailed => 'ਇਹ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
 }

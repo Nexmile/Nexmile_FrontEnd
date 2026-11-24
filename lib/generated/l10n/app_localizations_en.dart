@@ -1890,7 +1890,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartAddNote => 'Add a note for the restaurant';
 
   @override
-  String get cartNoteHint => 'Less spicy, no onions, extra chutney…';
+  String get cartOrderNoteHint => 'E.g. No onion or garlic in anything';
 
   @override
   String get cartNoteSave => 'Save';
@@ -1908,7 +1908,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartDeliveryInstructions => 'Delivery instructions';
 
   @override
-  String get cartInstructionsNote => 'Sent with your order';
+  String get cartInstructionsRider => 'Only your delivery partner sees these';
 
   @override
   String get instructionLeaveAtDoor => 'Leave at the door';
@@ -1985,4 +1985,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cartDone => 'Done';
+
+  @override
+  String get supportTitle => 'Nexmile Support';
+
+  @override
+  String get supportBubble => 'Help';
+
+  @override
+  String get supportAiLabel => 'AI assistant';
+
+  @override
+  String supportAgentLabel(String name) {
+    return '$name · Nexmile team';
+  }
+
+  @override
+  String get supportDemoBanner =>
+      'Demo: these answers are samples. The real assistant isn\'t connected yet.';
+
+  @override
+  String get supportEmptyTitle => 'How can we help?';
+
+  @override
+  String get supportEmptyBody =>
+      'Ask about an order, a payment or anything else. Our AI assistant answers first, and a person from our team takes over when it can\'t help.';
+
+  @override
+  String get supportSuggestWhere => 'Where is my order?';
+
+  @override
+  String get supportSuggestMissing => 'Something is missing';
+
+  @override
+  String get supportSuggestRefund => 'I have a refund question';
+
+  @override
+  String get supportComposerHint => 'Type a message';
+
+  @override
+  String get supportSend => 'Send';
+
+  @override
+  String get supportTyping => 'AI assistant is typing…';
+
+  @override
+  String get supportNotSent => 'Not sent';
+
+  @override
+  String get supportTookTooLong => 'That took too long.';
+
+  @override
+  String get supportSlowDown => 'Give it a moment before sending more.';
+
+  @override
+  String get supportUnreachable =>
+      'Chat can\'t be reached right now. Call us, or try again in a few minutes.';
+
+  @override
+  String get supportOffline => 'You\'re offline. This is your last saved chat.';
+
+  @override
+  String get supportClosed => 'This chat is closed.';
+
+  @override
+  String get supportStartNew => 'Start a new chat';
+
+  @override
+  String get supportTalkToPerson => 'Talk to a person';
+
+  @override
+  String get supportMarkSolved => 'Mark as solved';
+
+  @override
+  String get supportHelpful => 'Helpful';
+
+  @override
+  String get supportNotHelpful => 'Not helpful';
+
+  @override
+  String get supportNeedHelp => 'Need help?';
+
+  @override
+  String get supportChatWithUs => 'Chat with us';
+
+  @override
+  String get supportChatWithUsBody =>
+      'Our AI assistant answers in seconds, and a person takes over when you need one.';
+
+  @override
+  String get supportActionFailed => 'That didn\'t go through. Try again.';
 }

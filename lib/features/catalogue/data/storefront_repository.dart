@@ -1,6 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import 'cart_models.dart';
+import 'delivery_instruction.dart';
 import 'home_models.dart';
 import 'restaurant_filters.dart';
 import 'order_models.dart';
@@ -129,6 +130,8 @@ abstract class StorefrontRepository {
     bool useWallet = false,
     int? addressId,
     String? note,
+    Set<DeliveryInstruction> instructions = const <DeliveryInstruction>{},
+    bool noCutlery = false,
   });
 
   /// `GET /v1/orders`
@@ -433,21 +436,46 @@ class ApiStorefrontRepository implements StorefrontRepository {
     bool useWallet = false,
     int? addressId,
     String? note,
+    Set<DeliveryInstruction> instructions = const <DeliveryInstruction>{},
+    bool noCutlery = false,
   }) async {
-    final Map<String, dynamic> response = await _client.post(
-      '/v1/restaurants/$restaurantId/cart/checkout',
-      body: <String, dynamic>{
-        'fulfilment_type': fulfilmentType.name,
-        'payment_method': paymentMethod,
-        // The server takes as much of the order as the balance covers, and
-        // [paymentMethod] pays whatever is left.
-        if (useWallet) 'use_wallet': true,
-        // Pickup carries no address and no delivery fee.
-        if (fulfilmentType == FulfilmentType.delivery && addressId != null)
-          'address_id': addressId,
-        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-      },
-    );
+    final bool delivery = fulfilmentType == FulfilmentType.delivery;
+    Map<String, dynamic> body({required bool withInstructions}) =>
+        <String, dynamic>{
+          'fulfilment_type': fulfilmentType.name,
+          'payment_method': paymentMethod,
+          // The server takes as much of the order as the balance covers, and
+          // [paymentMethod] pays whatever is left.
+          if (useWallet) 'use_wallet': true,
+          // Pickup carries no address and no delivery fee.
+          if (delivery && addressId != null) 'address_id': addressId,
+          if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+          // For the delivery partner only, so there is no one to give them
+          // to on a pickup.
+          if (withInstructions && delivery && instructions.isNotEmpty)
+            'delivery_instructions': DeliveryInstruction.codesOf(instructions),
+          // For the restaurant, on pickup as much as on delivery.
+          if (noCutlery) 'no_cutlery': true,
+        };
+
+    final String path = '/v1/restaurants/$restaurantId/cart/checkout';
+    Map<String, dynamic> response;
+    try {
+      response = await _client.post(path, body: body(withInstructions: true));
+    } on ApiException catch (error) {
+      // Refused only when this build offers a code the server has not
+      // shipped, in words written for developers. A 422 places nothing, so
+      // the order goes again without the chips rather than not at all.
+      if (error.statusCode != 422 ||
+          !error.errors.keys.any(
+            (String field) =>
+                field == 'delivery_instructions' ||
+                field.startsWith('delivery_instructions.'),
+          )) {
+        rethrow;
+      }
+      response = await _client.post(path, body: body(withInstructions: false));
+    }
     return Order.fromJson(_data(response));
   }
 

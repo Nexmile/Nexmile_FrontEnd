@@ -20,6 +20,7 @@ import '../auth/state/auth_controller.dart';
 import '../catalogue/presentation/widgets/catalogue_widgets.dart';
 import '../wallet/state/wallet_controller.dart';
 import 'edit_profile_sheet.dart';
+import '../support/state/support_controller.dart';
 
 /// The customer's profile: who they are, their money and coupons, their
 /// preferences, and everything else an account needs, in grouped cards.
@@ -308,6 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final AuthController auth = context.read<AuthController>();
     final WalletController wallet = context.read<WalletController>();
     final AccountController account = context.read<AccountController>();
+    final SupportController support = context.read<SupportController>();
     final NavigatorState navigator = Navigator.of(context);
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
@@ -344,6 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     wallet.clear();
     await account.clear();
+    await support.clear();
     navigator.pushNamedAndRemoveUntil(
       AppRoutes.login,
       (Route<void> route) => false,
@@ -362,10 +365,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Clear the address book too, or the next customer to sign in on this
     // device inherits the previous one's saved addresses.
+    final SupportController support = context.read<SupportController>();
     context.read<AddressController>().clear();
     context.read<WalletController>().clear();
     await auth.signOut();
     await account.clear();
+    await support.clear();
     if (!mounted) return;
 
     navigator.pushNamedAndRemoveUntil(
