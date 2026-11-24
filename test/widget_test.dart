@@ -53,8 +53,10 @@ import 'package:nexmile/features/catalogue/data/restaurant_filters.dart';
 import 'package:nexmile/features/catalogue/data/review_models.dart';
 import 'package:nexmile/features/catalogue/presentation/widgets/catalogue_widgets.dart';
 import 'package:nexmile/features/catalogue/data/order_models.dart';
+import 'package:nexmile/features/catalogue/data/order_note.dart';
 import 'package:nexmile/features/catalogue/data/storefront_models.dart';
 import 'package:nexmile/features/catalogue/data/storefront_repository.dart';
+import 'package:nexmile/features/catalogue/presentation/cart_screen.dart';
 import 'package:nexmile/features/catalogue/presentation/order_placed_screen.dart';
 import 'package:nexmile/features/catalogue/presentation/orders_tab.dart';
 import 'package:nexmile/features/catalogue/presentation/order_status_screen.dart';
@@ -784,6 +786,38 @@ Map<String, dynamic> _filterMenu() => <String, dynamic>{
         },
       ],
     };
+
+/// Text on the cart's place-order button.
+Finder _onPlaceButton(String text) => find.descendant(
+      of: find.byKey(const ValueKey<String>('cart-place-order')),
+      matching: find.text(text),
+    );
+
+Future<FakeStorefrontRepository> _openCart(
+  WidgetTester tester, {
+  FakeStorefrontRepository? repo,
+  FakeAddressRepository? addresses,
+  FakeWalletRepository? wallet,
+  Map<String, Object> seed = _languageChosen,
+}) async {
+  final FakeStorefrontRepository storefront =
+      repo ?? (FakeStorefrontRepository()..grandTotalOverride = 420);
+  await _pumpApp(
+    tester,
+    seed: seed,
+    session: _testSession(),
+    storefrontRepository: storefront,
+    addressRepository: addresses,
+    walletRepository: wallet,
+  );
+  await _settleSplash(tester);
+  _nav(tester).pushNamed(
+    AppRoutes.cart,
+    arguments: const CartArgs(restaurantId: 'r1'),
+  );
+  await tester.pumpAndSettle();
+  return storefront;
+}
 
 void _useTallPhone(WidgetTester tester) {
   tester.view.physicalSize = const Size(400, 1000);
@@ -2715,6 +2749,110 @@ void main() {
       expect(bare.containsKey('dishes'), isFalse);
     });
 
+    ApiStorefrontRepository reviewRepo(
+      List<Map<String, dynamic>> bodies,
+      List<http.Response> answers,
+    ) =>
+        ApiStorefrontRepository(
+          ApiClient(
+            baseUrl: 'https://api.test/api',
+            httpClient: MockClient((http.Request request) async {
+              bodies.add(jsonDecode(request.body) as Map<String, dynamic>);
+              return answers.length > 1
+                  ? answers.removeAt(0)
+                  : answers.single;
+            }),
+          ),
+        );
+
+    test('a review sends only the codes the server knows, each under its own '
+        'subject', () async {
+      final List<Map<String, dynamic>> bodies = <Map<String, dynamic>>[];
+      await reviewRepo(bodies, <http.Response>[http.Response('{"data":{}}', 200)])
+          .reviewOrder(
+        7,
+        rating: 4,
+        // A delivery code under food, a code from a newer build, a repeat.
+        tags: <String>['tasty', 'on_time', 'crispy_edges', 'tasty'],
+        rider: const RiderReview(
+          rating: 5,
+          tags: <String>['polite', 'tasty', 'brought_umbrella'],
+        ),
+      );
+
+      expect(bodies.single['tags'], <String>['tasty']);
+      expect(
+        bodies.single['rider'],
+        <String, dynamic>{'rating': 5, 'tags': <String>['polite']},
+      );
+    });
+
+    test('a refused tag keeps the review: it goes again without tags',
+        () async {
+      final List<Map<String, dynamic>> bodies = <Map<String, dynamic>>[];
+      await reviewRepo(bodies, <http.Response>[
+        http.Response(
+          jsonEncode(<String, dynamic>{
+            'message': 'The given data was invalid.',
+            'errors': <String, dynamic>{
+              'rider.tags.0': <String>['Unknown rider tag: polite.'],
+            },
+          }),
+          422,
+        ),
+        http.Response('{"data":{}}', 200),
+      ]).reviewOrder(
+        7,
+        rating: 2,
+        comment: 'Cold by the time it came',
+        dishes: <int, int>{41: 2},
+        tags: <String>['cold_food'],
+        rider: const RiderReview(
+          rating: 3,
+          tags: <String>['polite'],
+          comment: 'Took the long way',
+        ),
+      );
+
+      expect(bodies, hasLength(2));
+      final Map<String, dynamic> again = bodies.last;
+      expect(again.containsKey('tags'), isFalse);
+      expect(again['rating'], 2);
+      expect(again['comment'], 'Cold by the time it came');
+      expect(again['dishes'], <String, dynamic>{'41': 2});
+      expect(
+        again['rider'],
+        <String, dynamic>{'rating': 3, 'comment': 'Took the long way'},
+      );
+    });
+
+    test('a refusal meant for the customer is not retried', () async {
+      final List<Map<String, dynamic>> bodies = <Map<String, dynamic>>[];
+      final Future<void> review = reviewRepo(bodies, <http.Response>[
+        http.Response(
+          jsonEncode(<String, dynamic>{
+            'message': 'Too late.',
+            'errors': <String, dynamic>{
+              'order': <String>['Orders can be rated for 7 days.'],
+            },
+          }),
+          422,
+        ),
+      ]).reviewOrder(7, rating: 4, tags: <String>['tasty']);
+
+      await expectLater(
+        review,
+        throwsA(
+          isA<ApiException>().having(
+            (ApiException e) => e.errors['order'],
+            'order error',
+            <String>['Orders can be rated for 7 days.'],
+          ),
+        ),
+      );
+      expect(bodies, hasLength(1));
+    });
+
     test('an order line can only be rated when the API names the dish', () {
       // `GET /v1/orders` sends the line id but not `menu_item_id`. Guessing
       // from the line id would rate whichever dish shared that number.
@@ -3841,6 +3979,9 @@ void main() {
       expect(find.text('Ratings & reviews'), findsOneWidget);
       expect(find.text('4.2'), findsOneWidget);
       expect(find.text('Biryani was worth the wait.'), findsOneWidget);
+      expect(find.text('Tasty'), findsOneWidget);
+      expect(find.text('Hot & fresh'), findsOneWidget);
+      expect(find.text('brand_new_code'), findsNothing);
       // A rating with no words still counts, and still shows its stars.
       expect(find.text('Arun'), findsOneWidget);
       expect(repo.reviewCalls.single['with_comment'], isFalse);
@@ -4252,13 +4393,15 @@ void main() {
       expect(repo.couponCode, 'WELCOME50');
       expect(find.text('WELCOME50 applied'), findsWidgets);
       expect(find.text('You save ₹50'), findsOneWidget);
-      expect(find.text('Place order · ₹370'), findsOneWidget);
+      expect(find.text('You saved ₹50 on this order'), findsOneWidget);
+      expect(_onPlaceButton('₹370'), findsOneWidget);
 
       await tester.tap(find.text('Remove'));
       await tester.pumpAndSettle();
       expect(repo.couponCode, isNull);
       expect(find.text('Apply a coupon'), findsOneWidget);
-      expect(find.text('Place order · ₹420'), findsOneWidget);
+      expect(_onPlaceButton('₹420'), findsOneWidget);
+      expect(find.text('You saved ₹50 on this order'), findsNothing);
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
@@ -5195,6 +5338,268 @@ void main() {
         tester.widget<RatedStars>(find.byType(RatedStars)).value,
         3,
       );
+    });
+
+    testWidgets('past the rating window the order stops asking',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..orderStatus = 'delivered'
+          ..orderExtra = <String, dynamic>{'can_review': false},
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.orderStatus,
+        arguments: const OrderArgs(orderId: 1),
+      );
+      await tester.pumpAndSettle();
+
+      // The server would refuse, so the card is not offered at all.
+      expect(find.textContaining('How was your order from'), findsNothing);
+      expect(find.text('You rated this order'), findsNothing);
+    });
+  });
+
+  group('cart page', () {
+    test('the order note keeps its parts in one order and within the limit',
+        () {
+      expect(composeOrderNote(), isNull);
+      expect(composeOrderNote(note: '   '), isNull);
+      expect(composeOrderNote(note: ' Less spicy '), 'Less spicy');
+      // Chips read in a fixed order, whatever order they were tapped in.
+      expect(
+        composeOrderNote(
+          instructions: <DeliveryInstruction>{
+            DeliveryInstruction.pet,
+            DeliveryInstruction.leaveAtDoor,
+          },
+          noCutlery: true,
+        ),
+        'Delivery: Leave at door, Pet at home | No cutlery',
+      );
+      // The longest note there can be still fits what checkout takes.
+      final String longest = composeOrderNote(
+        note: 'x' * maxCustomerNoteLength,
+        instructions: DeliveryInstruction.values.toSet(),
+        noCutlery: true,
+      )!;
+      expect(longest.length, lessThanOrEqualTo(maxOrderNoteLength));
+    });
+
+    testWidgets('the note, the doorstep and no cutlery go with the order',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = await _openCart(tester);
+
+      // Where it is going, from the address the storefront uses.
+      expect(find.text('Delivering to Home'), findsOneWidget);
+      expect(find.text('Cash on delivery'), findsOneWidget);
+      expect(_onPlaceButton('₹420'), findsOneWidget);
+      expect(_onPlaceButton('Place order'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-note')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('cart-note-field')),
+        'Less spicy',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(find.text('Less spicy'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-no-cutlery')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Thank you for helping cut plastic waste'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey<String>('instruction-noBell')));
+      await tester.tap(
+        find.byKey(const ValueKey<String>('instruction-leaveAtDoor')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-place-order')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(
+        repo.lastCheckout?['note'],
+        "Less spicy | Delivery: Leave at door, Don't ring bell | No cutlery",
+      );
+      expect(repo.lastCheckout?['address_id'], 1);
+      expect(repo.lastCheckout?['payment_method'], 'cod');
+      expect(find.byType(OrderPlacedScreen), findsOneWidget);
+      // The emptied cart never shows on the way out.
+      expect(find.text('Your cart is empty'), findsNothing);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('with no address the button asks for one instead of ordering',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = await _openCart(
+        tester,
+        addresses: FakeAddressRepository(seed: <Address>[]),
+      );
+
+      expect(find.text('Where should we deliver?'), findsOneWidget);
+      expect(_onPlaceButton('Add address'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-place-order')));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a delivery address'), findsOneWidget);
+      expect(repo.lastCheckout, isNull);
+    });
+
+    testWidgets('another saved address can be chosen from the bar',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = await _openCart(
+        tester,
+        addresses: FakeAddressRepository(
+          seed: <Address>[
+            _testAddress,
+            const Address(
+              id: 2,
+              label: AddressLabel.work,
+              line1: 'Tidel Park',
+              city: 'Chennai',
+              state: 'Tamil Nadu',
+              pincode: '600113',
+              latitude: 12.98,
+              longitude: 80.25,
+              isDefault: false,
+            ),
+          ],
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-deliver-to')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Work'));
+      await tester.pumpAndSettle();
+      expect(find.text('Delivering to Work'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-place-order')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(repo.lastCheckout?['address_id'], 2);
+      // Nothing ticked, nothing typed: no note at all.
+      expect(repo.lastCheckout?.containsKey('note'), isFalse);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('the bill is folded to its total and opens on a tap',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _openCart(tester);
+
+      expect(find.text('To pay'), findsOneWidget);
+      expect(find.text('Incl. taxes and charges'), findsOneWidget);
+      expect(find.text('Item total'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
+      await tester.pumpAndSettle();
+      expect(find.text('Item total'), findsOneWidget);
+      expect(find.text('Delivery fee'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
+      await tester.pumpAndSettle();
+      expect(find.text('Item total'), findsNothing);
+    });
+
+    testWidgets('the wallet pays what it can and cash the rest',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = await _openCart(
+        tester,
+        wallet: FakeWalletRepository(balance: 100),
+      );
+
+      expect(find.text('Wallet + cash'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
+      await tester.pumpAndSettle();
+      expect(find.text('Paid from wallet'), findsOneWidget);
+      expect(find.text('Pay on delivery'), findsOneWidget);
+
+      // Switched off on the sheet, it is cash only.
+      await tester.tap(find.byKey(const ValueKey<String>('cart-pay-using')));
+      await tester.pumpAndSettle();
+      expect(find.text('Pay ₹320 when it arrives'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey<String>('pay-wallet-switch')));
+      await tester.pumpAndSettle();
+      expect(find.text('Pay when your order arrives'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cash on delivery'), findsOneWidget);
+      expect(find.text('Paid from wallet'), findsNothing);
+
+      // And back on: the order says so.
+      await tester.tap(find.byKey(const ValueKey<String>('cart-pay-using')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('pay-wallet-switch')));
+      await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('cart-place-order')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(repo.lastCheckout?['use_wallet'], isTrue);
+      expect(repo.lastCheckout?['payment_method'], 'cod');
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('pickup prices the cart again and leaves the doorstep out',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final FakeStorefrontRepository repo = await _openCart(tester);
+
+      await tester.tap(find.byKey(const ValueKey<String>('instruction-noBell')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('fulfil-pickup')));
+      await tester.pumpAndSettle();
+
+      expect(repo.lastCartFulfilment, FulfilmentType.pickup);
+      expect(find.text('Pick up from Anjappar Chettinad'), findsOneWidget);
+      expect(find.text('DELIVERY INSTRUCTIONS'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey<String>('cart-place-order')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(repo.lastCheckout?['fulfilment_type'], 'pickup');
+      expect(repo.lastCheckout?.containsKey('address_id'), isFalse);
+      expect(repo.lastCheckout?.containsKey('note'), isFalse);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('"Add more items" opens the menu in the cart\'s place',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _openCart(tester);
+
+      await tester.tap(find.text('Add more items'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RestaurantScreen), findsOneWidget);
+      expect(find.byType(CartScreen), findsNothing);
+    });
+
+    testWidgets('the cart reads in dark mode', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _openCart(
+        tester,
+        seed: <String, Object>{..._languageChosen, 'nexmile.theme_mode': 'dark'},
+        wallet: FakeWalletRepository(balance: 100),
+      );
+      expect(Theme.of(tester.element(find.byType(CartScreen))).brightness,
+          Brightness.dark);
+      await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 
@@ -6216,6 +6621,42 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('layout robustness', () {
+    testWidgets('the cart holds up on 320x568 at maximum text scale',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1.0;
+      tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+
+      // Malayalam for long words, Urdu for right to left.
+      for (final String code in <String>['ml', 'ur']) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _openCart(
+          tester,
+          seed: _languageChosenAs(code),
+          wallet: FakeWalletRepository(balance: 100),
+        );
+        expect(find.byType(CartScreen), findsOneWidget, reason: code);
+        expect(tester.takeException(), isNull, reason: code);
+
+        await tester.drag(
+          find.descendant(
+            of: find.byType(CartScreen),
+            matching: find.byType(ListView),
+          ),
+          const Offset(0, -3000),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: code);
+      }
+    });
+
     // The brief: no overlapping or clipped text in any language. Flutter
     // surfaces both as overflow exceptions, so a clean pump of every screen in
     // every locale — and at the extremes of viewport and text scale — is the
@@ -6493,6 +6934,9 @@ class FakeStorefrontRepository implements StorefrontRepository {
   Map<String, Object?>? lastNearby;
   Map<String, Object?>? lastCheckout;
 
+  /// What the last cart read asked to be priced for, if anything.
+  FulfilmentType? lastCartFulfilment;
+
   /// Merged into every `/track` answer, for the rider, ETA and route.
   Map<String, dynamic> trackExtra = <String, dynamic>{};
   int trackCalls = 0;
@@ -6594,6 +7038,9 @@ class FakeStorefrontRepository implements StorefrontRepository {
       'rating': 5,
       'comment': 'Biryani was worth the wait.',
       'created_at': '2026-08-20T10:00:00Z',
+      // The food's quick answers are public; a code this build cannot name
+      // is not shown as a raw code.
+      'tags': <String>['tasty', 'fresh_hot', 'brand_new_code'],
     },
     <String, dynamic>{
       'id': 2,
@@ -6754,6 +7201,7 @@ class FakeStorefrontRepository implements StorefrontRepository {
 
   @override
   Future<Cart> cart(String restaurantId, {FulfilmentType? fulfilmentType}) async {
+    lastCartFulfilment = fulfilmentType;
     if (cartStatus == 404) {
       throw const ApiException(
         kind: ApiErrorKind.server,
@@ -6863,6 +7311,7 @@ class FakeStorefrontRepository implements StorefrontRepository {
       if (useWallet) 'use_wallet': true,
       if (fulfilmentType == FulfilmentType.delivery && addressId != null)
         'address_id': addressId,
+      if (note != null) 'note': note,
     };
     _maybeThrow();
     return Order.fromJson(_orderJson('placed'));

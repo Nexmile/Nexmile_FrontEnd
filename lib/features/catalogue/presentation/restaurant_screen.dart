@@ -284,7 +284,10 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     if (line == null) {
       Navigator.of(context).pushNamed(
         AppRoutes.cart,
-        arguments: CartArgs(restaurantId: widget.args.restaurantId),
+        arguments: CartArgs(
+          restaurantId: widget.args.restaurantId,
+          fromMenu: true,
+        ),
       );
       return;
     }
@@ -1945,7 +1948,7 @@ class _CartBarBody extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radius),
           onTap: () => Navigator.of(context).pushNamed(
             AppRoutes.cart,
-            arguments: CartArgs(restaurantId: restaurantId),
+            arguments: CartArgs(restaurantId: restaurantId, fromMenu: true),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),

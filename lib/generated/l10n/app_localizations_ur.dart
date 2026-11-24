@@ -1874,4 +1874,112 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get exitConfirm => 'Exit';
+
+  @override
+  String cartSavedBanner(String amount) {
+    return 'You saved $amount on this order';
+  }
+
+  @override
+  String get cartAddMoreItems => 'Add more items';
+
+  @override
+  String get cartAddNote => 'Add a note for the restaurant';
+
+  @override
+  String get cartNoteHint => 'Less spicy, no onions, extra chutney…';
+
+  @override
+  String get cartNoteSave => 'Save';
+
+  @override
+  String get cartNoCutlery => 'Don\'t send cutlery';
+
+  @override
+  String get cartNoCutleryThanks => 'Thank you for helping cut plastic waste';
+
+  @override
+  String get cartSavingsCorner => 'Savings corner';
+
+  @override
+  String get cartDeliveryInstructions => 'Delivery instructions';
+
+  @override
+  String get cartInstructionsNote => 'Sent with your order';
+
+  @override
+  String get instructionLeaveAtDoor => 'Leave at the door';
+
+  @override
+  String get instructionNoBell => 'Avoid ringing the bell';
+
+  @override
+  String get instructionNoCall => 'Avoid calling';
+
+  @override
+  String get instructionSecurity => 'Leave with security';
+
+  @override
+  String get instructionPet => 'Pet at home';
+
+  @override
+  String get cartInclTaxes => 'Incl. taxes and charges';
+
+  @override
+  String cartSavedTag(String amount) {
+    return '$amount saved';
+  }
+
+  @override
+  String get cartPayUsing => 'Pay using';
+
+  @override
+  String get cartWalletAndCash => 'Wallet + cash';
+
+  @override
+  String cartCashRest(String amount) {
+    return 'Pay $amount when it arrives';
+  }
+
+  @override
+  String get cartCashFull => 'Pay when your order arrives';
+
+  @override
+  String get cartCashNothing => 'Nothing to pay on delivery';
+
+  @override
+  String get cartTotal => 'Total';
+
+  @override
+  String get cartPlaceOrder => 'Place order';
+
+  @override
+  String cartDeliverTo(String place) {
+    return 'Delivering to $place';
+  }
+
+  @override
+  String get cartChange => 'Change';
+
+  @override
+  String get cartNoAddress => 'Where should we deliver?';
+
+  @override
+  String get cartNoAddressHint => 'Add an address to place your order';
+
+  @override
+  String cartPickupFrom(String restaurant) {
+    return 'Pick up from $restaurant';
+  }
+
+  @override
+  String cartReadyIn(int minutes) {
+    return 'Ready in about $minutes mins';
+  }
+
+  @override
+  String get cartChooseAddress => 'Choose a delivery address';
+
+  @override
+  String get cartDone => 'Done';
 }

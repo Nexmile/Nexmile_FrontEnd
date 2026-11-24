@@ -1837,5 +1837,101 @@
   "@exitBody": {"description": "Body of the exit confirmation dialog."},
 
   "exitConfirm": "Exit",
-  "@exitConfirm": {"description": "Button that closes the app."}
+  "@exitConfirm": {"description": "Button that closes the app."},
+
+  "cartSavedBanner": "You saved {amount} on this order",
+  "@cartSavedBanner": {"description": "Green banner at the top of the cart when the bill takes money off. The amount arrives formatted with the rupee sign.", "placeholders": {"amount": {"type": "String", "example": "₹50"}}},
+
+  "cartAddMoreItems": "Add more items",
+  "@cartAddMoreItems": {"description": "Row under the dishes in the cart that goes back to the menu."},
+
+  "cartAddNote": "Add a note for the restaurant",
+  "@cartAddNote": {"description": "Row in the cart that opens the note for the kitchen."},
+
+  "cartNoteHint": "Less spicy, no onions, extra chutney…",
+  "@cartNoteHint": {"description": "Hint in the note-for-the-restaurant field."},
+
+  "cartNoteSave": "Save",
+  "@cartNoteSave": {"description": "Button that keeps the note for the restaurant."},
+
+  "cartNoCutlery": "Don't send cutlery",
+  "@cartNoCutlery": {"description": "Checkbox in the cart asking the restaurant to leave out spoons and forks."},
+
+  "cartNoCutleryThanks": "Thank you for helping cut plastic waste",
+  "@cartNoCutleryThanks": {"description": "Shown under the no-cutlery checkbox once it is ticked."},
+
+  "cartSavingsCorner": "Savings corner",
+  "@cartSavingsCorner": {"description": "Heading over the coupon row in the cart. Shown in capitals."},
+
+  "cartDeliveryInstructions": "Delivery instructions",
+  "@cartDeliveryInstructions": {"description": "Heading over the delivery instruction chips in the cart. Shown in capitals."},
+
+  "cartInstructionsNote": "Sent with your order",
+  "@cartInstructionsNote": {"description": "Small line under the delivery instruction chips."},
+
+  "instructionLeaveAtDoor": "Leave at the door",
+  "@instructionLeaveAtDoor": {"description": "Delivery instruction chip."},
+
+  "instructionNoBell": "Avoid ringing the bell",
+  "@instructionNoBell": {"description": "Delivery instruction chip."},
+
+  "instructionNoCall": "Avoid calling",
+  "@instructionNoCall": {"description": "Delivery instruction chip."},
+
+  "instructionSecurity": "Leave with security",
+  "@instructionSecurity": {"description": "Delivery instruction chip: hand it to the building's guard."},
+
+  "instructionPet": "Pet at home",
+  "@instructionPet": {"description": "Delivery instruction chip: warns the delivery partner about a dog or cat."},
+
+  "cartInclTaxes": "Incl. taxes and charges",
+  "@cartInclTaxes": {"description": "Under the total on the folded bill in the cart."},
+
+  "cartSavedTag": "{amount} saved",
+  "@cartSavedTag": {"description": "Green tag on the folded bill. The amount arrives formatted with the rupee sign.", "placeholders": {"amount": {"type": "String", "example": "₹50"}}},
+
+  "cartPayUsing": "Pay using",
+  "@cartPayUsing": {"description": "Label over the payment method in the cart's bottom bar, and the title of the payment sheet. Shown in capitals in the bar."},
+
+  "cartWalletAndCash": "Wallet + cash",
+  "@cartWalletAndCash": {"description": "Payment method when the wallet pays part and the rest is cash on delivery."},
+
+  "cartCashRest": "Pay {amount} when it arrives",
+  "@cartCashRest": {"description": "Under cash on delivery when the wallet pays the rest. The amount arrives formatted with the rupee sign.", "placeholders": {"amount": {"type": "String", "example": "₹120"}}},
+
+  "cartCashFull": "Pay when your order arrives",
+  "@cartCashFull": {"description": "Under cash on delivery on the payment sheet."},
+
+  "cartCashNothing": "Nothing to pay on delivery",
+  "@cartCashNothing": {"description": "Under cash on delivery when the wallet covers the whole order."},
+
+  "cartTotal": "Total",
+  "@cartTotal": {"description": "Small label under the amount on the place-order button. Shown in capitals."},
+
+  "cartPlaceOrder": "Place order",
+  "@cartPlaceOrder": {"description": "The place-order button in the cart."},
+
+  "cartDeliverTo": "Delivering to {place}",
+  "@cartDeliverTo": {"description": "Over the address in the cart's bottom bar.", "placeholders": {"place": {"type": "String", "example": "Home"}}},
+
+  "cartChange": "Change",
+  "@cartChange": {"description": "Changes the delivery address from the cart."},
+
+  "cartNoAddress": "Where should we deliver?",
+  "@cartNoAddress": {"description": "In the cart's bottom bar when no address is chosen."},
+
+  "cartNoAddressHint": "Add an address to place your order",
+  "@cartNoAddressHint": {"description": "Under the no-address line in the cart's bottom bar."},
+
+  "cartPickupFrom": "Pick up from {restaurant}",
+  "@cartPickupFrom": {"description": "In the cart's bottom bar for a pickup order.", "placeholders": {"restaurant": {"type": "String", "example": "Anjappar"}}},
+
+  "cartReadyIn": "Ready in about {minutes} mins",
+  "@cartReadyIn": {"description": "Under the pickup line: the kitchen's usual preparation time.", "placeholders": {"minutes": {"type": "int"}}},
+
+  "cartChooseAddress": "Choose a delivery address",
+  "@cartChooseAddress": {"description": "Title of the address sheet opened from the cart."},
+
+  "cartDone": "Done",
+  "@cartDone": {"description": "Closes the payment sheet."}
 }

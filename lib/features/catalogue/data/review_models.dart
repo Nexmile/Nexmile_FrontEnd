@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'review_tags.dart';
 import 'storefront_models.dart';
 
 /// What a restaurant's ratings add up to.
@@ -65,12 +66,18 @@ class ReviewSummary {
 /// One customer's rating, and their words if they left any.
 @immutable
 class Review {
+  static String? _known(Object? raw) {
+    final String code = raw is String ? raw.trim() : '';
+    return ReviewTags.isFood(code) ? code : null;
+  }
+
   const Review({
     required this.id,
     required this.author,
     required this.rating,
     required this.comment,
     required this.createdAt,
+    this.tags = const <String>[],
   });
 
   final int id;
@@ -85,6 +92,10 @@ class Review {
 
   final DateTime? createdAt;
 
+  /// The food's quick answers ("tasty", "cold_food"), public by design.
+  /// Only codes this build can name are kept: a raw code is no label.
+  final List<String> tags;
+
   bool get hasComment => (comment ?? '').trim().isNotEmpty;
 
   static Review fromJson(Map<String, dynamic> json) {
@@ -95,6 +106,12 @@ class Review {
       rating: asInt(json['rating']),
       comment: comment.trim().isEmpty ? null : comment,
       createdAt: asDate(json['created_at']),
+      tags: <String>[
+        for (final Object? tag
+            in json['tags'] is List ? json['tags'] as List<Object?> : const <Object?>[])
+          if (_known(tag is Map ? tag['code'] : tag) case final String code)
+            code,
+      ],
     );
   }
 }

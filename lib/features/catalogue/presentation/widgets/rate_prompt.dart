@@ -32,8 +32,15 @@ class RatePromptCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final int? rated = context.watch<RatedOrders>().ratingOf(order);
+    final RatedOrders ratings = context.watch<RatedOrders>();
+    final int? rated = ratings.ratingOf(order);
     final bool isDark = theme.brightness == Brightness.dark;
+
+    // Outside the 7-day window, or not delivered: the server would refuse,
+    // so nothing is asked.
+    if (rated == null && !ratings.needsRating(order)) {
+      return const SizedBox.shrink();
+    }
 
     if (rated != null) {
       return Row(

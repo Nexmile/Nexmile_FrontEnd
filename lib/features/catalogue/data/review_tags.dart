@@ -51,6 +51,20 @@ class ReviewTags {
   static List<String> food(int stars) => stars >= 4 ? foodPraise : foodIssues;
   static List<String> rider(int stars) => stars >= 4 ? riderPraise : riderIssues;
 
+  static bool isFood(String code) =>
+      foodPraise.contains(code) || foodIssues.contains(code);
+  static bool isRider(String code) =>
+      riderPraise.contains(code) || riderIssues.contains(code);
+
+  /// [codes] without anything the server would refuse under that subject,
+  /// each once. The server checks every code and refuses the whole review
+  /// over one it does not know, in words meant for developers, not for the
+  /// customer who tapped a chip.
+  static List<String> onlyFood(Iterable<String> codes) =>
+      codes.where(isFood).toSet().toList(growable: false);
+  static List<String> onlyRider(Iterable<String> codes) =>
+      codes.where(isRider).toSet().toList(growable: false);
+
   static String label(AppLocalizations l10n, String code) => switch (code) {
         'tasty' => l10n.tagTasty,
         'fresh_hot' => l10n.tagFreshHot,
@@ -94,6 +108,10 @@ class RiderReview {
 
   /// For the operations team and the rider's record, never shown publicly.
   final String? comment;
+
+  /// The same stars and note without the quick answers, for sending again
+  /// after the server refused a code.
+  RiderReview withoutTags() => RiderReview(rating: rating, comment: comment);
 
   Map<String, Object?> toJson() => <String, Object?>{
         'rating': rating,

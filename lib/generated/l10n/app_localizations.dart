@@ -3349,6 +3349,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exit'**
   String get exitConfirm;
+
+  /// Green banner at the top of the cart when the bill takes money off. The amount arrives formatted with the rupee sign.
+  ///
+  /// In en, this message translates to:
+  /// **'You saved {amount} on this order'**
+  String cartSavedBanner(String amount);
+
+  /// Row under the dishes in the cart that goes back to the menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more items'**
+  String get cartAddMoreItems;
+
+  /// Row in the cart that opens the note for the kitchen.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note for the restaurant'**
+  String get cartAddNote;
+
+  /// Hint in the note-for-the-restaurant field.
+  ///
+  /// In en, this message translates to:
+  /// **'Less spicy, no onions, extra chutney…'**
+  String get cartNoteHint;
+
+  /// Button that keeps the note for the restaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get cartNoteSave;
+
+  /// Checkbox in the cart asking the restaurant to leave out spoons and forks.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t send cutlery'**
+  String get cartNoCutlery;
+
+  /// Shown under the no-cutlery checkbox once it is ticked.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for helping cut plastic waste'**
+  String get cartNoCutleryThanks;
+
+  /// Heading over the coupon row in the cart. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings corner'**
+  String get cartSavingsCorner;
+
+  /// Heading over the delivery instruction chips in the cart. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery instructions'**
+  String get cartDeliveryInstructions;
+
+  /// Small line under the delivery instruction chips.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent with your order'**
+  String get cartInstructionsNote;
+
+  /// Delivery instruction chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave at the door'**
+  String get instructionLeaveAtDoor;
+
+  /// Delivery instruction chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid ringing the bell'**
+  String get instructionNoBell;
+
+  /// Delivery instruction chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid calling'**
+  String get instructionNoCall;
+
+  /// Delivery instruction chip: hand it to the building's guard.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave with security'**
+  String get instructionSecurity;
+
+  /// Delivery instruction chip: warns the delivery partner about a dog or cat.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet at home'**
+  String get instructionPet;
+
+  /// Under the total on the folded bill in the cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Incl. taxes and charges'**
+  String get cartInclTaxes;
+
+  /// Green tag on the folded bill. The amount arrives formatted with the rupee sign.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} saved'**
+  String cartSavedTag(String amount);
+
+  /// Label over the payment method in the cart's bottom bar, and the title of the payment sheet. Shown in capitals in the bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay using'**
+  String get cartPayUsing;
+
+  /// Payment method when the wallet pays part and the rest is cash on delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet + cash'**
+  String get cartWalletAndCash;
+
+  /// Under cash on delivery when the wallet pays the rest. The amount arrives formatted with the rupee sign.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount} when it arrives'**
+  String cartCashRest(String amount);
+
+  /// Under cash on delivery on the payment sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay when your order arrives'**
+  String get cartCashFull;
+
+  /// Under cash on delivery when the wallet covers the whole order.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to pay on delivery'**
+  String get cartCashNothing;
+
+  /// Small label under the amount on the place-order button. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get cartTotal;
+
+  /// The place-order button in the cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Place order'**
+  String get cartPlaceOrder;
+
+  /// Over the address in the cart's bottom bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivering to {place}'**
+  String cartDeliverTo(String place);
+
+  /// Changes the delivery address from the cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get cartChange;
+
+  /// In the cart's bottom bar when no address is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Where should we deliver?'**
+  String get cartNoAddress;
+
+  /// Under the no-address line in the cart's bottom bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an address to place your order'**
+  String get cartNoAddressHint;
+
+  /// In the cart's bottom bar for a pickup order.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up from {restaurant}'**
+  String cartPickupFrom(String restaurant);
+
+  /// Under the pickup line: the kitchen's usual preparation time.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready in about {minutes} mins'**
+  String cartReadyIn(int minutes);
+
+  /// Title of the address sheet opened from the cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a delivery address'**
+  String get cartChooseAddress;
+
+  /// Closes the payment sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get cartDone;
 }
 
 class _AppLocalizationsDelegate

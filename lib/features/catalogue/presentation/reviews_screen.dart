@@ -8,6 +8,7 @@ import '../../../generated/l10n/app_localizations.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/data/auth_failure.dart';
 import '../data/review_models.dart';
+import '../data/review_tags.dart';
 import '../data/storefront_repository.dart';
 import 'widgets/catalogue_widgets.dart';
 import '../../../core/motion/nexmile_loader.dart';
@@ -327,6 +328,48 @@ class _HistogramRow extends StatelessWidget {
   }
 }
 
+/// One quick answer on a review: green with a tick for praise, plain for a
+/// complaint.
+class _ReviewTag extends StatelessWidget {
+  const _ReviewTag({required this.label, required this.praise});
+
+  final String label;
+  final bool praise;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color green = theme.brightness == Brightness.dark
+        ? AppColors.greenLight
+        : AppColors.greenDeep;
+    final Color ink = praise ? green : theme.colorScheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: praise
+            ? green.withValues(alpha: 0.10)
+            : theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (praise) ...<Widget>[
+            Icon(Icons.check_rounded, size: 14, color: ink),
+            const SizedBox(width: 3),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(color: ink),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ReviewTile extends StatelessWidget {
   const _ReviewTile({required this.review});
 
@@ -368,6 +411,20 @@ class _ReviewTile extends StatelessWidget {
         if (review.hasComment) ...<Widget>[
           const SizedBox(height: 8),
           Text(review.comment!, style: theme.textTheme.bodyMedium),
+        ],
+        if (review.tags.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: <Widget>[
+              for (final String code in review.tags)
+                _ReviewTag(
+                  label: ReviewTags.label(AppLocalizations.of(context), code),
+                  praise: ReviewTags.foodPraise.contains(code),
+                ),
+            ],
+          ),
         ],
       ],
     );

@@ -123,7 +123,7 @@ recomputing any of them on the client would only drift.
 
 | Method | Path | Called from | Notes |
 |---|---|---|---|
-| `POST` | `/v1/restaurants/{id}/cart/checkout` | [checkout_sheet.dart](../lib/features/catalogue/presentation/widgets/checkout_sheet.dart) | `fulfilment_type` (`delivery`/`pickup`), `payment_method` (`cod` — cash is the only method today), `address_id` on delivery only, optional `note`. |
+| `POST` | `/v1/restaurants/{id}/cart/checkout` | [cart_screen.dart](../lib/features/catalogue/presentation/cart_screen.dart) | `fulfilment_type` (`delivery`/`pickup`), `payment_method` (`cod`, or `wallet` when the balance covers it all), `use_wallet`, `address_id` on delivery only, optional `note`. The note carries the cart's doorstep chips and "No cutlery" after the typed text, each part split by a vertical bar, and stays within 200 characters. |
 | `GET` | `/v1/orders` | [orders_tab.dart](../lib/features/catalogue/presentation/orders_tab.dart) | Optional `active=1`. In-flight orders are lifted above finished ones. |
 | `GET` | `/v1/orders/{id}` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Full order: items, timeline, bill, pickup code. Also the two fixed ends of the journey — `delivery_address.latitude/longitude` and `restaurant.latitude/longitude` — which the tracking map draws as the home and shop pins. **Either can be null** (a merchant who never set a location, an address saved before coordinates were required) and the map draws what it has. Never geocoded from the address text: it costs per call and puts narrow streets on the wrong side. |
 | `GET` | `/v1/orders/{id}/track` | [order_status_screen.dart](../lib/features/catalogue/presentation/order_status_screen.dart) | Small and cheap, polled every 8 seconds while in flight. Polling stops the moment the order finishes, so a delivered order does not keep a timer alive. Carries the rider's name, phone and live position. |
@@ -169,24 +169,25 @@ with no app release:
 
 ---
 
-### Asked for, not live yet (home cards)
+### Home cards and history (live, November 2026)
 
-Read already and hidden until sent:
+- `featured_dish: {id, name, price, is_veg}` on each restaurant in `GET /v1/restaurants` and
+  `GET /v1/home`: always a bestseller, never sold out, and absent for most shops, so the card works
+  without it. Shown on the photo ("Non Veg Loaded · ₹202"); `id` is unused for now.
+- `photos`: up to 3 on lists, in the merchant's order, the same shape as `GET /v1/restaurants/{id}`
+  (which still sends the whole carousel). Two or more make the card's photo swipeable.
+- `restaurant.area` and `restaurant.logo_url` on each order in `GET /v1/orders`: the history card's
+  second line and picture. `logo_url` is null for most shops today, so the placeholder stays.
 
-- `featured_dish: {name, price, is_veg}` on each restaurant in `GET /v1/restaurants` and
-  `GET /v1/home`: one dish the card leads with, shown on its photo ("Non Veg Loaded · ₹202").
-- `photos` (up to 5, signed) on each restaurant in those lists: the card's photos become swipeable,
-  with dots. Lists send only `banner_url` today, on purpose, to keep the payload small; up to 3 is
-  plenty for a card.
+Every photo link here is signed for a day. The app caches the picture, keyed on the link without its
+signature ([image_disk_cache.dart](../lib/core/network/image_disk_cache.dart)), never the link; a
+stale link answers `403` and the card shows its fallback until the list is fetched again.
 
----
-
-### Ratings (asked for, not live yet)
+### Ratings (live, November 2026)
 
 The rating screen ([rate_order_screen.dart](../lib/features/catalogue/presentation/rate_order_screen.dart))
-rates the delivery, the food and restaurant, and single dishes. It sends today's fields plus two new
-ones to `POST /v1/orders/{id}/review`, so it works now and the new parts are kept once the server
-reads them:
+rates the delivery, the food and restaurant, and single dishes, in one call to
+`POST /v1/orders/{id}/review`:
 
 ```json
 {
@@ -198,16 +199,33 @@ reads them:
 }
 ```
 
-`rating` (the food and restaurant, 1–5) is still the only required field. `tags` are the food's quick
-answers; `rider` is absent for a pickup, and its `comment` is private. Tag codes are fixed lists in
-[review_tags.dart](../lib/features/catalogue/data/review_tags.dart): praise for 4–5 stars, issues for
-1–3; the app translates the labels.
-
-Asked for on each order in `GET /v1/orders` and `GET /v1/orders/{id}`: `review` (null, or
-`{rating, rider_rating}`), `can_review` (delivered, inside the window, not yet rated) and
-`rider: {name, photo_url}` on delivered orders. Until they arrive, the app remembers on the phone
-which orders it rated ([rated_orders.dart](../lib/features/catalogue/state/rated_orders.dart)), so a
-rated order stops asking. The server's `review` wins whenever it is sent.
+- `rating` (the food and restaurant, 1–5) is the only required field. `rider` is never sent for a
+  pickup; its `comment` and `tags` are private by design, never public anywhere.
+- The window is **7 days**, one review per order. Refusals about the order (not delivered, already
+  reviewed, past the window) are `422` with a message in `errors` written for the customer; the app
+  shows it verbatim.
+- Refusals under `tags`/`tags.*` and `rider.tags`/`rider.tags.*` are developer messages naming codes
+  the server does not know, so they are never shown. The app sends only codes from its own lists,
+  each under its own subject, and if one is refused anyway it sends the review again without
+  `tags` or `rider.tags`, keeping the stars, the dishes and both comments
+  ([storefront_repository.dart](../lib/features/catalogue/data/storefront_repository.dart)).
+- Tags are checked by subject, not sentiment: a delivery code sent as a food tag is a `422`, but any
+  food code is accepted at any star count. The app offers praise for 4–5 stars and issues for 1–3.
+  Codes live in [review_tags.dart](../lib/features/catalogue/data/review_tags.dart); all 24 are
+  accepted.
+- On each order: `review` (null or `{rating, rider_rating}`), `can_review`, and
+  `rider: {name, photo_url}`. `can_review` uses the endpoint's own rule, so the rating prompts
+  (order screen, history cards, home) only show when the server would accept. `photo_url` stays null:
+  riders have no photo, and an identity document is never served as an avatar.
+- Food tags are public on `GET /v1/restaurants/{id}/reviews`, shown as chips under each review
+  (codes this build cannot name are left out).
+- `order.review_requested` push about 45 minutes after delivery, with `order_id`, skipped if already
+  rated. It opens the order, where the rating card is.
+- Before `review` reached the app, a rated order was remembered on the phone
+  ([rated_orders.dart](../lib/features/catalogue/state/rated_orders.dart)); the server's `review`
+  wins whenever it is sent.
+- Not built server-side: an alert to the operations team on `asked_extra_money` or `rude`. Both are
+  stored against the rider; nothing reaches a person yet.
 
 ---
 

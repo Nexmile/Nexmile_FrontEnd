@@ -191,11 +191,15 @@ class RestaurantArgs {
 /// Argument bundle for [AppRoutes.cart].
 @immutable
 class CartArgs {
-  const CartArgs({required this.restaurantId});
+  const CartArgs({required this.restaurantId, this.fromMenu = false});
 
   /// Carts are per-restaurant server-side, so the screen is always opened
   /// against one shop rather than a global basket.
   final String restaurantId;
+
+  /// Opened from that restaurant's own menu, so "Add more items" goes back
+  /// to it rather than opening a second copy.
+  final bool fromMenu;
 }
 
 /// Argument bundle for [AppRoutes.orderStatus].

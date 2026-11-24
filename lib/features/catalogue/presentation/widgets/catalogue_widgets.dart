@@ -391,10 +391,15 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.trailing,
     this.caps = false,
+    this.padding,
   });
 
   final String title;
   final Widget? trailing;
+
+  /// Replaces the capitals heading's page gutter, for a heading inside a
+  /// list that already has its own.
+  final EdgeInsetsGeometry? padding;
 
   /// Small spaced capitals in a quiet grey ("EXPLORE MORE"), the way the big
   /// apps title the sections of a home feed: the content below is the
@@ -411,7 +416,7 @@ class SectionHeader extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     if (caps) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+        padding: padding ?? const EdgeInsets.fromLTRB(20, 24, 20, 12),
         child: Row(
           children: <Widget>[
             Expanded(

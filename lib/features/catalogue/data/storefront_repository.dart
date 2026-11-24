@@ -276,6 +276,58 @@ class ApiStorefrontRepository implements StorefrontRepository {
     Map<int, int> dishes = const <int, int>{},
     List<String> tags = const <String>[],
     RiderReview? rider,
+  }) async {
+    // Only codes the server knows travel, the same way only known codes are
+    // shown: an unknown one would only be refused.
+    final List<String> food = ReviewTags.onlyFood(tags);
+    final RiderReview? delivery = rider == null
+        ? null
+        : RiderReview(
+            rating: rider.rating,
+            tags: ReviewTags.onlyRider(rider.tags),
+            comment: rider.comment,
+          );
+    try {
+      await _postReview(
+        orderId,
+        rating: rating,
+        comment: comment,
+        dishes: dishes,
+        tags: food,
+        rider: delivery,
+      );
+    } on ApiException catch (error) {
+      // A refused code is this build's mistake, which the customer can do
+      // nothing about, and its message is written for developers. The stars
+      // and the words are kept: the review goes again without the quick
+      // answers. Any other refusal (already reviewed, past the window) is
+      // written for the customer and shown as it is.
+      if (error.statusCode != 422 || !_refusesTags(error)) rethrow;
+      await _postReview(
+        orderId,
+        rating: rating,
+        comment: comment,
+        dishes: dishes,
+        rider: delivery?.withoutTags(),
+      );
+    }
+  }
+
+  static bool _refusesTags(ApiException error) => error.errors.keys.any(
+        (String field) =>
+            field == 'tags' ||
+            field.startsWith('tags.') ||
+            field == 'rider.tags' ||
+            field.startsWith('rider.tags.'),
+      );
+
+  Future<void> _postReview(
+    int orderId, {
+    required int rating,
+    String? comment,
+    Map<int, int> dishes = const <int, int>{},
+    List<String> tags = const <String>[],
+    RiderReview? rider,
   }) {
     return _client.post(
       '/v1/orders/$orderId/review',
