@@ -21,6 +21,7 @@ import '../catalogue/presentation/widgets/catalogue_widgets.dart';
 import '../wallet/state/wallet_controller.dart';
 import 'edit_profile_sheet.dart';
 import '../support/state/support_controller.dart';
+import 'user_photo.dart';
 
 /// The customer's profile: who they are, their money and coupons, their
 /// preferences, and everything else an account needs, in grouped cards.
@@ -430,11 +431,15 @@ class _HeaderCard extends StatelessWidget {
                   color: accent.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Text(
-                  initial,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w800,
+                child: UserPhoto(
+                  url: user.avatarUrl,
+                  size: 64,
+                  fallback: Text(
+                    initial,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),

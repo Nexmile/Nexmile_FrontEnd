@@ -276,6 +276,7 @@ class _CuisineTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 10.5,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
                 color: selected ? AppColors.greenDeep : null,
               ),

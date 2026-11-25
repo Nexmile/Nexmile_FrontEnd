@@ -2083,4 +2083,154 @@ class AppLocalizationsKs extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'یہ آو نہ کرنہٕ۔ دوبارٕ کوشش کرِو۔';
+
+  @override
+  String get restaurantNew => 'نوٚو';
+
+  @override
+  String get walletHideBalance => 'بیلنس کھٹاوِو';
+
+  @override
+  String get walletShowBalance => 'بیلنس ہاوِو';
+
+  @override
+  String get walletBalanceHiddenLabel => 'بیلنس آو کھٹاونہٕ';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time آو اپ ڈیٹ کرنہٕ';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'کم از کم $amount شٲمِل کرِو';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'زیادٕ کھۄتہ زیادٕ $amount ہیٚکِو شٲمِل کٔرِتھ';
+  }
+
+  @override
+  String get walletOpeningPayment => 'أدایگی شُروع گژھان…';
+
+  @override
+  String get walletConfirmingPayment => 'أدایگی تصدیق گژھان…';
+
+  @override
+  String get walletTransactions => 'لین دین';
+
+  @override
+  String get walletFilterAll => 'سٲرؠ';
+
+  @override
+  String get walletFilterAdded => 'پونسہٕ شٲمِل';
+
+  @override
+  String get walletFilterSpent => 'پونسہٕ خرچ';
+
+  @override
+  String get walletSearch => 'ژھانڈٕو';
+
+  @override
+  String get walletSearchHint => 'آرڈر نمبر یا ID ژھانڈٕو';
+
+  @override
+  String get walletDateFilter => 'تاریخ مطابق فلٹر کرِو';
+
+  @override
+  String get walletClearFilters => 'فلٹر ہٹاوِو';
+
+  @override
+  String get walletNoMatches =>
+      'توہنٛدِن فلٹرن مطابق کانہہ لین دین نہ لبنہٕ آو';
+
+  @override
+  String get walletEmptyTitle => 'ناوُ کانہہ لین دین نہ';
+
+  @override
+  String get walletEmptyBody =>
+      'یِم پونسہٕ توہہِ شٲمِل کرِو، آرڈرن پؠٹھ خرچ کرِو یا رِفنڈ سٕتؠ واپس حٲصل کرِو، تِم ییٚنہٕ یَتہِ ہاونہٕ۔';
+
+  @override
+  String get walletToday => 'اَز';
+
+  @override
+  String get walletYesterday => 'راتھ';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'توہنٛدؠ تازٕ $count لین دین چھِ ہاونہٕ یِوان';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'آرڈر $number خٲطرٕ رِفنڈ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'لین دین تفصیل';
+
+  @override
+  String get walletDetailDate => 'تاریخ تہٕ وَکھ';
+
+  @override
+  String get walletDetailId => 'لین دین ID';
+
+  @override
+  String get walletDetailType => 'قِسم';
+
+  @override
+  String get walletDetailMethod => 'أدایگی طریقہٕ';
+
+  @override
+  String get walletDetailStatus => 'حالت';
+
+  @override
+  String get walletDetailOrder => 'آرڈر';
+
+  @override
+  String get walletDetailReference => 'أدایگی ریفرنس';
+
+  @override
+  String get walletDetailBalanceAfter => 'لین دین پتہٕ بیلنس';
+
+  @override
+  String get walletCredit => 'کریڈٹ';
+
+  @override
+  String get walletDebit => 'ڈیبٹ';
+
+  @override
+  String get walletStatusSuccess => 'کامیاب';
+
+  @override
+  String get walletStatusPending => 'زیرِ التوا';
+
+  @override
+  String get walletStatusFailed => 'ناکام';
+
+  @override
+  String get walletMethodOnline => 'آن لائن أدایگی';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'کارڈ';
+
+  @override
+  String get walletMethodNetbanking => 'نیٹ بینکنگ';
+
+  @override
+  String get walletMethodRefund => 'والیٹس منٛز رِفنڈ';
+
+  @override
+  String get walletCopyId => 'ID کاپی کرِو';
+
+  @override
+  String get walletIdCopied => 'لین دین ID آیہ کاپی کرنہٕ';
+
+  @override
+  String get walletShareDetails => 'تفصیل شیئر کرِو';
 }

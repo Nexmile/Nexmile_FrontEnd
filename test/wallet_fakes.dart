@@ -5,9 +5,19 @@ import 'package:nexmile/features/wallet/data/wallet_repository.dart';
 
 /// A wallet held in memory. Credits on verify the way the server would.
 class FakeWalletRepository implements WalletRepository {
-  FakeWalletRepository({this.balance = 0, this.unavailable = false});
+  FakeWalletRepository({
+    this.balance = 0,
+    this.unavailable = false,
+    List<WalletTransaction>? transactions,
+  }) : transactions = transactions ?? <WalletTransaction>[];
 
   double balance;
+
+  /// Newest first, as the server sends them. A verified top-up is put on top.
+  final List<WalletTransaction> transactions;
+
+  /// How many top-ups were started, to prove a double tap starts one.
+  int topUpsStarted = 0;
 
   /// Answers every call with a 404-shaped failure, like a server that has no
   /// wallet endpoints yet.
@@ -32,10 +42,15 @@ class FakeWalletRepository implements WalletRepository {
     }
   }
 
+  Wallet _snapshot() => Wallet(
+        balance: balance,
+        transactions: List<WalletTransaction>.of(transactions),
+      );
+
   @override
   Future<Wallet> wallet() async {
     _check();
-    return Wallet(balance: balance);
+    return _snapshot();
   }
 
   @override
@@ -44,6 +59,7 @@ class FakeWalletRepository implements WalletRepository {
     final ApiException? failure = failCreateWith;
     if (failure != null) throw failure;
     lastTopUpAmount = amount;
+    topUpsStarted++;
     return TopUp(
       id: 41,
       gatewayOrderId: 'order_test',
@@ -56,13 +72,28 @@ class FakeWalletRepository implements WalletRepository {
   Future<Wallet> verifyTopUp(int topUpId, GatewayReceipt receipt) async {
     _check();
     if (failVerify) {
-      if (webhookCredits) balance += (lastTopUpAmount ?? 0);
+      if (webhookCredits) _credit();
       throw const ApiException(kind: ApiErrorKind.network);
     }
     lastReceipt = receipt;
-    balance += (lastTopUpAmount ?? 0);
-    return Wallet(balance: balance);
+    _credit();
+    return _snapshot();
   }
+  void _credit() {
+    final double amount = lastTopUpAmount ?? 0;
+    balance += amount;
+    transactions.insert(
+      0,
+      WalletTransaction(
+        id: 900 + transactions.length,
+        kind: WalletEntryKind.topUp,
+        amount: amount,
+        description: '',
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
 }
 
 /// Answers every payment with [outcome], without opening anything.

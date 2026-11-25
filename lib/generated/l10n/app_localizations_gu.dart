@@ -2070,4 +2070,153 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'તે થઈ શક્યું નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get restaurantNew => 'નવું';
+
+  @override
+  String get walletHideBalance => 'બેલેન્સ છુપાવો';
+
+  @override
+  String get walletShowBalance => 'બેલેન્સ બતાવો';
+
+  @override
+  String get walletBalanceHiddenLabel => 'બેલેન્સ છુપાવેલું છે';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return 'અપડેટ: $time';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'ઓછામાં ઓછા $amount ઉમેરો';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'તમે વધુમાં વધુ $amount ઉમેરી શકો છો';
+  }
+
+  @override
+  String get walletOpeningPayment => 'ચુકવણી શરૂ થઈ રહી છે…';
+
+  @override
+  String get walletConfirmingPayment => 'ચુકવણીની પુષ્ટિ થઈ રહી છે…';
+
+  @override
+  String get walletTransactions => 'વ્યવહારો';
+
+  @override
+  String get walletFilterAll => 'બધા';
+
+  @override
+  String get walletFilterAdded => 'ઉમેરેલા પૈસા';
+
+  @override
+  String get walletFilterSpent => 'વાપરેલા પૈસા';
+
+  @override
+  String get walletSearch => 'શોધો';
+
+  @override
+  String get walletSearchHint => 'ઓર્ડર નંબર કે ID શોધો';
+
+  @override
+  String get walletDateFilter => 'તારીખ મુજબ ફિલ્ટર કરો';
+
+  @override
+  String get walletClearFilters => 'ફિલ્ટર હટાવો';
+
+  @override
+  String get walletNoMatches => 'તમારા ફિલ્ટર સાથે મેળ ખાતો કોઈ વ્યવહાર નથી';
+
+  @override
+  String get walletEmptyTitle => 'હજી કોઈ વ્યવહાર નથી';
+
+  @override
+  String get walletEmptyBody =>
+      'તમે ઉમેરેલા, ઓર્ડર પર વાપરેલા કે રિફંડ તરીકે પાછા મળેલા પૈસા અહીં દેખાશે.';
+
+  @override
+  String get walletToday => 'આજે';
+
+  @override
+  String get walletYesterday => 'ગઈકાલે';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'તમારા તાજેતરના $count વ્યવહારો બતાવી રહ્યા છીએ';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ઓર્ડર $number નું રિફંડ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'વ્યવહારની વિગતો';
+
+  @override
+  String get walletDetailDate => 'તારીખ અને સમય';
+
+  @override
+  String get walletDetailId => 'વ્યવહાર ID';
+
+  @override
+  String get walletDetailType => 'પ્રકાર';
+
+  @override
+  String get walletDetailMethod => 'ચુકવણીની રીત';
+
+  @override
+  String get walletDetailStatus => 'સ્થિતિ';
+
+  @override
+  String get walletDetailOrder => 'ઓર્ડર';
+
+  @override
+  String get walletDetailReference => 'ચુકવણી રેફરન્સ';
+
+  @override
+  String get walletDetailBalanceAfter => 'વ્યવહાર પછીનું બેલેન્સ';
+
+  @override
+  String get walletCredit => 'ક્રેડિટ';
+
+  @override
+  String get walletDebit => 'ડેબિટ';
+
+  @override
+  String get walletStatusSuccess => 'સફળ';
+
+  @override
+  String get walletStatusPending => 'બાકી';
+
+  @override
+  String get walletStatusFailed => 'નિષ્ફળ';
+
+  @override
+  String get walletMethodOnline => 'ઓનલાઇન ચુકવણી';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'કાર્ડ';
+
+  @override
+  String get walletMethodNetbanking => 'નેટ બેન્કિંગ';
+
+  @override
+  String get walletMethodRefund => 'વૉલેટમાં રિફંડ';
+
+  @override
+  String get walletCopyId => 'ID કૉપિ કરો';
+
+  @override
+  String get walletIdCopied => 'વ્યવહાર ID કૉપિ થઈ';
+
+  @override
+  String get walletShareDetails => 'વિગતો શેર કરો';
 }

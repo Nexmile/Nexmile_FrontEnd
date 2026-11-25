@@ -2077,4 +2077,153 @@ class AppLocalizationsBrx extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'बेयो जायाखै। फिन नाजा।';
+
+  @override
+  String get restaurantNew => 'गोदान';
+
+  @override
+  String get walletHideBalance => 'बेलेन्स उखुम';
+
+  @override
+  String get walletShowBalance => 'बेलेन्स दिन्थि';
+
+  @override
+  String get walletBalanceHiddenLabel => 'बेलेन्स उखुमबाय';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time आव आपडेट जाबाय';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'खमैबो $amount दाजाबदेर';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'नोंथाङा बांसिन $amount सिम दाजाबदेरनो हागौ';
+  }
+
+  @override
+  String get walletOpeningPayment => 'रांहोनाय खेवगासिनो दङ…';
+
+  @override
+  String get walletConfirmingPayment => 'रांहोनाय थि खालामगासिनो दङ…';
+
+  @override
+  String get walletTransactions => 'लेनदेन';
+
+  @override
+  String get walletFilterAll => 'गासै';
+
+  @override
+  String get walletFilterAdded => 'दाजाबदेरनाय रां';
+
+  @override
+  String get walletFilterSpent => 'खरसा खालामनाय रां';
+
+  @override
+  String get walletSearch => 'नागिर';
+
+  @override
+  String get walletSearchHint => 'अर्डार नामबार एबा ID नागिर';
+
+  @override
+  String get walletDateFilter => 'तारिखजों फिल्टार खालाम';
+
+  @override
+  String get walletClearFilters => 'फिल्टार बोखार';
+
+  @override
+  String get walletNoMatches => 'नोंथांनि फिल्टारजों गोरोबनाय जेबो लेनदेन गैया';
+
+  @override
+  String get walletEmptyTitle => 'दासिम जेबो लेनदेन गैया';
+
+  @override
+  String get walletEmptyBody =>
+      'नोंथाङो दाजाबदेरनाय, अर्डारनि थाखाय खरसा खालामनाय एबा रां फिनहोनाय महरै फिन मोननाय रां बेयाव नुजागोन।';
+
+  @override
+  String get walletToday => 'दिनै';
+
+  @override
+  String get walletYesterday => 'मैया';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'नोंथांनि गोदान $count लेनदेन दिन्थिगासिनो दङ';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'अर्डार $number नि थाखाय रां फिनहोनाय';
+  }
+
+  @override
+  String get walletDetailsTitle => 'लेनदेननि बिबुंथि';
+
+  @override
+  String get walletDetailDate => 'तारिख आरो सम';
+
+  @override
+  String get walletDetailId => 'लेनदेन ID';
+
+  @override
+  String get walletDetailType => 'रोखोम';
+
+  @override
+  String get walletDetailMethod => 'रांहोनायनि आदब';
+
+  @override
+  String get walletDetailStatus => 'थाखो';
+
+  @override
+  String get walletDetailOrder => 'अर्डार';
+
+  @override
+  String get walletDetailReference => 'रांहोनायनि रेफारेन्स';
+
+  @override
+  String get walletDetailBalanceAfter => 'लेनदेन उनाव बेलेन्स';
+
+  @override
+  String get walletCredit => 'क्रेडिट';
+
+  @override
+  String get walletDebit => 'डेबिट';
+
+  @override
+  String get walletStatusSuccess => 'सफल';
+
+  @override
+  String get walletStatusPending => 'नेथाबाय';
+
+  @override
+  String get walletStatusFailed => 'जायाखै';
+
+  @override
+  String get walletMethodOnline => 'अनलाइन रांहोनाय';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'कार्ड';
+
+  @override
+  String get walletMethodNetbanking => 'नेट बेंकिं';
+
+  @override
+  String get walletMethodRefund => 'वालेटआव रां फिनहोनाय';
+
+  @override
+  String get walletCopyId => 'ID कपि खालाम';
+
+  @override
+  String get walletIdCopied => 'लेनदेन ID कपि जाबाय';
+
+  @override
+  String get walletShareDetails => 'बिबुंथि सेयार खालाम';
 }

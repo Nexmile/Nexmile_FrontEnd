@@ -2075,4 +2075,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'That didn\'t go through. Try again.';
+
+  @override
+  String get restaurantNew => 'New';
+
+  @override
+  String get walletHideBalance => 'Hide balance';
+
+  @override
+  String get walletShowBalance => 'Show balance';
+
+  @override
+  String get walletBalanceHiddenLabel => 'Balance hidden';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'Add at least $amount';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'You can add up to $amount';
+  }
+
+  @override
+  String get walletOpeningPayment => 'Opening payment…';
+
+  @override
+  String get walletConfirmingPayment => 'Confirming payment…';
+
+  @override
+  String get walletTransactions => 'Transactions';
+
+  @override
+  String get walletFilterAll => 'All';
+
+  @override
+  String get walletFilterAdded => 'Money added';
+
+  @override
+  String get walletFilterSpent => 'Money spent';
+
+  @override
+  String get walletSearch => 'Search';
+
+  @override
+  String get walletSearchHint => 'Search order number or ID';
+
+  @override
+  String get walletDateFilter => 'Filter by date';
+
+  @override
+  String get walletClearFilters => 'Clear filters';
+
+  @override
+  String get walletNoMatches => 'No transactions match your filters';
+
+  @override
+  String get walletEmptyTitle => 'No transactions yet';
+
+  @override
+  String get walletEmptyBody =>
+      'Money you add, spend on orders or get back as refunds will show up here.';
+
+  @override
+  String get walletToday => 'Today';
+
+  @override
+  String get walletYesterday => 'Yesterday';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'Showing your latest $count transactions';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'Refund for order $number';
+  }
+
+  @override
+  String get walletDetailsTitle => 'Transaction details';
+
+  @override
+  String get walletDetailDate => 'Date and time';
+
+  @override
+  String get walletDetailId => 'Transaction ID';
+
+  @override
+  String get walletDetailType => 'Type';
+
+  @override
+  String get walletDetailMethod => 'Payment method';
+
+  @override
+  String get walletDetailStatus => 'Status';
+
+  @override
+  String get walletDetailOrder => 'Order';
+
+  @override
+  String get walletDetailReference => 'Payment reference';
+
+  @override
+  String get walletDetailBalanceAfter => 'Balance after';
+
+  @override
+  String get walletCredit => 'Credit';
+
+  @override
+  String get walletDebit => 'Debit';
+
+  @override
+  String get walletStatusSuccess => 'Successful';
+
+  @override
+  String get walletStatusPending => 'Pending';
+
+  @override
+  String get walletStatusFailed => 'Failed';
+
+  @override
+  String get walletMethodOnline => 'Online payment';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'Card';
+
+  @override
+  String get walletMethodNetbanking => 'Net banking';
+
+  @override
+  String get walletMethodRefund => 'Refund to wallet';
+
+  @override
+  String get walletCopyId => 'Copy ID';
+
+  @override
+  String get walletIdCopied => 'Transaction ID copied';
+
+  @override
+  String get walletShareDetails => 'Share details';
 }

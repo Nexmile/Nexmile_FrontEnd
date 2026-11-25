@@ -175,6 +175,43 @@ void main() {
       expect(gateway.opened, 0);
     });
 
+    test('a top-up walks through starting, paying and verifying', () async {
+      final WalletController wallet = WalletController(
+        repository: FakeWalletRepository(),
+        gateway: FakePaymentGateway(),
+      );
+      await wallet.load();
+      final List<TopUpPhase> seen = <TopUpPhase>[];
+      wallet.addListener(() {
+        if (seen.isEmpty || seen.last != wallet.phase) seen.add(wallet.phase);
+      });
+
+      expect(await wallet.addMoney(100, _payer), TopUpOutcome.added);
+      expect(seen, <TopUpPhase>[
+        TopUpPhase.starting,
+        TopUpPhase.paying,
+        TopUpPhase.verifying,
+        TopUpPhase.idle,
+      ]);
+      // Known to be right as of now.
+      expect(wallet.updatedAt, isNotNull);
+    });
+
+    test('a second add while one is open is refused, not doubled', () async {
+      final FakeWalletRepository repo = FakeWalletRepository();
+      final WalletController wallet = WalletController(
+        repository: repo,
+        gateway: FakePaymentGateway(),
+      );
+      await wallet.load();
+      final Future<TopUpOutcome> first = wallet.addMoney(100, _payer);
+      final TopUpOutcome second = await wallet.addMoney(100, _payer);
+      expect(await first, TopUpOutcome.added);
+      expect(second, TopUpOutcome.cancelled);
+      expect(repo.topUpsStarted, 1);
+      expect(wallet.balance, 100);
+    });
+
     test('sign-out forgets the balance', () async {
       final WalletController wallet = WalletController(
         repository: FakeWalletRepository(balance: 300),

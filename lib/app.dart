@@ -197,6 +197,7 @@ class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
               (_) => WalletController(
                 repository: widget.walletRepository,
                 gateway: widget.paymentGateway,
+                preferences: preferences,
               ),
         ),
         ChangeNotifierProvider<SupportController>(

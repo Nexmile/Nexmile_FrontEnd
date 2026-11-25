@@ -3709,6 +3709,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That didn\'t go through. Try again.'**
   String get supportActionFailed;
+
+  /// Badge on a restaurant with fewer than three ratings, shown where the star rating would be. Shown in capitals in languages that have them. Must stay one very short word.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get restaurantNew;
+
+  /// Tooltip on the eye button on the wallet card.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide balance'**
+  String get walletHideBalance;
+
+  /// Tooltip on the eye button on the wallet card while the balance is hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Show balance'**
+  String get walletShowBalance;
+
+  /// Read aloud in place of the amount while the balance is hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance hidden'**
+  String get walletBalanceHiddenLabel;
+
+  /// On the wallet card: when the balance was last known to be right. The time arrives formatted, like '10:42 PM' or '24 Nov'.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String walletUpdatedAt(String time);
+
+  /// Under the amount field when the amount is too small. The amount arrives formatted with the rupee sign.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least {amount}'**
+  String walletBelowMin(String amount);
+
+  /// Under the amount field when the amount is too large. The amount arrives formatted with the rupee sign.
+  ///
+  /// In en, this message translates to:
+  /// **'You can add up to {amount}'**
+  String walletAboveMax(String amount);
+
+  /// On the add-money button while the payment is being set up.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening payment…'**
+  String get walletOpeningPayment;
+
+  /// On the add-money button after paying, while the server confirms it.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming payment…'**
+  String get walletConfirmingPayment;
+
+  /// Heading over the wallet's transaction list.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get walletTransactions;
+
+  /// Filter chip: every wallet transaction. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get walletFilterAll;
+
+  /// Filter chip: money coming into the wallet (top-ups and refunds). Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Money added'**
+  String get walletFilterAdded;
+
+  /// Filter chip: money spent from the wallet on orders. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Money spent'**
+  String get walletFilterSpent;
+
+  /// Tooltip on the search button over the transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get walletSearch;
+
+  /// Hint in the transaction search box.
+  ///
+  /// In en, this message translates to:
+  /// **'Search order number or ID'**
+  String get walletSearchHint;
+
+  /// Tooltip on the calendar button over the transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by date'**
+  String get walletDateFilter;
+
+  /// Button that removes the search, date and type filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get walletClearFilters;
+
+  /// When filters hide every transaction.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions match your filters'**
+  String get walletNoMatches;
+
+  /// Heading of the empty transaction list.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get walletEmptyTitle;
+
+  /// Under the heading of the empty transaction list.
+  ///
+  /// In en, this message translates to:
+  /// **'Money you add, spend on orders or get back as refunds will show up here.'**
+  String get walletEmptyBody;
+
+  /// Day heading in the transaction list.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get walletToday;
+
+  /// Day heading in the transaction list.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get walletYesterday;
+
+  /// Under the transaction list when it holds as many as the server sends.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing your latest {count} transactions'**
+  String walletLatestOnly(int count);
+
+  /// A refund into the wallet for a cancelled order.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund for order {number}'**
+  String walletEntryRefundNumber(String number);
+
+  /// Title of the sheet with one wallet transaction's details.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction details'**
+  String get walletDetailsTitle;
+
+  /// Label in the transaction details.
+  ///
+  /// In en, this message translates to:
+  /// **'Date and time'**
+  String get walletDetailDate;
+
+  /// Label in the transaction details.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get walletDetailId;
+
+  /// Label in the transaction details: credit or debit.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get walletDetailType;
+
+  /// Label in the transaction details.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get walletDetailMethod;
+
+  /// Label in the transaction details.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get walletDetailStatus;
+
+  /// Label in the transaction details: the order number.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get walletDetailOrder;
+
+  /// Label in the transaction details: the payment gateway's reference.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment reference'**
+  String get walletDetailReference;
+
+  /// Label in the transaction details: the wallet balance once this transaction settled.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance after'**
+  String get walletDetailBalanceAfter;
+
+  /// Transaction type: money into the wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get walletCredit;
+
+  /// Transaction type: money out of the wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit'**
+  String get walletDebit;
+
+  /// Transaction status. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Successful'**
+  String get walletStatusSuccess;
+
+  /// Transaction status. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get walletStatusPending;
+
+  /// Transaction status. Must stay short.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get walletStatusFailed;
+
+  /// Payment method of money added through the payment gateway, when the gateway does not say which kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Online payment'**
+  String get walletMethodOnline;
+
+  /// Payment method.
+  ///
+  /// In en, this message translates to:
+  /// **'UPI'**
+  String get walletMethodUpi;
+
+  /// Payment method.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get walletMethodCard;
+
+  /// Payment method.
+  ///
+  /// In en, this message translates to:
+  /// **'Net banking'**
+  String get walletMethodNetbanking;
+
+  /// Payment method of money returned to the wallet from a cancelled order.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund to wallet'**
+  String get walletMethodRefund;
+
+  /// Copies the transaction ID.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy ID'**
+  String get walletCopyId;
+
+  /// Confirmation after copying the transaction ID.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID copied'**
+  String get walletIdCopied;
+
+  /// Shares the transaction's details as text, like a receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share details'**
+  String get walletShareDetails;
 }
 
 class _AppLocalizationsDelegate

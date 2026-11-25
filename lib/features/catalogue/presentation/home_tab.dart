@@ -31,6 +31,7 @@ import 'widgets/catalogue_widgets.dart';
 import 'widgets/filter_bar.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/rate_prompt.dart';
+import '../../profile/user_photo.dart';
 
 /// Nearby restaurants for the customer's delivery address.
 class HomeTab extends StatefulWidget {
@@ -935,7 +936,13 @@ class _HomeHeader extends StatelessWidget {
                                         key: ValueKey<String>('all'),
                                       ),
                               ),
-                              _HeaderAvatar(initial: name),
+                              _HeaderAvatar(
+                                initial: name,
+                                photoUrl: context
+                                    .watch<AuthController>()
+                                    .user
+                                    ?.avatarUrl,
+                              ),
                             ],
                           ),
                         ),
@@ -1031,9 +1038,10 @@ class _CuisineRailDelegate extends SliverPersistentHeaderDelegate {
 
 /// The profile button, as a circle with the customer's initial.
 class _HeaderAvatar extends StatelessWidget {
-  const _HeaderAvatar({this.initial});
+  const _HeaderAvatar({this.initial, this.photoUrl});
 
   final String? initial;
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -1057,16 +1065,20 @@ class _HeaderAvatar extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
-          child: letter.isEmpty
-              ? const Icon(Icons.person_outline_rounded,
-                  color: Colors.white, size: 20)
-              : Text(
-                  letter,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
+          child: UserPhoto(
+            url: photoUrl,
+            size: 40,
+            fallback: letter.isEmpty
+                ? const Icon(Icons.person_outline_rounded,
+                    color: Colors.white, size: 20)
+                : Text(
+                    letter,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );
@@ -1600,7 +1612,8 @@ class _ExploreTile extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                     height: 1.15,
                   ),

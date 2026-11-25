@@ -2087,4 +2087,153 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'അത് നടന്നില്ല. വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get restaurantNew => 'പുതിയത്';
+
+  @override
+  String get walletHideBalance => 'ബാലൻസ് മറയ്ക്കുക';
+
+  @override
+  String get walletShowBalance => 'ബാലൻസ് കാണിക്കുക';
+
+  @override
+  String get walletBalanceHiddenLabel => 'ബാലൻസ് മറച്ചിരിക്കുന്നു';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return 'അപ്ഡേറ്റ് ചെയ്തത്: $time';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'കുറഞ്ഞത് $amount ചേർക്കുക';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'പരമാവധി $amount വരെ ചേർക്കാം';
+  }
+
+  @override
+  String get walletOpeningPayment => 'പേയ്‌മെന്റ് തുറക്കുന്നു…';
+
+  @override
+  String get walletConfirmingPayment => 'പേയ്‌മെന്റ് സ്ഥിരീകരിക്കുന്നു…';
+
+  @override
+  String get walletTransactions => 'ഇടപാടുകൾ';
+
+  @override
+  String get walletFilterAll => 'എല്ലാം';
+
+  @override
+  String get walletFilterAdded => 'ചേർത്ത പണം';
+
+  @override
+  String get walletFilterSpent => 'ചെലവാക്കിയ പണം';
+
+  @override
+  String get walletSearch => 'തിരയുക';
+
+  @override
+  String get walletSearchHint => 'ഓർഡർ നമ്പറോ ID-യോ തിരയുക';
+
+  @override
+  String get walletDateFilter => 'തീയതി പ്രകാരം ഫിൽട്ടർ ചെയ്യുക';
+
+  @override
+  String get walletClearFilters => 'ഫിൽട്ടറുകൾ നീക്കുക';
+
+  @override
+  String get walletNoMatches => 'നിങ്ങളുടെ ഫിൽട്ടറുകൾക്ക് ചേരുന്ന ഇടപാടുകളില്ല';
+
+  @override
+  String get walletEmptyTitle => 'ഇതുവരെ ഇടപാടുകളില്ല';
+
+  @override
+  String get walletEmptyBody =>
+      'നിങ്ങൾ ചേർക്കുന്നതും ഓർഡറുകൾക്കായി ചെലവാക്കുന്നതും റീഫണ്ടായി തിരികെ ലഭിക്കുന്നതുമായ പണം ഇവിടെ കാണാം.';
+
+  @override
+  String get walletToday => 'ഇന്ന്';
+
+  @override
+  String get walletYesterday => 'ഇന്നലെ';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'നിങ്ങളുടെ അവസാന $count ഇടപാടുകൾ കാണിക്കുന്നു';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ഓർഡർ $number ന്റെ റീഫണ്ട്';
+  }
+
+  @override
+  String get walletDetailsTitle => 'ഇടപാട് വിവരങ്ങൾ';
+
+  @override
+  String get walletDetailDate => 'തീയതിയും സമയവും';
+
+  @override
+  String get walletDetailId => 'ഇടപാട് ID';
+
+  @override
+  String get walletDetailType => 'തരം';
+
+  @override
+  String get walletDetailMethod => 'പേയ്‌മെന്റ് രീതി';
+
+  @override
+  String get walletDetailStatus => 'നില';
+
+  @override
+  String get walletDetailOrder => 'ഓർഡർ';
+
+  @override
+  String get walletDetailReference => 'പേയ്‌മെന്റ് റഫറൻസ്';
+
+  @override
+  String get walletDetailBalanceAfter => 'ഇടപാടിന് ശേഷമുള്ള ബാലൻസ്';
+
+  @override
+  String get walletCredit => 'ക്രെഡിറ്റ്';
+
+  @override
+  String get walletDebit => 'ഡെബിറ്റ്';
+
+  @override
+  String get walletStatusSuccess => 'വിജയിച്ചു';
+
+  @override
+  String get walletStatusPending => 'തീർപ്പാക്കാത്തത്';
+
+  @override
+  String get walletStatusFailed => 'പരാജയപ്പെട്ടു';
+
+  @override
+  String get walletMethodOnline => 'ഓൺലൈൻ പേയ്‌മെന്റ്';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'കാർഡ്';
+
+  @override
+  String get walletMethodNetbanking => 'നെറ്റ് ബാങ്കിംഗ്';
+
+  @override
+  String get walletMethodRefund => 'വാലറ്റിലേക്ക് റീഫണ്ട്';
+
+  @override
+  String get walletCopyId => 'ID കോപ്പി ചെയ്യുക';
+
+  @override
+  String get walletIdCopied => 'ഇടപാട് ID കോപ്പി ചെയ്തു';
+
+  @override
+  String get walletShareDetails => 'വിവരങ്ങൾ പങ്കിടുക';
 }

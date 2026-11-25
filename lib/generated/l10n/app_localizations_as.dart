@@ -2077,4 +2077,153 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'কামটো নহ\'ল। পুনৰ চেষ্টা কৰক।';
+
+  @override
+  String get restaurantNew => 'নতুন';
+
+  @override
+  String get walletHideBalance => 'বেলেন্স লুকুৱাওক';
+
+  @override
+  String get walletShowBalance => 'বেলেন্স দেখুৱাওক';
+
+  @override
+  String get walletBalanceHiddenLabel => 'বেলেন্স লুকুৱাই ৰখা হৈছে';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time ত আপডেট হৈছে';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'কমেও $amount যোগ কৰক';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'আপুনি সৰ্বাধিক $amount যোগ কৰিব পাৰে';
+  }
+
+  @override
+  String get walletOpeningPayment => 'পৰিশোধ খোলা হৈ আছে…';
+
+  @override
+  String get walletConfirmingPayment => 'পৰিশোধ নিশ্চিত কৰা হৈ আছে…';
+
+  @override
+  String get walletTransactions => 'লেনদেন';
+
+  @override
+  String get walletFilterAll => 'সকলো';
+
+  @override
+  String get walletFilterAdded => 'যোগ কৰা টকা';
+
+  @override
+  String get walletFilterSpent => 'খৰচ কৰা টকা';
+
+  @override
+  String get walletSearch => 'বিচাৰক';
+
+  @override
+  String get walletSearchHint => 'অৰ্ডাৰ নম্বৰ বা ID বিচাৰক';
+
+  @override
+  String get walletDateFilter => 'তাৰিখ অনুসৰি ফিল্টাৰ কৰক';
+
+  @override
+  String get walletClearFilters => 'ফিল্টাৰ আঁতৰাওক';
+
+  @override
+  String get walletNoMatches => 'আপোনাৰ ফিল্টাৰৰ সৈতে কোনো লেনদেন মিলা নাই';
+
+  @override
+  String get walletEmptyTitle => 'এতিয়াও কোনো লেনদেন নাই';
+
+  @override
+  String get walletEmptyBody =>
+      'আপুনি যোগ কৰা, অৰ্ডাৰত খৰচ কৰা বা ৰিফাণ্ড হিচাপে ঘূৰাই পোৱা টকা ইয়াত দেখা যাব।';
+
+  @override
+  String get walletToday => 'আজি';
+
+  @override
+  String get walletYesterday => 'কালি';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'আপোনাৰ শেহতীয়া $countটা লেনদেন দেখুওৱা হৈছে';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'অৰ্ডাৰ $number ৰ বাবে ৰিফাণ্ড';
+  }
+
+  @override
+  String get walletDetailsTitle => 'লেনদেনৰ বিৱৰণ';
+
+  @override
+  String get walletDetailDate => 'তাৰিখ আৰু সময়';
+
+  @override
+  String get walletDetailId => 'লেনদেন ID';
+
+  @override
+  String get walletDetailType => 'প্ৰকাৰ';
+
+  @override
+  String get walletDetailMethod => 'পৰিশোধৰ পদ্ধতি';
+
+  @override
+  String get walletDetailStatus => 'অৱস্থা';
+
+  @override
+  String get walletDetailOrder => 'অৰ্ডাৰ';
+
+  @override
+  String get walletDetailReference => 'পৰিশোধৰ ৰেফাৰেন্স';
+
+  @override
+  String get walletDetailBalanceAfter => 'পিছৰ বেলেন্স';
+
+  @override
+  String get walletCredit => 'ক্ৰেডিট';
+
+  @override
+  String get walletDebit => 'ডেবিট';
+
+  @override
+  String get walletStatusSuccess => 'সফল';
+
+  @override
+  String get walletStatusPending => 'বিচাৰাধীন';
+
+  @override
+  String get walletStatusFailed => 'বিফল';
+
+  @override
+  String get walletMethodOnline => 'অনলাইন পৰিশোধ';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'কাৰ্ড';
+
+  @override
+  String get walletMethodNetbanking => 'নেট বেংকিং';
+
+  @override
+  String get walletMethodRefund => 'ৱালেটলৈ ৰিফাণ্ড';
+
+  @override
+  String get walletCopyId => 'ID কপি কৰক';
+
+  @override
+  String get walletIdCopied => 'লেনদেন ID কপি কৰা হ\'ল';
+
+  @override
+  String get walletShareDetails => 'বিৱৰণ শ্বেয়াৰ কৰক';
 }

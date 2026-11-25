@@ -2080,4 +2080,153 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'అది జరగలేదు. మళ్ళీ ప్రయత్నించండి.';
+
+  @override
+  String get restaurantNew => 'కొత్తది';
+
+  @override
+  String get walletHideBalance => 'బ్యాలెన్స్ దాచు';
+
+  @override
+  String get walletShowBalance => 'బ్యాలెన్స్ చూపు';
+
+  @override
+  String get walletBalanceHiddenLabel => 'బ్యాలెన్స్ దాచబడింది';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return 'అప్‌డేట్ అయింది: $time';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'కనీసం $amount జోడించండి';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'గరిష్ఠంగా $amount వరకు జోడించవచ్చు';
+  }
+
+  @override
+  String get walletOpeningPayment => 'చెల్లింపు ప్రారంభమవుతోంది…';
+
+  @override
+  String get walletConfirmingPayment => 'చెల్లింపును నిర్ధారిస్తున్నాం…';
+
+  @override
+  String get walletTransactions => 'లావాదేవీలు';
+
+  @override
+  String get walletFilterAll => 'అన్నీ';
+
+  @override
+  String get walletFilterAdded => 'జోడించిన డబ్బు';
+
+  @override
+  String get walletFilterSpent => 'ఖర్చు చేసిన డబ్బు';
+
+  @override
+  String get walletSearch => 'వెతకండి';
+
+  @override
+  String get walletSearchHint => 'ఆర్డర్ నంబర్ లేదా ID వెతకండి';
+
+  @override
+  String get walletDateFilter => 'తేదీ ద్వారా ఫిల్టర్ చేయండి';
+
+  @override
+  String get walletClearFilters => 'ఫిల్టర్‌లు తీసేయండి';
+
+  @override
+  String get walletNoMatches => 'మీ ఫిల్టర్‌లకు సరిపోయే లావాదేవీలు లేవు';
+
+  @override
+  String get walletEmptyTitle => 'ఇంకా లావాదేవీలు లేవు';
+
+  @override
+  String get walletEmptyBody =>
+      'మీరు జోడించిన, ఆర్డర్లపై ఖర్చు చేసిన లేదా రీఫండ్‌గా తిరిగి పొందిన డబ్బు ఇక్కడ కనిపిస్తుంది.';
+
+  @override
+  String get walletToday => 'ఈరోజు';
+
+  @override
+  String get walletYesterday => 'నిన్న';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'మీ తాజా $count లావాదేవీలు చూపిస్తున్నాం';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ఆర్డర్ $number కు రీఫండ్';
+  }
+
+  @override
+  String get walletDetailsTitle => 'లావాదేవీ వివరాలు';
+
+  @override
+  String get walletDetailDate => 'తేదీ, సమయం';
+
+  @override
+  String get walletDetailId => 'లావాదేవీ ID';
+
+  @override
+  String get walletDetailType => 'రకం';
+
+  @override
+  String get walletDetailMethod => 'చెల్లింపు విధానం';
+
+  @override
+  String get walletDetailStatus => 'స్థితి';
+
+  @override
+  String get walletDetailOrder => 'ఆర్డర్';
+
+  @override
+  String get walletDetailReference => 'చెల్లింపు రిఫరెన్స్';
+
+  @override
+  String get walletDetailBalanceAfter => 'లావాదేవీ తర్వాత బ్యాలెన్స్';
+
+  @override
+  String get walletCredit => 'క్రెడిట్';
+
+  @override
+  String get walletDebit => 'డెబిట్';
+
+  @override
+  String get walletStatusSuccess => 'విజయవంతం';
+
+  @override
+  String get walletStatusPending => 'పెండింగ్';
+
+  @override
+  String get walletStatusFailed => 'విఫలం';
+
+  @override
+  String get walletMethodOnline => 'ఆన్‌లైన్ చెల్లింపు';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'కార్డ్';
+
+  @override
+  String get walletMethodNetbanking => 'నెట్ బ్యాంకింగ్';
+
+  @override
+  String get walletMethodRefund => 'వాలెట్‌కు రీఫండ్';
+
+  @override
+  String get walletCopyId => 'ID కాపీ చేయి';
+
+  @override
+  String get walletIdCopied => 'లావాదేవీ ID కాపీ అయింది';
+
+  @override
+  String get walletShareDetails => 'వివరాలు షేర్ చేయి';
 }

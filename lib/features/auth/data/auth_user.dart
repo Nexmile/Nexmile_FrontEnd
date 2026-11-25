@@ -20,6 +20,7 @@ class AuthUser {
     this.phone,
     this.preferredLocale,
     this.phoneVerified = false,
+    this.avatarUrl,
   });
 
   final int id;
@@ -30,6 +31,10 @@ class AuthUser {
   final UserStatus status;
   final String? preferredLocale;
   final bool phoneVerified;
+
+  /// The customer's own picture: always sent, null when they have none, and
+  /// then their initial is drawn instead.
+  final String? avatarUrl;
 
   /// Customers are `active` the moment they verify a code — there is no
   /// approval step, unlike riders. Anything else means the account cannot be
@@ -56,6 +61,7 @@ class AuthUser {
         'status': status.name,
         'preferred_locale': preferredLocale,
         'phone_verified': phoneVerified,
+        'avatar_url': avatarUrl,
       };
 
   static AuthUser fromJson(Map<String, dynamic> json) => AuthUser(
@@ -71,7 +77,11 @@ class AuthUser {
             _enumFrom(UserStatus.values, json['status'], UserStatus.unknown),
         preferredLocale: json['preferred_locale'] as String?,
         phoneVerified: json['phone_verified'] as bool? ?? false,
+        avatarUrl: _url(json['avatar_url']),
       );
+
+  static String? _url(Object? raw) =>
+      raw is String && raw.trim().isNotEmpty ? raw.trim() : null;
 
   static T _enumFrom<T extends Enum>(List<T> values, Object? raw, T fallback) {
     if (raw is! String) return fallback;

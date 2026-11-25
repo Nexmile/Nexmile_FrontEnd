@@ -20,6 +20,7 @@ import 'widgets/rate_prompt.dart';
 import 'widgets/rating_stars.dart';
 import '../../support/presentation/support_bubble.dart' show supportChatOn;
 import '../../../core/motion/nexmile_loader.dart';
+import '../../profile/user_photo.dart';
 
 /// Order history, newest first, with the in-flight ones lifted to the top.
 ///
@@ -259,17 +260,21 @@ class _OrdersHeader extends StatelessWidget {
             tooltip: l10n.profileTitle,
             filled: true,
             onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
-            child: letter.isEmpty
-                ? const Icon(Icons.person_outline_rounded, size: 21)
-                : Text(
-                    letter,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: theme.brightness == Brightness.dark
-                          ? AppColors.greenLight
-                          : AppColors.greenDeep,
-                      fontWeight: FontWeight.w800,
+            child: UserPhoto(
+              url: context.watch<AuthController>().user?.avatarUrl,
+              size: 44,
+              fallback: letter.isEmpty
+                  ? const Icon(Icons.person_outline_rounded, size: 21)
+                  : Text(
+                      letter,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: theme.brightness == Brightness.dark
+                            ? AppColors.greenLight
+                            : AppColors.greenDeep,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ],
       ),

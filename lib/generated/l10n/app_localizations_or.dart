@@ -2075,4 +2075,153 @@ class AppLocalizationsOr extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'ଏହା ହୋଇପାରିଲା ନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
+
+  @override
+  String get restaurantNew => 'ନୂଆ';
+
+  @override
+  String get walletHideBalance => 'ବାଲାନ୍ସ ଲୁଚାନ୍ତୁ';
+
+  @override
+  String get walletShowBalance => 'ବାଲାନ୍ସ ଦେଖାନ୍ତୁ';
+
+  @override
+  String get walletBalanceHiddenLabel => 'ବାଲାନ୍ସ ଲୁଚାଯାଇଛି';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time ରେ ଅପଡେଟ ହୋଇଛି';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'ସର୍ବନିମ୍ନ $amount ଯୋଡ଼ନ୍ତୁ';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'ଆପଣ ସର୍ବାଧିକ $amount ଯୋଡ଼ିପାରିବେ';
+  }
+
+  @override
+  String get walletOpeningPayment => 'ଦେୟ ଖୋଲାଯାଉଛି…';
+
+  @override
+  String get walletConfirmingPayment => 'ଦେୟ ନିଶ୍ଚିତ କରାଯାଉଛି…';
+
+  @override
+  String get walletTransactions => 'କାରବାର';
+
+  @override
+  String get walletFilterAll => 'ସବୁ';
+
+  @override
+  String get walletFilterAdded => 'ଟଙ୍କା ଯୋଡ଼ାଗଲା';
+
+  @override
+  String get walletFilterSpent => 'ଟଙ୍କା ଖର୍ଚ୍ଚ ହେଲା';
+
+  @override
+  String get walletSearch => 'ଖୋଜନ୍ତୁ';
+
+  @override
+  String get walletSearchHint => 'ଅର୍ଡର ନମ୍ବର କିମ୍ବା ID ଖୋଜନ୍ତୁ';
+
+  @override
+  String get walletDateFilter => 'ତାରିଖ ଅନୁସାରେ ଫିଲ୍ଟର କରନ୍ତୁ';
+
+  @override
+  String get walletClearFilters => 'ଫିଲ୍ଟର ହଟାନ୍ତୁ';
+
+  @override
+  String get walletNoMatches => 'ଆପଣଙ୍କ ଫିଲ୍ଟର ସହ କୌଣସି କାରବାର ମେଳ ଖାଉନାହିଁ';
+
+  @override
+  String get walletEmptyTitle => 'ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି କାରବାର ନାହିଁ';
+
+  @override
+  String get walletEmptyBody =>
+      'ଆପଣ ଯୋଡ଼ିଥିବା, ଅର୍ଡରରେ ଖର୍ଚ୍ଚ କରିଥିବା କିମ୍ବା ଫେରସ୍ତ ଭାବେ ପାଇଥିବା ଟଙ୍କା ଏଠାରେ ଦେଖାଯିବ।';
+
+  @override
+  String get walletToday => 'ଆଜି';
+
+  @override
+  String get walletYesterday => 'ଗତକାଲି';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'ଆପଣଙ୍କ ସାମ୍ପ୍ରତିକ $countଟି କାରବାର ଦେଖାଯାଉଛି';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ଅର୍ଡର $number ପାଇଁ ଫେରସ୍ତ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'କାରବାର ବିବରଣୀ';
+
+  @override
+  String get walletDetailDate => 'ତାରିଖ ଓ ସମୟ';
+
+  @override
+  String get walletDetailId => 'କାରବାର ID';
+
+  @override
+  String get walletDetailType => 'ପ୍ରକାର';
+
+  @override
+  String get walletDetailMethod => 'ଦେୟ ମାଧ୍ୟମ';
+
+  @override
+  String get walletDetailStatus => 'ସ୍ଥିତି';
+
+  @override
+  String get walletDetailOrder => 'ଅର୍ଡର';
+
+  @override
+  String get walletDetailReference => 'ଦେୟ ରେଫରେନ୍ସ';
+
+  @override
+  String get walletDetailBalanceAfter => 'କାରବାର ପରେ ବାଲାନ୍ସ';
+
+  @override
+  String get walletCredit => 'କ୍ରେଡିଟ';
+
+  @override
+  String get walletDebit => 'ଡେବିଟ';
+
+  @override
+  String get walletStatusSuccess => 'ସଫଳ';
+
+  @override
+  String get walletStatusPending => 'ବିଚାରାଧୀନ';
+
+  @override
+  String get walletStatusFailed => 'ବିଫଳ';
+
+  @override
+  String get walletMethodOnline => 'ଅନଲାଇନ ଦେୟ';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'କାର୍ଡ';
+
+  @override
+  String get walletMethodNetbanking => 'ନେଟ ବ୍ୟାଙ୍କିଂ';
+
+  @override
+  String get walletMethodRefund => 'ୱାଲେଟକୁ ଫେରସ୍ତ';
+
+  @override
+  String get walletCopyId => 'ID କପି କରନ୍ତୁ';
+
+  @override
+  String get walletIdCopied => 'କାରବାର ID କପି ହେଲା';
+
+  @override
+  String get walletShareDetails => 'ବିବରଣୀ ସେୟାର କରନ୍ତୁ';
 }

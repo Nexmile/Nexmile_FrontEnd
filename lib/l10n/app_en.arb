@@ -2017,5 +2017,143 @@
   "@supportChatWithUsBody": {"description": "Under 'Chat with us' on the help screen."},
 
   "supportActionFailed": "That didn't go through. Try again.",
-  "@supportActionFailed": {"description": "When asking for a person or closing the chat failed."}
+  "@supportActionFailed": {"description": "When asking for a person or closing the chat failed."},
+
+  "restaurantNew": "New",
+  "@restaurantNew": {"description": "Badge on a restaurant with fewer than three ratings, shown where the star rating would be. Shown in capitals in languages that have them. Must stay one very short word."},
+
+  "walletHideBalance": "Hide balance",
+  "@walletHideBalance": {"description": "Tooltip on the eye button on the wallet card."},
+
+  "walletShowBalance": "Show balance",
+  "@walletShowBalance": {"description": "Tooltip on the eye button on the wallet card while the balance is hidden."},
+
+  "walletBalanceHiddenLabel": "Balance hidden",
+  "@walletBalanceHiddenLabel": {"description": "Read aloud in place of the amount while the balance is hidden."},
+
+  "walletUpdatedAt": "Updated {time}",
+  "@walletUpdatedAt": {"description": "On the wallet card: when the balance was last known to be right. The time arrives formatted, like '10:42 PM' or '24 Nov'.", "placeholders": {"time": {"type": "String", "example": "10:42 PM"}}},
+
+  "walletBelowMin": "Add at least {amount}",
+  "@walletBelowMin": {"description": "Under the amount field when the amount is too small. The amount arrives formatted with the rupee sign.", "placeholders": {"amount": {"type": "String", "example": "₹10"}}},
+
+  "walletAboveMax": "You can add up to {amount}",
+  "@walletAboveMax": {"description": "Under the amount field when the amount is too large. The amount arrives formatted with the rupee sign.", "placeholders": {"amount": {"type": "String", "example": "₹10,000"}}},
+
+  "walletOpeningPayment": "Opening payment…",
+  "@walletOpeningPayment": {"description": "On the add-money button while the payment is being set up."},
+
+  "walletConfirmingPayment": "Confirming payment…",
+  "@walletConfirmingPayment": {"description": "On the add-money button after paying, while the server confirms it."},
+
+  "walletTransactions": "Transactions",
+  "@walletTransactions": {"description": "Heading over the wallet's transaction list."},
+
+  "walletFilterAll": "All",
+  "@walletFilterAll": {"description": "Filter chip: every wallet transaction. Must stay short."},
+
+  "walletFilterAdded": "Money added",
+  "@walletFilterAdded": {"description": "Filter chip: money coming into the wallet (top-ups and refunds). Must stay short."},
+
+  "walletFilterSpent": "Money spent",
+  "@walletFilterSpent": {"description": "Filter chip: money spent from the wallet on orders. Must stay short."},
+
+  "walletSearch": "Search",
+  "@walletSearch": {"description": "Tooltip on the search button over the transactions."},
+
+  "walletSearchHint": "Search order number or ID",
+  "@walletSearchHint": {"description": "Hint in the transaction search box."},
+
+  "walletDateFilter": "Filter by date",
+  "@walletDateFilter": {"description": "Tooltip on the calendar button over the transactions."},
+
+  "walletClearFilters": "Clear filters",
+  "@walletClearFilters": {"description": "Button that removes the search, date and type filters."},
+
+  "walletNoMatches": "No transactions match your filters",
+  "@walletNoMatches": {"description": "When filters hide every transaction."},
+
+  "walletEmptyTitle": "No transactions yet",
+  "@walletEmptyTitle": {"description": "Heading of the empty transaction list."},
+
+  "walletEmptyBody": "Money you add, spend on orders or get back as refunds will show up here.",
+  "@walletEmptyBody": {"description": "Under the heading of the empty transaction list."},
+
+  "walletToday": "Today",
+  "@walletToday": {"description": "Day heading in the transaction list."},
+
+  "walletYesterday": "Yesterday",
+  "@walletYesterday": {"description": "Day heading in the transaction list."},
+
+  "walletLatestOnly": "Showing your latest {count} transactions",
+  "@walletLatestOnly": {"description": "Under the transaction list when it holds as many as the server sends.", "placeholders": {"count": {"type": "int"}}},
+
+  "walletEntryRefundNumber": "Refund for order {number}",
+  "@walletEntryRefundNumber": {"description": "A refund into the wallet for a cancelled order.", "placeholders": {"number": {"type": "String", "example": "NX261109AAAA"}}},
+
+  "walletDetailsTitle": "Transaction details",
+  "@walletDetailsTitle": {"description": "Title of the sheet with one wallet transaction's details."},
+
+  "walletDetailDate": "Date and time",
+  "@walletDetailDate": {"description": "Label in the transaction details."},
+
+  "walletDetailId": "Transaction ID",
+  "@walletDetailId": {"description": "Label in the transaction details."},
+
+  "walletDetailType": "Type",
+  "@walletDetailType": {"description": "Label in the transaction details: credit or debit."},
+
+  "walletDetailMethod": "Payment method",
+  "@walletDetailMethod": {"description": "Label in the transaction details."},
+
+  "walletDetailStatus": "Status",
+  "@walletDetailStatus": {"description": "Label in the transaction details."},
+
+  "walletDetailOrder": "Order",
+  "@walletDetailOrder": {"description": "Label in the transaction details: the order number."},
+
+  "walletDetailReference": "Payment reference",
+  "@walletDetailReference": {"description": "Label in the transaction details: the payment gateway's reference."},
+
+  "walletDetailBalanceAfter": "Balance after",
+  "@walletDetailBalanceAfter": {"description": "Label in the transaction details: the wallet balance once this transaction settled."},
+
+  "walletCredit": "Credit",
+  "@walletCredit": {"description": "Transaction type: money into the wallet."},
+
+  "walletDebit": "Debit",
+  "@walletDebit": {"description": "Transaction type: money out of the wallet."},
+
+  "walletStatusSuccess": "Successful",
+  "@walletStatusSuccess": {"description": "Transaction status. Must stay short."},
+
+  "walletStatusPending": "Pending",
+  "@walletStatusPending": {"description": "Transaction status. Must stay short."},
+
+  "walletStatusFailed": "Failed",
+  "@walletStatusFailed": {"description": "Transaction status. Must stay short."},
+
+  "walletMethodOnline": "Online payment",
+  "@walletMethodOnline": {"description": "Payment method of money added through the payment gateway, when the gateway does not say which kind."},
+
+  "walletMethodUpi": "UPI",
+  "@walletMethodUpi": {"description": "Payment method."},
+
+  "walletMethodCard": "Card",
+  "@walletMethodCard": {"description": "Payment method."},
+
+  "walletMethodNetbanking": "Net banking",
+  "@walletMethodNetbanking": {"description": "Payment method."},
+
+  "walletMethodRefund": "Refund to wallet",
+  "@walletMethodRefund": {"description": "Payment method of money returned to the wallet from a cancelled order."},
+
+  "walletCopyId": "Copy ID",
+  "@walletCopyId": {"description": "Copies the transaction ID."},
+
+  "walletIdCopied": "Transaction ID copied",
+  "@walletIdCopied": {"description": "Confirmation after copying the transaction ID."},
+
+  "walletShareDetails": "Share details",
+  "@walletShareDetails": {"description": "Shares the transaction's details as text, like a receipt."}
 }

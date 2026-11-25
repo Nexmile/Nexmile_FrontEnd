@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/services/preferences_service.dart';
 import '../../auth/data/auth_failure.dart';
 import '../data/payment_gateway.dart';
 import '../data/wallet_models.dart';
@@ -32,6 +33,20 @@ enum TopUpOutcome {
   failed,
 }
 
+/// Where an add-money attempt is, for the button to say.
+enum TopUpPhase {
+  idle,
+
+  /// Asking the server for a Razorpay order.
+  starting,
+
+  /// Razorpay's checkout is open.
+  paying,
+
+  /// Paid; the server is checking the signature and crediting the wallet.
+  verifying,
+}
+
 /// Owns the wallet balance and the add-money flow.
 ///
 /// [isAvailable] stays false until a load succeeds. That lets the profile
@@ -41,10 +56,14 @@ class WalletController extends ChangeNotifier {
   WalletController({
     required WalletRepository repository,
     PaymentGateway? gateway,
+    PreferencesService? preferences,
   })  : _repository = repository,
-        _gateway = gateway;
+        _gateway = gateway,
+        _preferences = preferences,
+        _hidden = preferences?.walletBalanceHidden ?? false;
 
   final WalletRepository _repository;
+  final PreferencesService? _preferences;
 
   /// Built on first use so that merely constructing the app never touches the
   /// Razorpay plugin.
@@ -66,6 +85,34 @@ class WalletController extends ChangeNotifier {
 
   Wallet? get wallet => _wallet;
   double get balance => _wallet?.balance ?? 0;
+
+  TopUpPhase _phase = TopUpPhase.idle;
+  TopUpPhase get phase => _phase;
+
+  /// When the balance on screen was last known to be right: the server's
+  /// `updated_at` when it sends one, else when it was last read.
+  DateTime? _readAt;
+  DateTime? get updatedAt => _wallet?.updatedAt ?? _readAt;
+
+  /// The balance shown as dots, remembered on this phone.
+  bool _hidden;
+  bool get isBalanceHidden => _hidden;
+
+  void toggleBalanceHidden() {
+    _hidden = !_hidden;
+    _preferences?.saveWalletBalanceHidden(_hidden);
+    notifyListeners();
+  }
+
+  void _setPhase(TopUpPhase phase) {
+    _phase = phase;
+    notifyListeners();
+  }
+
+  void _took(Wallet wallet) {
+    _wallet = wallet;
+    _readAt = DateTime.now();
+  }
   bool get isAvailable => _wallet != null;
   bool get isLoading => _isLoading;
   bool get isAdding => _isAdding;
@@ -87,7 +134,7 @@ class WalletController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _wallet = await _repository.wallet();
+      _took(await _repository.wallet());
       _failure = null;
       return null;
     } on ApiException catch (error) {
@@ -106,6 +153,7 @@ class WalletController extends ChangeNotifier {
     if (_isAdding) return TopUpOutcome.cancelled;
     _isAdding = true;
     _rejection = null;
+    _phase = TopUpPhase.starting;
     notifyListeners();
 
     try {
@@ -127,6 +175,7 @@ class WalletController extends ChangeNotifier {
         return TopUpOutcome.failed;
       }
 
+      _setPhase(TopUpPhase.paying);
       final GatewayOutcome outcome = await _payments.pay(topUp, payer);
       switch (outcome) {
         case GatewayCancelled():
@@ -134,8 +183,12 @@ class WalletController extends ChangeNotifier {
         case GatewayFailed():
           return TopUpOutcome.paymentFailed;
         case GatewayPaid(:final GatewayReceipt receipt):
+          _setPhase(TopUpPhase.verifying);
           try {
-            _wallet = await _repository.verifyTopUp(topUp.id, receipt);
+            // Only the server's answer moves the balance: it has checked the
+            // signature, and credits a payment once however often it is
+            // asked.
+            _took(await _repository.verifyTopUp(topUp.id, receipt));
             return TopUpOutcome.added;
           } catch (_) {
             // The money has left the customer's account. Razorpay's webhook
@@ -150,13 +203,14 @@ class WalletController extends ChangeNotifier {
       }
     } finally {
       _isAdding = false;
+      _phase = TopUpPhase.idle;
       notifyListeners();
     }
   }
 
   Future<void> _refreshQuietly() async {
     try {
-      _wallet = await _repository.wallet();
+      _took(await _repository.wallet());
     } catch (_) {
       // Keep what is on screen.
     }
@@ -165,6 +219,7 @@ class WalletController extends ChangeNotifier {
   /// Called on sign-out so the next customer does not see this balance.
   void clear() {
     _wallet = null;
+    _readAt = null;
     _failure = null;
     notifyListeners();
   }

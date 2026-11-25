@@ -2079,4 +2079,153 @@ class AppLocalizationsSd extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'اهو نه ٿي سگهيو. ٻيهر ڪوشش ڪريو.';
+
+  @override
+  String get restaurantNew => 'نئون';
+
+  @override
+  String get walletHideBalance => 'بيلنس لڪايو';
+
+  @override
+  String get walletShowBalance => 'بيلنس ڏيکاريو';
+
+  @override
+  String get walletBalanceHiddenLabel => 'بيلنس لڪيل آهي';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time تي اپڊيٽ ٿيو';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'گھٽ ۾ گھٽ $amount شامل ڪريو';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'توهان وڌ ۾ وڌ $amount شامل ڪري سگهو ٿا';
+  }
+
+  @override
+  String get walletOpeningPayment => 'ادائيگي کلي رهي آهي…';
+
+  @override
+  String get walletConfirmingPayment => 'ادائيگي جي تصديق ٿي رهي آهي…';
+
+  @override
+  String get walletTransactions => 'ڏيتي ليتي';
+
+  @override
+  String get walletFilterAll => 'سڀ';
+
+  @override
+  String get walletFilterAdded => 'شامل ڪيل پئسا';
+
+  @override
+  String get walletFilterSpent => 'خرچ ڪيل پئسا';
+
+  @override
+  String get walletSearch => 'ڳوليو';
+
+  @override
+  String get walletSearchHint => 'آرڊر نمبر يا ID ڳوليو';
+
+  @override
+  String get walletDateFilter => 'تاريخ سان فلٽر ڪريو';
+
+  @override
+  String get walletClearFilters => 'فلٽر هٽايو';
+
+  @override
+  String get walletNoMatches => 'توهان جي فلٽرن سان ڪا به ڏيتي ليتي نه ملي';
+
+  @override
+  String get walletEmptyTitle => 'اڃا ڪا به ڏيتي ليتي ناهي';
+
+  @override
+  String get walletEmptyBody =>
+      'جيڪي پئسا توهان شامل ڪندا، آرڊرن تي خرچ ڪندا يا ريفنڊ طور واپس وٺندا، اهي هتي نظر ايندا.';
+
+  @override
+  String get walletToday => 'اڄ';
+
+  @override
+  String get walletYesterday => 'ڪالهه';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'توهان جون تازيون $count ڏيتيون ليتيون ڏيکاريل آهن';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'آرڊر $number جو ريفنڊ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'ڏيتي ليتي جا تفصيل';
+
+  @override
+  String get walletDetailDate => 'تاريخ ۽ وقت';
+
+  @override
+  String get walletDetailId => 'ڏيتي ليتي ID';
+
+  @override
+  String get walletDetailType => 'قسم';
+
+  @override
+  String get walletDetailMethod => 'ادائيگي جو طريقو';
+
+  @override
+  String get walletDetailStatus => 'حالت';
+
+  @override
+  String get walletDetailOrder => 'آرڊر';
+
+  @override
+  String get walletDetailReference => 'ادائيگي ريفرنس';
+
+  @override
+  String get walletDetailBalanceAfter => 'ڏيتي ليتي کان پوءِ بيلنس';
+
+  @override
+  String get walletCredit => 'ڪريڊٽ';
+
+  @override
+  String get walletDebit => 'ڊيبٽ';
+
+  @override
+  String get walletStatusSuccess => 'ڪامياب';
+
+  @override
+  String get walletStatusPending => 'زير التوا';
+
+  @override
+  String get walletStatusFailed => 'ناڪام';
+
+  @override
+  String get walletMethodOnline => 'آن لائن ادائيگي';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'ڪارڊ';
+
+  @override
+  String get walletMethodNetbanking => 'نيٽ بينڪنگ';
+
+  @override
+  String get walletMethodRefund => 'والٽ ۾ ريفنڊ';
+
+  @override
+  String get walletCopyId => 'ID ڪاپي ڪريو';
+
+  @override
+  String get walletIdCopied => 'ڏيتي ليتي ID ڪاپي ٿي وئي';
+
+  @override
+  String get walletShareDetails => 'تفصيل شيئر ڪريو';
 }

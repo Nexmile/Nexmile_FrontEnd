@@ -692,6 +692,9 @@ class RestaurantCard extends StatelessWidget {
                       if (restaurant.hasRating) ...<Widget>[
                         const SizedBox(width: 8),
                         RatingBadge(rating: restaurant.rating!),
+                      ] else if (restaurant.isNew) ...<Widget>[
+                        const SizedBox(width: 8),
+                        const NewBadge(),
                       ],
                     ],
                   ),
@@ -1439,6 +1442,47 @@ class StarRow extends StatelessWidget {
             color: const Color(0xFFF5A623),
           ),
       ],
+    );
+  }
+}
+
+/// "New", where a rating would be, for a shop with too few ratings for a
+/// score: a fresh kitchen, not a bad one.
+class NewBadge extends StatelessWidget {
+  const NewBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final String label = AppLocalizations.of(context).restaurantNew;
+    final bool latin = label.runes.every((int r) => r < 0x0250);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.orangeDeep.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.orangeDeep.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Icon(
+            Icons.auto_awesome_rounded,
+            size: 12,
+            color: AppColors.orangeDeep,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            latin ? label.toUpperCase() : label,
+            maxLines: 1,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.orangeDeep,
+              fontWeight: FontWeight.w800,
+              letterSpacing: latin ? 0.6 : 0,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

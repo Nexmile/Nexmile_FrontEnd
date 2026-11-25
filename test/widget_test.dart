@@ -77,6 +77,9 @@ import 'package:nexmile/features/language/language_screen.dart';
 import 'package:nexmile/features/profile/profile_screen.dart';
 import 'package:nexmile/features/splash/splash_screen.dart';
 import 'package:nexmile/generated/l10n/app_localizations.dart';
+import 'package:nexmile/features/profile/user_photo.dart';
+import 'package:nexmile/features/wallet/data/payment_gateway.dart';
+import 'package:nexmile/features/wallet/data/wallet_models.dart';
 import 'package:nexmile/features/support/data/demo_support_repository.dart';
 import 'package:nexmile/features/support/data/support_models.dart';
 import 'package:nexmile/features/support/data/support_repository.dart';
@@ -618,6 +621,7 @@ Future<void> _pumpApp(
   FakeLocationService? locationService,
   FakeStorefrontRepository? storefrontRepository,
   FakeWalletRepository? walletRepository,
+  PaymentGateway? paymentGateway,
   FakeAccountRepository? accountRepository,
   PushService pushService = const NoopPushService(),
   SupportRepository? supportRepository,
@@ -647,7 +651,7 @@ Future<void> _pumpApp(
       storefrontRepository: _storefrontRepo,
       walletRepository: walletRepository ?? FakeWalletRepository(),
       accountRepository: _accountRepo,
-      paymentGateway: FakePaymentGateway(),
+      paymentGateway: paymentGateway ?? FakePaymentGateway(),
       pushService: pushService,
       supportRepository: supportRepository,
       supportIsDemo: supportRepository is DemoSupportRepository,
@@ -700,6 +704,24 @@ class _RecordingSupport extends DemoSupportRepository {
       throw failure;
     }
     return super.send(id, content: content, clientId: clientId);
+  }
+}
+
+/// A payment sheet that stays open until the test closes it, paid.
+class _SlowGateway implements PaymentGateway {
+  final Completer<GatewayOutcome> _done = Completer<GatewayOutcome>();
+  int opened = 0;
+
+  void finish() => _done.complete(
+        const GatewayPaid(
+          GatewayReceipt(paymentId: 'pay_1', orderId: 'order_1', signature: 's'),
+        ),
+      );
+
+  @override
+  Future<GatewayOutcome> pay(TopUp topUp, PayerDetails payer) {
+    opened++;
+    return _done.future;
   }
 }
 
@@ -4950,6 +4972,49 @@ void main() {
       expect(find.text('Apply a coupon'), findsOneWidget);
     });
 
+    testWidgets('a shop with too few ratings is new; a rated one shows one '
+        'decimal', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..nearbyExtras = <String, dynamic>{
+            'rating': null,
+            'rating_count': 2,
+          },
+      );
+      await _settleSplash(tester);
+      expect(find.byType(NewBadge), findsWidgets);
+      expect(find.text('NEW'), findsWidgets);
+      expect(find.byType(RatingBadge), findsNothing);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          // JSON drops the zero: 4.0 arrives as 4.
+          ..nearbyExtras = <String, dynamic>{'rating': 4, 'rating_count': 3},
+      );
+      await _settleSplash(tester);
+      final Finder card = find.ancestor(
+        of: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is Hero &&
+              widget.tag == restaurantPhotoTag('home-list', 'r1'),
+        ),
+        matching: find.byType(RestaurantCard),
+      );
+      expect(find.descendant(of: card, matching: find.byType(NewBadge)),
+          findsNothing);
+      expect(find.descendant(of: card, matching: find.text('4.0')),
+          findsOneWidget);
+      expect(find.text('4'), findsNothing);
+    });
+
     testWidgets('the restaurant page keeps the delivery window the card showed',
         (WidgetTester tester) async {
       _useTallPhone(tester);
@@ -5906,6 +5971,379 @@ void main() {
       await tester.tap(find.byKey(const ValueKey<String>('cart-bill')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('profile photo', () {
+    test('avatar_url is read, and empty means none', () {
+      AuthUser user(Object? avatar) => AuthUser.fromJson(<String, dynamic>{
+            'id': 1,
+            'name': 'Priya',
+            'avatar_url': avatar,
+          });
+      expect(user('https://cdn.test/a/1.jpg').avatarUrl, 'https://cdn.test/a/1.jpg');
+      expect(user(null).avatarUrl, isNull);
+      expect(user('  ').avatarUrl, isNull);
+      // Kept with the session, so the photo is there on the next launch.
+      expect(
+        AuthUser.decode(user('https://cdn.test/a/1.jpg').encode())?.avatarUrl,
+        'https://cdn.test/a/1.jpg',
+      );
+    });
+
+    testWidgets('no photo draws the initial; a photo that fails falls back to it',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Row(
+            children: <Widget>[
+              UserPhoto(url: null, size: 40, fallback: Text('P')),
+              UserPhoto(
+                url: 'https://cdn.test/missing.jpg',
+                size: 40,
+                fallback: Text('Q'),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('P'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('user-photo')), findsOneWidget);
+      // The test server answers every image with a 404.
+      expect(find.text('Q'), findsOneWidget);
+    });
+  });
+
+  group('wallet screen', () {
+    WalletTransaction entry(
+      int id,
+      WalletEntryKind kind,
+      double amount, {
+      String? order,
+      WalletEntryStatus status = WalletEntryStatus.success,
+      DateTime? at,
+    }) =>
+        WalletTransaction(
+          id: id,
+          kind: kind,
+          amount: amount,
+          description: '',
+          orderNumber: order,
+          status: status,
+          createdAt: at ?? DateTime.now(),
+        );
+
+    Future<void> openWallet(
+      WidgetTester tester, {
+      FakeWalletRepository? repo,
+      FakePaymentGateway? gateway,
+      Map<String, Object> seed = _languageChosen,
+    }) async {
+      _useTallScreen(tester);
+      await _pumpApp(
+        tester,
+        seed: seed,
+        session: _testSession(),
+        walletRepository: repo ?? FakeWalletRepository(),
+        paymentGateway: gateway,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.wallet);
+      await tester.pumpAndSettle();
+    }
+
+    Finder addButton() => find.byKey(const ValueKey<String>('wallet-add'));
+
+    // The test font draws every letter a full square, so the chip row
+    // scrolls; each chip is brought into view before it is tapped.
+    Future<void> chip(WidgetTester tester, String name) async {
+      final Finder target = find.byKey(ValueKey<String>('wallet-filter-$name'));
+      await tester.ensureVisible(target);
+      await tester.pumpAndSettle();
+      await tester.tap(target);
+    }
+    bool addEnabled(WidgetTester tester) =>
+        tester.widget<FilledButton>(addButton()).onPressed != null;
+
+    testWidgets('an empty wallet shows ₹0 and says what will fill it',
+        (WidgetTester tester) async {
+      await openWallet(tester);
+      expect(find.text('₹0'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('wallet-empty')), findsOneWidget);
+      expect(find.text('No transactions yet'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('wallet-updated')), findsOneWidget);
+      expect(addEnabled(tester), isFalse);
+    });
+
+    testWidgets('amounts outside ₹10–₹10,000 say why and cannot be added',
+        (WidgetTester tester) async {
+      await openWallet(tester);
+      final Finder field = find.byKey(const ValueKey<String>('wallet-amount'));
+
+      await tester.enterText(field, '5');
+      await tester.pump();
+      expect(find.text('Add at least ₹10'), findsOneWidget);
+      expect(addEnabled(tester), isFalse);
+
+      await tester.enterText(field, '20000');
+      await tester.pump();
+      expect(find.text('You can add up to ₹10000'), findsOneWidget);
+      expect(addEnabled(tester), isFalse);
+
+      // No sign, no decimal point, no zero.
+      await tester.enterText(field, '-0.5');
+      await tester.pump();
+      expect(tester.widget<TextField>(field).controller!.text, '5');
+      await tester.enterText(field, '0');
+      await tester.pump();
+      expect(tester.widget<TextField>(field).controller!.text, isEmpty);
+      expect(addEnabled(tester), isFalse);
+
+      await tester.enterText(field, '250');
+      await tester.pump();
+      expect(find.text('Add ₹250'), findsOneWidget);
+      expect(addEnabled(tester), isTrue);
+    });
+
+    testWidgets('₹100 from a quick amount is added once the server confirms',
+        (WidgetTester tester) async {
+      final FakeWalletRepository repo = FakeWalletRepository(balance: 50);
+      final FakePaymentGateway gateway = FakePaymentGateway();
+      await openWallet(tester, repo: repo, gateway: gateway);
+      expect(find.text('₹50'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-preset-100')));
+      await tester.pump();
+      expect(find.text('Add ₹100'), findsOneWidget);
+      await tester.tap(addButton());
+      await tester.pumpAndSettle();
+
+      expect(gateway.opened, 1);
+      expect(repo.lastReceipt, isNotNull, reason: 'verified on the server');
+      expect(find.text('₹100 added to your wallet'), findsOneWidget);
+      expect(find.text('₹150'), findsOneWidget);
+      // And it is in the history, as a credit.
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('wallet-entry-900')),
+          matching: find.text('+₹100'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a custom amount goes through the same way',
+        (WidgetTester tester) async {
+      final FakeWalletRepository repo = FakeWalletRepository();
+      await openWallet(tester, repo: repo);
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('wallet-amount')),
+        '375',
+      );
+      await tester.pump();
+      await tester.tap(addButton());
+      await tester.pumpAndSettle();
+      expect(repo.lastTopUpAmount, 375);
+      expect(find.text('₹375 added to your wallet'), findsOneWidget);
+    });
+
+    testWidgets('failed, cancelled, unconfirmed and unreachable payments each '
+        'say the right thing, and only the server moves the balance',
+        (WidgetTester tester) async {
+      Future<void> attempt({
+        required FakeWalletRepository repo,
+        required FakePaymentGateway gateway,
+        required String? says,
+        required String balance,
+      }) async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await openWallet(tester, repo: repo, gateway: gateway);
+        await tester.tap(find.byKey(const ValueKey<String>('wallet-preset-200')));
+        await tester.pump();
+        await tester.tap(addButton());
+        await tester.pumpAndSettle();
+        if (says != null) expect(find.text(says), findsOneWidget, reason: says);
+        expect(find.text(balance), findsOneWidget, reason: says);
+      }
+
+      await attempt(
+        repo: FakeWalletRepository(),
+        gateway: FakePaymentGateway(const GatewayFailed()),
+        says: 'Payment failed. No money was taken from your account.',
+        balance: '₹0',
+      );
+      await attempt(
+        repo: FakeWalletRepository(),
+        gateway: FakePaymentGateway(const GatewayCancelled()),
+        says: null,
+        balance: '₹0',
+      );
+      // Paid, then the network dropped before the server confirmed.
+      await attempt(
+        repo: FakeWalletRepository()..failVerify = true,
+        gateway: FakePaymentGateway(),
+        says: 'Payment received. Your balance will update in a few minutes.',
+        balance: '₹0',
+      );
+      // The network dropped before the payment could even start.
+      await attempt(
+        repo: FakeWalletRepository()
+          ..failCreateWith = const ApiException(kind: ApiErrorKind.network),
+        gateway: FakePaymentGateway(),
+        says: 'Something went wrong. Please try again.',
+        balance: '₹0',
+      );
+    });
+
+    testWidgets('a second tap while a payment is open starts nothing',
+        (WidgetTester tester) async {
+      final FakeWalletRepository repo = FakeWalletRepository();
+      final _SlowGateway gateway = _SlowGateway();
+      _useTallScreen(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        walletRepository: repo,
+        paymentGateway: gateway,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.wallet);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-preset-500')));
+      await tester.pump();
+      await tester.tap(addButton());
+      await tester.pump();
+      // Mid-payment: the button says where it is and takes no taps.
+      expect(find.text('Opening payment…'), findsOneWidget);
+      expect(addEnabled(tester), isFalse);
+      await tester.tap(addButton(), warnIfMissed: false);
+      await tester.pump();
+
+      gateway.finish();
+      await tester.pumpAndSettle();
+      expect(repo.topUpsStarted, 1);
+      expect(gateway.opened, 1);
+      expect(find.text('₹500'), findsOneWidget);
+    });
+
+    testWidgets('history filters, searches and opens a transaction',
+        (WidgetTester tester) async {
+      final List<String> copied = _mockClipboard(tester);
+      await openWallet(
+        tester,
+        repo: FakeWalletRepository(
+          balance: 500,
+          transactions: <WalletTransaction>[
+            entry(3, WalletEntryKind.refund, 249.5, order: 'NX7'),
+            entry(2, WalletEntryKind.orderPayment, -249.5, order: 'NX7'),
+            entry(1, WalletEntryKind.topUp, 500),
+          ],
+        ),
+      );
+      expect(find.text('Refund for order NX7'), findsOneWidget);
+      expect(find.text('Paid for order NX7'), findsOneWidget);
+      expect(find.text('Money added'), findsWidgets);
+      // Colour by what happened: money in green, money out red.
+      final Text spent = tester.widget<Text>(find.text('−₹249.50'));
+      expect(spent.style?.color, const Color(0xFFC62828));
+
+      await chip(tester, 'spent');
+      await tester.pumpAndSettle();
+      expect(find.text('Paid for order NX7'), findsOneWidget);
+      expect(find.text('Refund for order NX7'), findsNothing);
+
+      await chip(tester, 'added');
+      await tester.pumpAndSettle();
+      expect(find.text('Paid for order NX7'), findsNothing);
+      expect(find.text('Refund for order NX7'), findsOneWidget);
+      // The ₹500 top-up (the quick-amount button reads the same).
+      expect(find.byKey(const ValueKey<String>('wallet-entry-1')), findsOneWidget);
+
+      await chip(tester, 'all');
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-search-toggle')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('wallet-search')),
+        'zzz',
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('wallet-no-matches')), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('wallet-search')),
+        'nx7',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Paid for order NX7'), findsOneWidget);
+      expect(find.text('Refund for order NX7'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('wallet-entry-1')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-entry-2')));
+      await tester.pumpAndSettle();
+      final Finder sheet = find.byKey(const ValueKey<String>('wallet-details'));
+      expect(sheet, findsOneWidget);
+      for (final String shown in <String>[
+        'Transaction details',
+        '#2',
+        'Debit',
+        'Nexmile Wallet',
+        'Successful',
+        'NX7',
+      ]) {
+        expect(find.descendant(of: sheet, matching: find.text(shown)),
+            findsWidgets, reason: shown);
+      }
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-copy-id')));
+      await tester.pumpAndSettle();
+      expect(copied, <String>['#2']);
+      expect(find.text('Transaction ID copied'), findsOneWidget);
+    });
+
+    testWidgets('pending and failed movements say so',
+        (WidgetTester tester) async {
+      await openWallet(
+        tester,
+        repo: FakeWalletRepository(
+          transactions: <WalletTransaction>[
+            entry(5, WalletEntryKind.topUp, 300,
+                status: WalletEntryStatus.pending),
+            entry(4, WalletEntryKind.topUp, 200,
+                status: WalletEntryStatus.failed),
+          ],
+        ),
+      );
+      expect(find.text('Pending'), findsOneWidget);
+      expect(find.text('Failed'), findsOneWidget);
+    });
+
+    testWidgets('the balance can be hidden, and stays hidden',
+        (WidgetTester tester) async {
+      await openWallet(tester, repo: FakeWalletRepository(balance: 840));
+      expect(find.text('₹840'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-hide')));
+      await tester.pumpAndSettle();
+      expect(find.text('₹840'), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('wallet-balance-hidden')),
+        findsOneWidget,
+      );
+      final SharedPreferences stored = await SharedPreferences.getInstance();
+      expect(stored.getBool('nexmile.wallet_hidden'), isTrue);
+
+      // Opened again later: still hidden.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await openWallet(
+        tester,
+        repo: FakeWalletRepository(balance: 840),
+        seed: <String, Object>{..._languageChosen, 'nexmile.wallet_hidden': true},
+      );
+      expect(find.text('₹840'), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('wallet-balance-hidden')),
+        findsOneWidget,
+      );
     });
   });
 

@@ -180,6 +180,10 @@ class Restaurant {
 
   bool get hasRating => rating != null;
 
+  /// Too few ratings for a score: the server publishes one from the third
+  /// rating, so below that the shop is shown as new rather than unrated.
+  bool get isNew => !hasRating && ratingCount < 3;
+
   /// The line under the name: cuisines when the API sends them, otherwise the
   /// service category and area we already have.
   String subtitle() {

@@ -2071,4 +2071,154 @@ class AppLocalizationsMni extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'মদু মায় পাক্তে। অমুক হন্না হোৎনবিয়ু।';
+
+  @override
+  String get restaurantNew => 'অনৌবা';
+
+  @override
+  String get walletHideBalance => 'বেলেন্স উপ্লু';
+
+  @override
+  String get walletShowBalance => 'বেলেন্স উৎলু';
+
+  @override
+  String get walletBalanceHiddenLabel => 'বেলেন্স উপ্লে';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time-দা অনৌ শেমখ্রে';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'খ্বাইদগী হন্থনা $amount হাপচিল্লু';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'খ্বাইদগী য়াম্না $amount ফাওবা হাপচিনবা য়াই';
+  }
+
+  @override
+  String get walletOpeningPayment => 'পেমেন্ত হাংদোক্লি…';
+
+  @override
+  String get walletConfirmingPayment => 'পেমেন্ত শোয়দনা য়েংলি…';
+
+  @override
+  String get walletTransactions => 'ত্রান্জেক্সনশিং';
+
+  @override
+  String get walletFilterAll => 'পুম্নমক';
+
+  @override
+  String get walletFilterAdded => 'হাপচিন্নবা সেন্ফম';
+
+  @override
+  String get walletFilterSpent => 'শিজিন্নবা সেন্ফম';
+
+  @override
+  String get walletSearch => 'থিয়ু';
+
+  @override
+  String get walletSearchHint => 'ওর্দর নম্বর নত্ত্রগা ID থিয়ু';
+
+  @override
+  String get walletDateFilter => 'তারিখ মতুং ইন্না ফিল্তর তৌ';
+
+  @override
+  String get walletClearFilters => 'ফিল্তরশিং লৌথোকউ';
+
+  @override
+  String get walletNoMatches =>
+      'নহাক্কী ফিল্তরশিংগা চান্নবা ত্রান্জেক্সন অমত্তা লৈতে';
+
+  @override
+  String get walletEmptyTitle => 'হৌজিক ফাওবা ত্রান্জেক্সন লৈতে';
+
+  @override
+  String get walletEmptyBody =>
+      'নহাক্না হাপচিন্নবা, ওর্দরদা শিজিন্নবা নত্ত্রগা রিফান্দ ওইনা হল্লকপা সেন্ফমশিং মফম অসিদা উগনি।';
+
+  @override
+  String get walletToday => 'ঙসি';
+
+  @override
+  String get walletYesterday => 'ঙরাং';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'নহাক্কী খ্বাইদগী অনৌবা ত্রান্জেক্সন $count উৎলি';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ওর্দর $number-গী রিফান্দ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'ত্রান্জেক্সনগী অকুপ্পা';
+
+  @override
+  String get walletDetailDate => 'তারিখ অমসুং মতম';
+
+  @override
+  String get walletDetailId => 'ত্রান্জেক্সন ID';
+
+  @override
+  String get walletDetailType => 'মখল';
+
+  @override
+  String get walletDetailMethod => 'পেমেন্ত তৌবগী মওং';
+
+  @override
+  String get walletDetailStatus => 'ফিভম';
+
+  @override
+  String get walletDetailOrder => 'ওর্দর';
+
+  @override
+  String get walletDetailReference => 'পেমেন্ত রেফরেন্স';
+
+  @override
+  String get walletDetailBalanceAfter => 'মতুংগী বেলেন্স';
+
+  @override
+  String get walletCredit => 'ক্রেদিৎ';
+
+  @override
+  String get walletDebit => 'দেবিৎ';
+
+  @override
+  String get walletStatusSuccess => 'মায় পাক্লে';
+
+  @override
+  String get walletStatusPending => 'ঙাইরি';
+
+  @override
+  String get walletStatusFailed => 'মায় পাক্তে';
+
+  @override
+  String get walletMethodOnline => 'অনলাইন পেমেন্ত';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'কার্দ';
+
+  @override
+  String get walletMethodNetbanking => 'নেত বেঙ্কিং';
+
+  @override
+  String get walletMethodRefund => 'ৱালেৎতা রিফান্দ';
+
+  @override
+  String get walletCopyId => 'ID কোপি তৌ';
+
+  @override
+  String get walletIdCopied => 'ত্রান্জেক্সন ID কোপি তৌরে';
+
+  @override
+  String get walletShareDetails => 'অকুপ্পা শেয়র তৌ';
 }

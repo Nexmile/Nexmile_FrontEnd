@@ -2081,4 +2081,153 @@ class AppLocalizationsSa extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'तत् न सम्पन्नम्। पुनः प्रयत्नं करोतु।';
+
+  @override
+  String get restaurantNew => 'नूतनम्';
+
+  @override
+  String get walletHideBalance => 'शेषं गोपयतु';
+
+  @override
+  String get walletShowBalance => 'शेषं दर्शयतु';
+
+  @override
+  String get walletBalanceHiddenLabel => 'शेषः गोपितः';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return 'नवीकृतम्: $time';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'न्यूनातिन्यूनं $amount योजयतु';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'भवान् अधिकतमं $amount योजयितुं शक्नोति';
+  }
+
+  @override
+  String get walletOpeningPayment => 'शुल्कदानम् उद्घाट्यते…';
+
+  @override
+  String get walletConfirmingPayment => 'शुल्कदानं निश्चीयते…';
+
+  @override
+  String get walletTransactions => 'व्यवहाराः';
+
+  @override
+  String get walletFilterAll => 'सर्वे';
+
+  @override
+  String get walletFilterAdded => 'योजितं धनम्';
+
+  @override
+  String get walletFilterSpent => 'व्ययितं धनम्';
+
+  @override
+  String get walletSearch => 'अन्विष्यतु';
+
+  @override
+  String get walletSearchHint => 'आदेशसङ्ख्यां परिचयाङ्कं वा अन्विष्यतु';
+
+  @override
+  String get walletDateFilter => 'दिनाङ्केन छाननं करोतु';
+
+  @override
+  String get walletClearFilters => 'छाननानि निष्कासयतु';
+
+  @override
+  String get walletNoMatches => 'भवतः छाननानुसारं कोऽपि व्यवहारः न प्राप्तः';
+
+  @override
+  String get walletEmptyTitle => 'अद्यापि व्यवहाराः न सन्ति';
+
+  @override
+  String get walletEmptyBody =>
+      'भवता योजितं, आदेशेषु व्ययितं, प्रतिदानरूपेण प्राप्तं वा धनम् अत्र दृश्यते।';
+
+  @override
+  String get walletToday => 'अद्य';
+
+  @override
+  String get walletYesterday => 'ह्यः';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'भवतः नवीनतमाः $count व्यवहाराः दर्श्यन्ते';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'आदेशः $number इत्यर्थं प्रतिदानम्';
+  }
+
+  @override
+  String get walletDetailsTitle => 'व्यवहारविवरणम्';
+
+  @override
+  String get walletDetailDate => 'दिनाङ्कः समयश्च';
+
+  @override
+  String get walletDetailId => 'व्यवहारपरिचयाङ्कः';
+
+  @override
+  String get walletDetailType => 'प्रकारः';
+
+  @override
+  String get walletDetailMethod => 'शुल्कदानविधिः';
+
+  @override
+  String get walletDetailStatus => 'स्थितिः';
+
+  @override
+  String get walletDetailOrder => 'आदेशः';
+
+  @override
+  String get walletDetailReference => 'शुल्कदानसन्दर्भः';
+
+  @override
+  String get walletDetailBalanceAfter => 'व्यवहारानन्तरं शेषः';
+
+  @override
+  String get walletCredit => 'प्राप्तिः';
+
+  @override
+  String get walletDebit => 'व्ययः';
+
+  @override
+  String get walletStatusSuccess => 'सफलम्';
+
+  @override
+  String get walletStatusPending => 'प्रतीक्षमाणम्';
+
+  @override
+  String get walletStatusFailed => 'विफलम्';
+
+  @override
+  String get walletMethodOnline => 'अन्तर्जालशुल्कदानम्';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'पत्रकम्';
+
+  @override
+  String get walletMethodNetbanking => 'अन्तर्जाल-अधिकोषणम्';
+
+  @override
+  String get walletMethodRefund => 'धनकोशे प्रतिदानम्';
+
+  @override
+  String get walletCopyId => 'परिचयाङ्कं प्रतिलिखतु';
+
+  @override
+  String get walletIdCopied => 'व्यवहारपरिचयाङ्कः प्रतिलिखितः';
+
+  @override
+  String get walletShareDetails => 'विवरणं सम्प्रेषयतु';
 }

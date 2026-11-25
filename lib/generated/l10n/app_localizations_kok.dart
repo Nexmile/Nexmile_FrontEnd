@@ -2080,4 +2080,153 @@ class AppLocalizationsKok extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'तें जावंक ना. परत यत्न करात.';
+
+  @override
+  String get restaurantNew => 'नवें';
+
+  @override
+  String get walletHideBalance => 'शिल्लक लिपयात';
+
+  @override
+  String get walletShowBalance => 'शिल्लक दाखयात';
+
+  @override
+  String get walletBalanceHiddenLabel => 'शिल्लक लिपयल्या';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return 'निमणें अपडेट: $time';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'कमीत कमी $amount जोडात';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'तुमी चड आनी चड $amount जोडूं येता';
+  }
+
+  @override
+  String get walletOpeningPayment => 'पेमेंट उगडटा…';
+
+  @override
+  String get walletConfirmingPayment => 'पेमेंट निश्चीत जाता…';
+
+  @override
+  String get walletTransactions => 'व्यवहार';
+
+  @override
+  String get walletFilterAll => 'सगळे';
+
+  @override
+  String get walletFilterAdded => 'जोडिल्ले पैशे';
+
+  @override
+  String get walletFilterSpent => 'खर्च केल्ले पैशे';
+
+  @override
+  String get walletSearch => 'सोदात';
+
+  @override
+  String get walletSearchHint => 'ऑर्डर क्रमांक वा ID सोदात';
+
+  @override
+  String get walletDateFilter => 'तारखेन फिल्टर करात';
+
+  @override
+  String get walletClearFilters => 'फिल्टर काडात';
+
+  @override
+  String get walletNoMatches => 'तुमच्या फिल्टरांक जुळपी एकूय व्यवहार ना';
+
+  @override
+  String get walletEmptyTitle => 'अजून एकूय व्यवहार ना';
+
+  @override
+  String get walletEmptyBody =>
+      'तुमी जोडटात, ऑर्डरांचेर खर्च करतात वा परतफेड म्हूण परत मेळटात ते पैशे हांगा दिसतले.';
+
+  @override
+  String get walletToday => 'आयज';
+
+  @override
+  String get walletYesterday => 'काल';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'तुमचे हालींचे $count व्यवहार दाखयल्यात';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ऑर्डर $number खातीर परतफेड';
+  }
+
+  @override
+  String get walletDetailsTitle => 'व्यवहाराचो तपशील';
+
+  @override
+  String get walletDetailDate => 'तारीख आनी वेळ';
+
+  @override
+  String get walletDetailId => 'व्यवहार ID';
+
+  @override
+  String get walletDetailType => 'प्रकार';
+
+  @override
+  String get walletDetailMethod => 'पेमेंटाची पद्दत';
+
+  @override
+  String get walletDetailStatus => 'स्थिती';
+
+  @override
+  String get walletDetailOrder => 'ऑर्डर';
+
+  @override
+  String get walletDetailReference => 'पेमेंट संदर्भ';
+
+  @override
+  String get walletDetailBalanceAfter => 'उपरांतची शिल्लक';
+
+  @override
+  String get walletCredit => 'क्रेडिट';
+
+  @override
+  String get walletDebit => 'डेबिट';
+
+  @override
+  String get walletStatusSuccess => 'यशस्वी';
+
+  @override
+  String get walletStatusPending => 'प्रलंबीत';
+
+  @override
+  String get walletStatusFailed => 'अयशस्वी';
+
+  @override
+  String get walletMethodOnline => 'ऑनलायन पेमेंट';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'कार्ड';
+
+  @override
+  String get walletMethodNetbanking => 'नेट बँकिंग';
+
+  @override
+  String get walletMethodRefund => 'वॉलेटांत परतफेड';
+
+  @override
+  String get walletCopyId => 'ID कॉपी करात';
+
+  @override
+  String get walletIdCopied => 'व्यवहार ID कॉपी जालो';
+
+  @override
+  String get walletShareDetails => 'तपशील शेअर करात';
 }

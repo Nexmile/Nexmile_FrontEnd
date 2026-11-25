@@ -2089,4 +2089,153 @@ class AppLocalizationsSat extends AppLocalizations {
   @override
   String get supportActionFailed =>
       'ᱱᱚᱶᱟ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
+
+  @override
+  String get restaurantNew => 'ᱱᱟᱶᱟ';
+
+  @override
+  String get walletHideBalance => 'ᱵᱮᱞᱮᱱᱥ ᱩᱠᱩ ᱢᱮ';
+
+  @override
+  String get walletShowBalance => 'ᱵᱮᱞᱮᱱᱥ ᱩᱫᱩᱜ ᱢᱮ';
+
+  @override
+  String get walletBalanceHiddenLabel => 'ᱵᱮᱞᱮᱱᱥ ᱩᱠᱩ ᱟᱠᱟᱱᱟ';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time ᱨᱮ ᱟᱯᱰᱮᱴ ᱮᱱᱟ';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'ᱠᱚᱢ ᱛᱮ ᱠᱚᱢ $amount ᱥᱮᱞᱮᱫ ᱢᱮ';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'ᱵᱟᱲᱛᱤ ᱛᱮ ᱵᱟᱲᱛᱤ $amount ᱥᱮᱞᱮᱫ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ';
+  }
+
+  @override
+  String get walletOpeningPayment => 'ᱯᱮᱢᱮᱱᱴ ᱡᱷᱤᱡᱽᱚᱜ ᱠᱟᱱᱟ…';
+
+  @override
+  String get walletConfirmingPayment => 'ᱯᱮᱢᱮᱱᱴ ᱡᱟᱸᱪ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ…';
+
+  @override
+  String get walletTransactions => 'ᱞᱮᱱᱫᱮᱱ';
+
+  @override
+  String get walletFilterAll => 'ᱡᱚᱛᱚ';
+
+  @override
+  String get walletFilterAdded => 'ᱥᱮᱞᱮᱫ ᱴᱟᱠᱟ';
+
+  @override
+  String get walletFilterSpent => 'ᱠᱷᱚᱨᱚᱪ ᱴᱟᱠᱟ';
+
+  @override
+  String get walletSearch => 'ᱯᱟᱱᱛᱮ';
+
+  @override
+  String get walletSearchHint => 'ᱚᱰᱟᱨ ᱱᱟᱢᱵᱟᱨ ᱵᱟᱝᱠᱷᱟᱱ ID ᱯᱟᱱᱛᱮ ᱢᱮ';
+
+  @override
+  String get walletDateFilter => 'ᱢᱟᱹᱦᱤᱛ ᱛᱮ ᱯᱷᱤᱞᱴᱟᱨ ᱢᱮ';
+
+  @override
+  String get walletClearFilters => 'ᱯᱷᱤᱞᱴᱟᱨ ᱚᱪᱚᱜ ᱢᱮ';
+
+  @override
+  String get walletNoMatches => 'ᱟᱢᱟᱜ ᱯᱷᱤᱞᱴᱟᱨ ᱞᱮᱠᱟᱛᱮ ᱡᱟᱦᱟᱸ ᱞᱮᱱᱫᱮᱱ ᱵᱟᱝ ᱧᱟᱢ ᱞᱮᱱᱟ';
+
+  @override
+  String get walletEmptyTitle => 'ᱦᱟᱲᱮ ᱡᱟᱦᱟᱸ ᱞᱮᱱᱫᱮᱱ ᱵᱟᱝᱟ';
+
+  @override
+  String get walletEmptyBody =>
+      'ᱟᱢ ᱥᱮᱞᱮᱫ ᱠᱟᱱ, ᱚᱰᱟᱨ ᱨᱮ ᱠᱷᱚᱨᱚᱪ ᱠᱟᱱ ᱵᱟᱝᱠᱷᱟᱱ ᱨᱩᱣᱟᱲ ᱴᱟᱠᱟ ᱞᱮᱠᱟᱛᱮ ᱧᱟᱢ ᱠᱟᱱ ᱴᱟᱠᱟ ᱱᱚᱰᱮ ᱩᱫᱩᱜᱚᱜᱼᱟ᱾';
+
+  @override
+  String get walletToday => 'ᱛᱮᱦᱮᱧ';
+
+  @override
+  String get walletYesterday => 'ᱦᱚᱞᱟ';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'ᱟᱢᱟᱜ ᱱᱟᱶᱟ $count ᱞᱮᱱᱫᱮᱱ ᱩᱫᱩᱜᱚᱜ ᱠᱟᱱᱟ';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'ᱚᱰᱟᱨ $number ᱞᱟᱹᱜᱤᱫ ᱨᱩᱣᱟᱲ ᱴᱟᱠᱟ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'ᱞᱮᱱᱫᱮᱱ ᱨᱮᱭᱟᱜ ᱠᱷᱚᱵᱚᱨ';
+
+  @override
+  String get walletDetailDate => 'ᱢᱟᱹᱦᱤᱛ ᱟᱨ ᱚᱠᱛᱚ';
+
+  @override
+  String get walletDetailId => 'ᱞᱮᱱᱫᱮᱱ ID';
+
+  @override
+  String get walletDetailType => 'ᱞᱮᱠᱟᱱ';
+
+  @override
+  String get walletDetailMethod => 'ᱯᱮᱢᱮᱱᱴ ᱞᱮᱠᱟᱱ';
+
+  @override
+  String get walletDetailStatus => 'ᱫᱚᱥᱟ';
+
+  @override
+  String get walletDetailOrder => 'ᱚᱰᱟᱨ';
+
+  @override
+  String get walletDetailReference => 'ᱯᱮᱢᱮᱱᱴ ᱨᱮᱯᱷᱟᱨᱮᱱᱥ';
+
+  @override
+  String get walletDetailBalanceAfter => 'ᱞᱮᱱᱫᱮᱱ ᱛᱟᱭᱚᱢ ᱵᱮᱞᱮᱱᱥ';
+
+  @override
+  String get walletCredit => 'ᱠᱨᱮᱰᱤᱴ';
+
+  @override
+  String get walletDebit => 'ᱰᱮᱵᱤᱴ';
+
+  @override
+  String get walletStatusSuccess => 'ᱦᱩᱭ ᱮᱱᱟ';
+
+  @override
+  String get walletStatusPending => 'ᱛᱟᱸᱜᱤ ᱟᱠᱟᱱ';
+
+  @override
+  String get walletStatusFailed => 'ᱵᱟᱝ ᱦᱩᱭ ᱞᱮᱱᱟ';
+
+  @override
+  String get walletMethodOnline => 'ᱚᱱᱞᱟᱭᱤᱱ ᱯᱮᱢᱮᱱᱴ';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'ᱠᱟᱨᱰ';
+
+  @override
+  String get walletMethodNetbanking => 'ᱱᱮᱴ ᱵᱮᱝᱠᱤᱝ';
+
+  @override
+  String get walletMethodRefund => 'ᱣᱟᱞᱮᱴ ᱨᱮ ᱨᱩᱣᱟᱲ ᱴᱟᱠᱟ';
+
+  @override
+  String get walletCopyId => 'ID ᱠᱚᱯᱤ ᱢᱮ';
+
+  @override
+  String get walletIdCopied => 'ᱞᱮᱱᱫᱮᱱ ID ᱠᱚᱯᱤ ᱮᱱᱟ';
+
+  @override
+  String get walletShareDetails => 'ᱠᱷᱚᱵᱚᱨ ᱥᱮᱭᱟᱨ ᱢᱮ';
 }

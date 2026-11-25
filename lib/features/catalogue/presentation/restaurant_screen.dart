@@ -1014,6 +1014,9 @@ class _RestaurantSummary extends StatelessWidget {
                   if (restaurant.hasRating) ...<Widget>[
                     const SizedBox(width: 12),
                     _RatingBlock(restaurant: restaurant),
+                  ] else if (restaurant.isNew) ...<Widget>[
+                    const SizedBox(width: 12),
+                    const NewBadge(),
                   ],
                 ],
               ),

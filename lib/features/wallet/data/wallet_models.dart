@@ -5,21 +5,51 @@ import '../../catalogue/data/storefront_models.dart';
 /// `GET /v1/wallet` — the balance and the most recent movements on it.
 @immutable
 class Wallet {
-  const Wallet({required this.balance, this.transactions = const []});
+  const Wallet({
+    required this.balance,
+    this.transactions = const [],
+    this.updatedAt,
+  });
 
   /// Rupees. The server is the only place this changes; the app never adds or
   /// subtracts locally, it re-reads.
   final double balance;
 
-  /// Newest first.
+  /// Newest first. The server sends the latest 50.
   final List<WalletTransaction> transactions;
+
+  /// When the balance last changed, if the server says (`updated_at`).
+  final DateTime? updatedAt;
 
   static Wallet fromJson(Map<String, dynamic> json) => Wallet(
         balance: asDouble(json['balance']),
         transactions: asMapList(json['transactions'])
             .map(WalletTransaction.fromJson)
             .toList(growable: false),
+        updatedAt: DateTime.tryParse(asString(json['updated_at'])),
       );
+}
+
+/// Where a movement got to. The wallet's ledger holds settled money, so an
+/// entry without a `status` is a successful one; pending and failed only
+/// show when the server sends them.
+enum WalletEntryStatus { success, pending, failed }
+
+WalletEntryStatus _statusFrom(Object? raw) => switch (asString(raw).toLowerCase()) {
+      'pending' || 'processing' || 'created' || 'authorized' || 'initiated' =>
+        WalletEntryStatus.pending,
+      'failed' || 'declined' || 'cancelled' || 'canceled' || 'expired' =>
+        WalletEntryStatus.failed,
+      _ => WalletEntryStatus.success,
+    };
+
+/// The first non-empty text among [keys].
+String? _firstText(Map<String, dynamic> json, List<String> keys) {
+  for (final String key in keys) {
+    final String value = asString(json[key]).trim();
+    if (value.isNotEmpty) return value;
+  }
+  return null;
 }
 
 enum WalletEntryKind {
@@ -60,6 +90,10 @@ class WalletTransaction {
     required this.description,
     this.createdAt,
     this.orderNumber,
+    this.status = WalletEntryStatus.success,
+    this.method,
+    this.reference,
+    this.balanceAfter,
   });
 
   final int id;
@@ -74,6 +108,18 @@ class WalletTransaction {
 
   /// Set for order payments and refunds.
   final String? orderNumber;
+
+  final WalletEntryStatus status;
+
+  /// How the money moved, as the server names it (`upi`, `card`…), when it
+  /// says. Null: the app words it from [kind].
+  final String? method;
+
+  /// The gateway's own reference (a Razorpay payment id), when sent.
+  final String? reference;
+
+  /// The balance once this settled, when sent.
+  final double? balanceAfter;
 
   bool get isCredit => amount >= 0;
 
@@ -92,7 +138,19 @@ class WalletTransaction {
       amount: amount,
       description: asString(json['description']),
       createdAt: DateTime.tryParse(asString(json['created_at'])),
-      orderNumber: json['order_number'] as String?,
+      orderNumber: _firstText(json, const <String>['order_number']),
+      status: _statusFrom(json['status']),
+      method: _firstText(json, const <String>['payment_method', 'method']),
+      reference: _firstText(json, const <String>[
+        'reference',
+        'reference_id',
+        'razorpay_payment_id',
+        'payment_id',
+        'transaction_ref',
+      ]),
+      balanceAfter: json['balance_after'] == null
+          ? null
+          : asDouble(json['balance_after']),
     );
   }
 }

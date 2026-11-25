@@ -2074,4 +2074,153 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get supportActionFailed => 'یہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔';
+
+  @override
+  String get restaurantNew => 'نیا';
+
+  @override
+  String get walletHideBalance => 'بیلنس چھپائیں';
+
+  @override
+  String get walletShowBalance => 'بیلنس دکھائیں';
+
+  @override
+  String get walletBalanceHiddenLabel => 'بیلنس چھپا ہوا ہے';
+
+  @override
+  String walletUpdatedAt(String time) {
+    return '$time کو اپ ڈیٹ ہوا';
+  }
+
+  @override
+  String walletBelowMin(String amount) {
+    return 'کم از کم $amount شامل کریں';
+  }
+
+  @override
+  String walletAboveMax(String amount) {
+    return 'آپ زیادہ سے زیادہ $amount شامل کر سکتے ہیں';
+  }
+
+  @override
+  String get walletOpeningPayment => 'ادائیگی کھل رہی ہے…';
+
+  @override
+  String get walletConfirmingPayment => 'ادائیگی کی تصدیق ہو رہی ہے…';
+
+  @override
+  String get walletTransactions => 'لین دین';
+
+  @override
+  String get walletFilterAll => 'سب';
+
+  @override
+  String get walletFilterAdded => 'شامل کردہ رقم';
+
+  @override
+  String get walletFilterSpent => 'خرچ کردہ رقم';
+
+  @override
+  String get walletSearch => 'تلاش';
+
+  @override
+  String get walletSearchHint => 'آرڈر نمبر یا ID تلاش کریں';
+
+  @override
+  String get walletDateFilter => 'تاریخ کے لحاظ سے فلٹر کریں';
+
+  @override
+  String get walletClearFilters => 'فلٹر ہٹا دیں';
+
+  @override
+  String get walletNoMatches => 'آپ کے فلٹرز سے کوئی لین دین نہیں ملا';
+
+  @override
+  String get walletEmptyTitle => 'ابھی کوئی لین دین نہیں';
+
+  @override
+  String get walletEmptyBody =>
+      'آپ جو پیسے شامل کریں گے، آرڈرز پر خرچ کریں گے یا ریفنڈ کے طور پر واپس پائیں گے، وہ یہاں دکھائی دیں گے۔';
+
+  @override
+  String get walletToday => 'آج';
+
+  @override
+  String get walletYesterday => 'کل';
+
+  @override
+  String walletLatestOnly(int count) {
+    return 'آپ کے تازہ ترین $count لین دین دکھائے جا رہے ہیں';
+  }
+
+  @override
+  String walletEntryRefundNumber(String number) {
+    return 'آرڈر $number کا ریفنڈ';
+  }
+
+  @override
+  String get walletDetailsTitle => 'لین دین کی تفصیلات';
+
+  @override
+  String get walletDetailDate => 'تاریخ اور وقت';
+
+  @override
+  String get walletDetailId => 'لین دین ID';
+
+  @override
+  String get walletDetailType => 'قسم';
+
+  @override
+  String get walletDetailMethod => 'ادائیگی کا طریقہ';
+
+  @override
+  String get walletDetailStatus => 'حالت';
+
+  @override
+  String get walletDetailOrder => 'آرڈر';
+
+  @override
+  String get walletDetailReference => 'ادائیگی ریفرنس';
+
+  @override
+  String get walletDetailBalanceAfter => 'لین دین کے بعد بیلنس';
+
+  @override
+  String get walletCredit => 'کریڈٹ';
+
+  @override
+  String get walletDebit => 'ڈیبٹ';
+
+  @override
+  String get walletStatusSuccess => 'کامیاب';
+
+  @override
+  String get walletStatusPending => 'زیر التوا';
+
+  @override
+  String get walletStatusFailed => 'ناکام';
+
+  @override
+  String get walletMethodOnline => 'آن لائن ادائیگی';
+
+  @override
+  String get walletMethodUpi => 'UPI';
+
+  @override
+  String get walletMethodCard => 'کارڈ';
+
+  @override
+  String get walletMethodNetbanking => 'نیٹ بینکنگ';
+
+  @override
+  String get walletMethodRefund => 'والیٹ میں ریفنڈ';
+
+  @override
+  String get walletCopyId => 'ID کاپی کریں';
+
+  @override
+  String get walletIdCopied => 'لین دین ID کاپی ہو گئی';
+
+  @override
+  String get walletShareDetails => 'تفصیلات شیئر کریں';
 }

@@ -259,6 +259,30 @@ ignored the flag falls back to the plain veg list rather than showing non-veg re
 
 ---
 
+## Wallet
+
+Screen: [wallet_screen.dart](../lib/features/wallet/presentation/wallet_screen.dart) and
+[wallet_widgets.dart](../lib/features/wallet/presentation/wallet_widgets.dart); state:
+[wallet_controller.dart](../lib/features/wallet/state/wallet_controller.dart).
+
+| Method | Path | Used for |
+|---|---|---|
+| `GET` | `/v1/wallet` | `balance` and the latest 50 `transactions`, newest first: `id`, `type` (`topup`, `order_payment`, `refund`), `amount`, `direction`, `description`, `order_number`, `created_at`. Read on open and on pull. |
+| `POST` | `/v1/wallet/topups` | `{"amount": 500}` (₹10 to ₹10,000; a 422 outside that, or past the ₹10,000 balance ceiling, is shown in the server's words). Answers with the Razorpay `razorpay_order_id`, the public `razorpay_key_id`, `amount_paise`, `currency`. The secret never reaches the app. |
+| `POST` | `/v1/wallet/topups/{id}/verify` | The three `razorpay_*` fields from checkout. The server checks the signature and credits the wallet once, however often it is called; the app moves the balance only on this answer. If it never arrives (a dropped connection after paying), the Razorpay webhook credits it and the app re-reads the wallet and says the payment is being confirmed. |
+
+The app also reads, when sent, on each transaction: `status` (`success` / `pending` / `failed`;
+missing means success, since the ledger holds settled money), `payment_method` or `method` (`upi`,
+`card`, `netbanking`…), a gateway `reference` (or `razorpay_payment_id`), and `balance_after`; and
+`updated_at` on the wallet. Without them the app shows what it can truthfully derive: top-ups as
+"Online payment", order payments as "Nexmile Wallet", refunds as "Refund to wallet", every entry
+as successful, and "Updated" as the time the balance was last read.
+
+Filters (all / money added / money spent), search and the date range run on the phone over those
+50 entries. Not yet possible without the server: older history (needs a paged
+`GET /v1/wallet/transactions?page=`), and a downloadable PDF receipt (the app shares a text receipt
+built from the transaction instead).
+
 ## 7. Support chat (built, answering 503 until switched on)
 
 The contract is the backend's work item, "Nexmile Support Bubble — Flutter Work Item". **Every

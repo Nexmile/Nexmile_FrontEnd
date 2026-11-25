@@ -12,6 +12,7 @@ class PreferencesService {
   static const String _themeModeKey = 'nexmile.theme_mode';
   static const String _vegModeKey = 'nexmile.veg_mode';
   static const String _ratedOrdersKey = 'nexmile.rated_orders';
+  static const String _walletHiddenKey = 'nexmile.wallet_hidden';
   static const String _supportThreadKey = 'nexmile.support_thread';
   static const String _supportDraftKey = 'nexmile.support_draft';
 
@@ -85,6 +86,13 @@ class PreferencesService {
 
   Future<void> saveRatedOrdersJson(String json) =>
       _prefs.setString(_ratedOrdersKey, json);
+
+  /// The wallet balance shown as dots, for someone who does not want it
+  /// read over their shoulder.
+  bool get walletBalanceHidden => _prefs.getBool(_walletHiddenKey) ?? false;
+
+  Future<void> saveWalletBalanceHidden(bool hidden) =>
+      _prefs.setBool(_walletHiddenKey, hidden);
 
   /// The support thread as last seen, so it opens before the network answers.
   String? get supportThreadJson => _prefs.getString(_supportThreadKey);
