@@ -597,7 +597,11 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ),
             // Room for the floating bottom bar and the basket bar above it.
-            const SliverToBoxAdapter(child: SizedBox(height: 160)),
+            // Clear of whatever rides at the foot: the cart bar, the tabs and
+            // the support bubble, however tall they are just now.
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24),
+            ),
           ],
         ),
       ),

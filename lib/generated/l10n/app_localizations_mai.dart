@@ -2070,6 +2070,13 @@ class AppLocalizationsMai extends AppLocalizations {
   String get supportActionFailed => 'ई नहि भऽ सकल। फेर कोशिश करू।';
 
   @override
+  String get supportOrderNotFound => 'ई ऑर्डर अहाँक खातामे नहि भेटल।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'एखन ई ऑर्डर देखल नहि जा सकल। अहाँ अपन प्रश्न लिखि सकैत छी।';
+
+  @override
   String get restaurantNew => 'नव';
 
   @override

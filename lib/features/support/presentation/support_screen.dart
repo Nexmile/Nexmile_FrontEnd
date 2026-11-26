@@ -96,6 +96,17 @@ class _SupportScreenState extends State<SupportScreen> {
           await _handover();
         case 'close_thread':
           await _close();
+        case 'select_order' when orderId != null:
+          final String closed = AppLocalizations.of(context).supportClosed;
+          switch (await context.read<SupportController>().selectOrder(orderId)) {
+            case OrderPick.failed:
+              _say(failed);
+            case OrderPick.closed:
+              _say(closed);
+            // A note in the chat says it; the chat carries on.
+            case OrderPick.sent || OrderPick.notFound || OrderPick.unavailable:
+              break;
+          }
         case 'track_order' when orderId != null:
           await navigator.pushNamed(
             AppRoutes.liveTracking,
@@ -201,6 +212,17 @@ class _SupportScreenState extends State<SupportScreen> {
               icon: Icons.cloud_off_rounded,
               text: l10n.supportOffline,
               colour: theme.colorScheme.onSurfaceVariant,
+            ),
+          if (chat.notice case final SupportNotice notice)
+            _Banner(
+              key: const ValueKey<String>('support-notice'),
+              icon: Icons.info_outline_rounded,
+              text: switch (notice) {
+                SupportNotice.orderNotFound => l10n.supportOrderNotFound,
+                SupportNotice.orderLookupDown => l10n.supportOrderLookupDown,
+              },
+              colour: theme.colorScheme.onSurfaceVariant,
+              onClose: context.read<SupportController>().dismissNotice,
             ),
           if (chat.problem == SupportProblem.slowDown)
             _Banner(
@@ -489,7 +511,10 @@ class _Theirs extends StatelessWidget {
                         for (final SupportAction action in actions)
                           OutlinedButton(
                             key: ValueKey<String>(
-                              'support-action-${action.code}',
+                              action.code == 'select_order'
+                                  ? 'support-action-select_order-'
+                                      '${action.orderId}'
+                                  : 'support-action-${action.code}',
                             ),
                             onPressed: () => onAction(action),
                             style: OutlinedButton.styleFrom(
@@ -501,6 +526,9 @@ class _Theirs extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(100),
                               ),
                             ),
+                            // The label alone: it is the server's finished,
+                            // translated text, and already names the order.
+                            // The title is only for building one's own.
                             child: Text(action.label),
                           ),
                       ],
@@ -720,11 +748,15 @@ class _Banner extends StatelessWidget {
     required this.icon,
     required this.text,
     required this.colour,
+    this.onClose,
   });
 
   final IconData icon;
   final String text;
   final Color colour;
+
+  /// Shown as a small cross when the note can be put aside.
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -746,6 +778,15 @@ class _Banner extends StatelessWidget {
               ),
             ),
           ),
+          if (onClose != null)
+            IconButton(
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              onPressed: onClose,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.close_rounded, size: 18, color: colour),
+            ),
         ],
       ),
     );

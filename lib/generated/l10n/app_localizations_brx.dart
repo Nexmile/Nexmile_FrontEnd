@@ -2079,6 +2079,13 @@ class AppLocalizationsBrx extends AppLocalizations {
   String get supportActionFailed => 'बेयो जायाखै। फिन नाजा।';
 
   @override
+  String get supportOrderNotFound => 'बे ओर्डारखौ नोंथांनि एकाउन्टआव मोनाखै।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'दानो बे ओर्डारखौ नायनो हायाखै। नोंथाङ नोंथांनि सोंथिखौ लिरनो हागोन।';
+
+  @override
   String get restaurantNew => 'गोदान';
 
   @override

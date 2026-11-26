@@ -2082,6 +2082,13 @@ class AppLocalizationsPa extends AppLocalizations {
   String get supportActionFailed => 'ਇਹ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
 
   @override
+  String get supportOrderNotFound => 'ਇਹ ਆਰਡਰ ਤੁਹਾਡੇ ਖਾਤੇ ਵਿੱਚ ਨਹੀਂ ਮਿਲਿਆ।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ਹੁਣੇ ਇਹ ਆਰਡਰ ਦੇਖਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਤੁਸੀਂ ਆਪਣਾ ਸਵਾਲ ਲਿਖ ਸਕਦੇ ਹੋ।';
+
+  @override
   String get restaurantNew => 'ਨਵਾਂ';
 
   @override

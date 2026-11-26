@@ -728,6 +728,8 @@
   "supportChatWithUs": "आमचे कडेन चॅट करात",
   "supportChatWithUsBody": "आमचो AI सहाय्यक कांय सेकंदांनी जाप दिता, आनी तुमकां गरज आसल्यार एक मनीस फुडें सांबाळटा.",
   "supportActionFailed": "तें जावंक ना. परत यत्न करात.",
+  "supportOrderNotFound": "ही ऑर्डर तुमच्या खात्यांत मेळ्ळी ना.",
+  "supportOrderLookupDown": "आतां ही ऑर्डर पळोवंक जायना. तुमी तुमचो प्रस्न बरोवंक शकतात.",
   "restaurantNew": "नवें",
   "walletHideBalance": "शिल्लक लिपयात",
   "walletShowBalance": "शिल्लक दाखयात",

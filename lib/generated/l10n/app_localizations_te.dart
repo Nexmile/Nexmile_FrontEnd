@@ -2082,6 +2082,13 @@ class AppLocalizationsTe extends AppLocalizations {
   String get supportActionFailed => 'అది జరగలేదు. మళ్ళీ ప్రయత్నించండి.';
 
   @override
+  String get supportOrderNotFound => 'ఆ ఆర్డర్ మీ ఖాతాలో కనిపించలేదు.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ప్రస్తుతం ఆ ఆర్డర్‌ను చూడలేకపోయాం. మీ ప్రశ్నను టైప్ చేయవచ్చు.';
+
+  @override
   String get restaurantNew => 'కొత్తది';
 
   @override

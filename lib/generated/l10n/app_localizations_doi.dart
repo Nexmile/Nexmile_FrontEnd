@@ -2081,6 +2081,13 @@ class AppLocalizationsDoi extends AppLocalizations {
   String get supportActionFailed => 'एह् नेईं होई सकेआ। फ्ही कोशिश करो।';
 
   @override
+  String get supportOrderNotFound => 'एह् आर्डर तुंदे खाते च नेईं लब्भा।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'हुनै एह् आर्डर दिक्खेआ नेईं जाई सकेआ। तुस अपना सवाल लिखी सकदे ओ।';
+
+  @override
   String get restaurantNew => 'नमां';
 
   @override

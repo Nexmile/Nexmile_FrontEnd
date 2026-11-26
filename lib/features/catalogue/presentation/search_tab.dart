@@ -10,6 +10,7 @@ import '../data/home_models.dart';
 import '../data/storefront_models.dart';
 import '../state/storefront_controller.dart';
 import 'widgets/catalogue_widgets.dart';
+import 'widgets/open_cart_bar.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/voice_search_sheet.dart';
 
@@ -96,6 +97,7 @@ class SearchTabState extends State<SearchTab> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.searchTitle)),
+      bottomNavigationBar: const OpenCartBar(safeArea: true),
       body: Column(
         children: <Widget>[
           Padding(

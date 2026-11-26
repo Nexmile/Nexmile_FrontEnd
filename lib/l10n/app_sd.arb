@@ -728,6 +728,8 @@
   "supportChatWithUs": "اسان سان چيٽ ڪريو",
   "supportChatWithUsBody": "اسان جو AI اسسٽنٽ سيڪنڊن ۾ جواب ڏئي ٿو، ۽ ضرورت پوڻ تي ڪو ماڻهو ڳالهه سنڀالي ٿو.",
   "supportActionFailed": "اهو نه ٿي سگهيو. ٻيهر ڪوشش ڪريو.",
+  "supportOrderNotFound": "اهو آرڊر توهان جي کاتي ۾ نه مليو.",
+  "supportOrderLookupDown": "هن وقت اهو آرڊر ڏسي نه سگهياسين. توهان پنهنجو سوال لکي سگهو ٿا.",
   "restaurantNew": "نئون",
   "walletHideBalance": "بيلنس لڪايو",
   "walletShowBalance": "بيلنس ڏيکاريو",

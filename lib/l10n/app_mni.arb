@@ -728,6 +728,8 @@
   "supportChatWithUs": "ঐখোয়গা চেৎ তৌবিয়ু",
   "supportChatWithUsBody": "ঐখোয়গী AI মতেং পাংবনা সেকেন্দ খরাগী মনুংদা পাউখুম পী, অমসুং নহাক্না মথৌ তাবদা মী অমনা থৌদাং লৌগনি।",
   "supportActionFailed": "মদু মায় পাক্তে। অমুক হন্না হোৎনবিয়ু।",
+  "supportOrderNotFound": "অর্দর অসি নহাক্কী একাউন্ততা ফংদ্রে।",
+  "supportOrderLookupDown": "হৌজিক অর্দর অসি য়েংবা ঙমদ্রে। নহাক্না নহাক্কী ৱাহং ইবা য়াই।",
   "restaurantNew": "অনৌবা",
   "walletHideBalance": "বেলেন্স উপ্লু",
   "walletShowBalance": "বেলেন্স উৎলু",

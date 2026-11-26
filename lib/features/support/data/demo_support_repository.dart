@@ -113,6 +113,40 @@ class DemoSupportRepository implements SupportRepository {
     return saved;
   }
 
+  /// The orders the demo pretends are on their way, for "which one?".
+  static const List<(int, String)> liveOrders = <(int, String)>[
+    (1, 'Anjappar Chettinad'),
+    (2, 'Saravana Bhavan'),
+  ];
+
+  /// Every order picked from a `select_order` button, for tests.
+  final List<int> selected = <int>[];
+
+  @override
+  Future<SupportPoll> selectOrder(String id, int orderId) async {
+    selected.add(orderId);
+    _thread = _thread?.copyWith(orderId: orderId);
+    _queue.add(
+      _Queued(
+        SupportMessage(
+          id: _id(),
+          sender: SupportSender.ai,
+          content: 'You can follow this order live on the map.',
+          createdAt: DateTime.now(),
+          actions: <SupportAction>[
+            SupportAction(code: 'track_order', label: 'Track it', orderId: orderId),
+            SupportAction(
+              code: 'view_order',
+              label: 'Order details',
+              orderId: orderId,
+            ),
+          ],
+        ),
+      ),
+    );
+    return const SupportPoll(messages: <SupportMessage>[], pendingReply: true);
+  }
+
   @override
   Future<SupportHandover> handover(String id) async {
     const String promise =
@@ -164,10 +198,23 @@ class DemoSupportRepository implements SupportRepository {
       actions = const <SupportAction>[
         SupportAction(code: 'talk_to_person', label: 'Talk to someone'),
       ];
+    } else if (orderId == null &&
+        has(<String>['where', 'track', 'late', 'status', 'when'])) {
+      // More than one order on its way: ask which.
+      content = 'You have two orders on the way. Which one?';
+      actions = <SupportAction>[
+        for (final (int id, String title) in liveOrders)
+          // As the server sends it: the label is the finished button text
+          // and already names the restaurant; the title is the bare name.
+          SupportAction(
+            code: 'select_order',
+            label: 'The $title order',
+            orderId: id,
+            title: title,
+          ),
+      ];
     } else if (has(<String>['where', 'track', 'late', 'status', 'when'])) {
-      content = orderId == null
-          ? 'Open the order from History to see where it is.'
-          : 'You can follow this order live on the map.';
+      content = 'You can follow this order live on the map.';
       actions = <SupportAction>[
         if (orderId != null)
           SupportAction(code: 'track_order', label: 'Track it', orderId: orderId),

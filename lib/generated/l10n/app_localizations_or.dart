@@ -2077,6 +2077,13 @@ class AppLocalizationsOr extends AppLocalizations {
   String get supportActionFailed => 'ଏହା ହୋଇପାରିଲା ନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।';
 
   @override
+  String get supportOrderNotFound => 'ଏହି ଅର୍ଡର ଆପଣଙ୍କ ଖାତାରେ ମିଳିଲା ନାହିଁ।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ବର୍ତ୍ତମାନ ଏହି ଅର୍ଡର ଯାଞ୍ଚ ହୋଇପାରିଲା ନାହିଁ। ଆପଣ ନିଜ ପ୍ରଶ୍ନ ଲେଖିପାରିବେ।';
+
+  @override
   String get restaurantNew => 'ନୂଆ';
 
   @override

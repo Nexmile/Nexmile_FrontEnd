@@ -728,6 +728,8 @@
   "supportChatWithUs": "साढ़े कन्नै चैट करो",
   "supportChatWithUsBody": "साढ़ा AI सहायक किश सैकिंडें च जवाब दिंदा ऐ, ते जिसलै तुसेंगी लोड़ होऐ तां कोई माह्नू संभाली लैंदा ऐ।",
   "supportActionFailed": "एह् नेईं होई सकेआ। फ्ही कोशिश करो।",
+  "supportOrderNotFound": "एह् आर्डर तुंदे खाते च नेईं लब्भा।",
+  "supportOrderLookupDown": "हुनै एह् आर्डर दिक्खेआ नेईं जाई सकेआ। तुस अपना सवाल लिखी सकदे ओ।",
   "restaurantNew": "नमां",
   "walletHideBalance": "बैलेंस छपाओ",
   "walletShowBalance": "बैलेंस दस्सो",

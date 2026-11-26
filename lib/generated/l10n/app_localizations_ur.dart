@@ -2076,6 +2076,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get supportActionFailed => 'یہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔';
 
   @override
+  String get supportOrderNotFound => 'یہ آرڈر آپ کے اکاؤنٹ میں نہیں ملا۔';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ابھی یہ آرڈر دیکھا نہیں جا سکا۔ آپ اپنا سوال لکھ سکتے ہیں۔';
+
+  @override
   String get restaurantNew => 'نیا';
 
   @override

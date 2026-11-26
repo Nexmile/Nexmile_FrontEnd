@@ -728,6 +728,8 @@
   "supportChatWithUs": "ᱟᱞᱮ ᱥᱟᱶ ᱪᱮᱴ ᱢᱮ",
   "supportChatWithUsBody": "ᱟᱞᱮᱭᱟᱜ AI ᱜᱚᱲᱚᱭᱤᱡ ᱛᱤᱸᱜᱩ ᱥᱮᱠᱮᱱᱰ ᱨᱮ ᱛᱮᱞᱟ ᱮᱢᱟ, ᱟᱨ ᱞᱟᱹᱠᱛᱤ ᱠᱷᱟᱱ ᱢᱤᱫᱦᱚᱲ ᱦᱚᱲ ᱥᱟᱢᱵᱷᱟᱞᱟᱭ᱾",
   "supportActionFailed": "ᱱᱚᱶᱟ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾",
+  "supportOrderNotFound": "ᱱᱚᱶᱟ ᱚᱨᱰᱟᱨ ᱟᱢᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ ᱨᱮ ᱵᱟᱝ ᱧᱟᱢ ᱞᱮᱱᱟ᱾",
+  "supportOrderLookupDown": "ᱱᱤᱛᱚᱜ ᱱᱚᱶᱟ ᱚᱨᱰᱟᱨ ᱵᱟᱝ ᱧᱮᱞ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾ ᱟᱢ ᱟᱢᱟᱜ ᱠᱩᱠᱞᱤ ᱚᱞ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾",
   "restaurantNew": "ᱱᱟᱶᱟ",
   "walletHideBalance": "ᱵᱮᱞᱮᱱᱥ ᱩᱠᱩ ᱢᱮ",
   "walletShowBalance": "ᱵᱮᱞᱮᱱᱥ ᱩᱫᱩᱜ ᱢᱮ",

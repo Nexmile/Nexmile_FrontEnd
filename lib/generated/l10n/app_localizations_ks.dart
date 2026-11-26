@@ -2085,6 +2085,14 @@ class AppLocalizationsKs extends AppLocalizations {
   String get supportActionFailed => 'یہ آو نہ کرنہٕ۔ دوبارٕ کوشش کرِو۔';
 
   @override
+  String get supportOrderNotFound =>
+      'یہ آرڈر چھُنہٕ تُہٕنٛدِس اکاؤنٹس مَنٛز میلان۔';
+
+  @override
+  String get supportOrderLookupDown =>
+      'وۄنۍ ہیٚکو نہٕ یہ آرڈر وُچِتھ۔ توٚہۍ ہیٚکِو پنُن سوال لیٚکھِتھ۔';
+
+  @override
   String get restaurantNew => 'نوٚو';
 
   @override

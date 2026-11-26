@@ -2078,6 +2078,13 @@ class AppLocalizationsKn extends AppLocalizations {
   String get supportActionFailed => 'ಅದು ಆಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.';
 
   @override
+  String get supportOrderNotFound => 'ಆ ಆರ್ಡರ್ ನಿಮ್ಮ ಖಾತೆಯಲ್ಲಿ ಸಿಗಲಿಲ್ಲ.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ಈಗ ಆ ಆರ್ಡರ್ ಪರಿಶೀಲಿಸಲು ಆಗಲಿಲ್ಲ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಬಹುದು.';
+
+  @override
   String get restaurantNew => 'ಹೊಸದು';
 
   @override

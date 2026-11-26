@@ -3710,6 +3710,18 @@ abstract class AppLocalizations {
   /// **'That didn\'t go through. Try again.'**
   String get supportActionFailed;
 
+  /// Small note in the support chat when the order the customer picked is not on their account (server answered 404). The chat carries on.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find that order on your account.'**
+  String get supportOrderNotFound;
+
+  /// Small note in the support chat when the order system could not be reached after the customer picked an order (503). The chat itself still works, so it invites them to type.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check that order just now. You can still type your question.'**
+  String get supportOrderLookupDown;
+
   /// Badge on a restaurant with fewer than three ratings, shown where the star rating would be. Shown in capitals in languages that have them. Must stay one very short word.
   ///
   /// In en, this message translates to:

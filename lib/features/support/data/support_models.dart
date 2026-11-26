@@ -31,7 +31,12 @@ enum DeliveryState { sending, sent, failed }
 /// payload. Whatever the screen shows on arrival is fetched fresh.
 @immutable
 class SupportAction {
-  const SupportAction({required this.code, required this.label, this.orderId});
+  const SupportAction({
+    required this.code,
+    required this.label,
+    this.orderId,
+    this.title,
+  });
 
   /// What this build knows how to do. Anything else is skipped without a
   /// trace, so the server can add an action before the app knows it.
@@ -43,23 +48,33 @@ class SupportAction {
     'leave_review',
     'talk_to_person',
     'close_thread',
+    // "Which order?" when there is more than one live: one per order.
+    'select_order',
   };
 
   final String code;
 
   /// Already in the customer's language; shown as given.
   final String label;
+
+  /// Sent as a string on actions (`"10432"`), read as a number either way.
   final int? orderId;
+
+  /// What the button is about, beside its label: on `select_order`, the
+  /// order it picks.
+  final String? title;
 
   static SupportAction? fromJson(Map<String, dynamic> json) {
     final String code = asString(json['code']).trim();
     final String label = asString(json['label']).trim();
     if (!known.contains(code) || label.isEmpty) return null;
     final int orderId = asInt(json['order_id']);
+    final String title = asString(json['title']).trim();
     return SupportAction(
       code: code,
       label: label,
       orderId: orderId > 0 ? orderId : null,
+      title: title.isEmpty ? null : title,
     );
   }
 
@@ -67,6 +82,7 @@ class SupportAction {
         'code': code,
         'label': label,
         if (orderId != null) 'order_id': orderId,
+        if (title != null) 'title': title,
       };
 }
 
@@ -221,11 +237,12 @@ class SupportConversation {
     ConversationStatus? status,
     bool? pendingReply,
     List<SupportMessage>? messages,
+    int? orderId,
   }) =>
       SupportConversation(
         id: id,
         status: status ?? this.status,
-        orderId: orderId,
+        orderId: orderId ?? this.orderId,
         pendingReply: pendingReply ?? this.pendingReply,
         messages: messages ?? this.messages,
       );

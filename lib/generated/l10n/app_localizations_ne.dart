@@ -2083,6 +2083,13 @@ class AppLocalizationsNe extends AppLocalizations {
   String get supportActionFailed => 'त्यो हुन सकेन। पुनः प्रयास गर्नुहोस्।';
 
   @override
+  String get supportOrderNotFound => 'यो अर्डर तपाईंको खातामा भेटिएन।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'अहिले यो अर्डर हेर्न सकिएन। तपाईं आफ्नो प्रश्न लेख्न सक्नुहुन्छ।';
+
+  @override
   String get restaurantNew => 'नयाँ';
 
   @override

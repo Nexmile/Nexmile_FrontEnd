@@ -728,6 +728,8 @@
   "supportChatWithUs": "अस्माभिः सह वार्तालापं करोतु",
   "supportChatWithUsBody": "अस्माकं AI-सहायकः क्षणेषु उत्तरं ददाति, आवश्यकतायां च कश्चन जनः उत्तरदायित्वं स्वीकरोति।",
   "supportActionFailed": "तत् न सम्पन्नम्। पुनः प्रयत्नं करोतु।",
+  "supportOrderNotFound": "एषः आदेशः भवतः खाते न लब्धः।",
+  "supportOrderLookupDown": "इदानीम् एषः आदेशः द्रष्टुं न शक्यते। भवान् स्वप्रश्नं लेखितुं शक्नोति।",
   "restaurantNew": "नूतनम्",
   "walletHideBalance": "शेषं गोपयतु",
   "walletShowBalance": "शेषं दर्शयतु",

@@ -2079,6 +2079,13 @@ class AppLocalizationsAs extends AppLocalizations {
   String get supportActionFailed => 'কামটো নহ\'ল। পুনৰ চেষ্টা কৰক।';
 
   @override
+  String get supportOrderNotFound => 'এই অৰ্ডাৰটো আপোনাৰ একাউণ্টত পোৱা নগ\'ল।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'এতিয়া অৰ্ডাৰটো চাব পৰা নগ\'ল। আপুনি প্ৰশ্নটো লিখি পঠিয়াব পাৰে।';
+
+  @override
   String get restaurantNew => 'নতুন';
 
   @override

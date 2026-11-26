@@ -2073,6 +2073,13 @@ class AppLocalizationsMni extends AppLocalizations {
   String get supportActionFailed => 'মদু মায় পাক্তে। অমুক হন্না হোৎনবিয়ু।';
 
   @override
+  String get supportOrderNotFound => 'অর্দর অসি নহাক্কী একাউন্ততা ফংদ্রে।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'হৌজিক অর্দর অসি য়েংবা ঙমদ্রে। নহাক্না নহাক্কী ৱাহং ইবা য়াই।';
+
+  @override
   String get restaurantNew => 'অনৌবা';
 
   @override

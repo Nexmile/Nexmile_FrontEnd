@@ -118,7 +118,13 @@ class _OrdersTabState extends State<OrdersTab> {
       );
     } else {
       body = ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 110),
+        // Clear of the cart bar and the tabs below, however tall they are.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          6,
+          16,
+          MediaQuery.paddingOf(context).bottom + 24,
+        ),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         itemCount: shown.length,
         separatorBuilder: (_, __) => const SizedBox(height: 16),

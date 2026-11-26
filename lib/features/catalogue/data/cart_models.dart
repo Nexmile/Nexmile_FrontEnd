@@ -233,12 +233,26 @@ class OpenCart {
     required this.restaurantName,
     required this.itemCount,
     required this.grandTotal,
+    this.imageUrl,
   });
 
   final String restaurantId;
   final String restaurantName;
   final int itemCount;
   final double grandTotal;
+
+  /// The restaurant's picture for the cart bar, when the cart carries one.
+  final String? imageUrl;
+
+  /// This basket as a [Cart] the app just got back now reads, keeping the
+  /// picture it already had.
+  static OpenCart fromCart(Cart cart, {String? imageUrl}) => OpenCart(
+        restaurantId: cart.restaurant.id,
+        restaurantName: cart.restaurant.name,
+        itemCount: cart.itemCount,
+        grandTotal: cart.totals.grandTotal,
+        imageUrl: imageUrl,
+      );
 
   static OpenCart fromJson(Map<String, dynamic> json) {
     final Object? restaurant = json['restaurant'];
@@ -264,7 +278,21 @@ class OpenCart {
           ? counted
           : asInt(json['item_count'] ?? json['items_count']),
       grandTotal: asDouble(t['grand_total'] ?? json['grand_total']),
+      imageUrl: _picture(r),
     );
+  }
+
+  static String? _picture(Map<String, dynamic> r) {
+    for (final Object? raw in <Object?>[
+      r['logo_url'],
+      r['banner_url'],
+      r['image_url'],
+      asMapList(r['photos']).firstOrNull?['url'],
+    ]) {
+      final String url = asString(raw).trim();
+      if (url.isNotEmpty) return url;
+    }
+    return null;
   }
 }
 

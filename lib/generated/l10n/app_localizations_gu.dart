@@ -2072,6 +2072,13 @@ class AppLocalizationsGu extends AppLocalizations {
   String get supportActionFailed => 'તે થઈ શક્યું નહીં. ફરી પ્રયાસ કરો.';
 
   @override
+  String get supportOrderNotFound => 'આ ઓર્ડર તમારા એકાઉન્ટમાં મળ્યો નથી.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'હમણાં આ ઓર્ડર તપાસી શકાયો નથી. તમે તમારો પ્રશ્ન લખી શકો છો.';
+
+  @override
   String get restaurantNew => 'નવું';
 
   @override

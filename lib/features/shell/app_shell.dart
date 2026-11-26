@@ -3,15 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../../core/motion/app_motion.dart';
 import '../../core/motion/haptics.dart';
-import '../../core/motion/reveal.dart';
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_theme.dart';
 import '../../generated/l10n/app_localizations.dart';
-import '../catalogue/data/cart_models.dart';
 import '../catalogue/presentation/home_tab.dart';
 import '../catalogue/presentation/orders_tab.dart';
-import '../catalogue/presentation/widgets/catalogue_widgets.dart';
+import '../catalogue/presentation/widgets/open_cart_bar.dart';
 import '../catalogue/state/cart_controller.dart';
 import '../support/presentation/support_bubble.dart';
 
@@ -105,7 +102,8 @@ class _AppShellState extends State<AppShell> {
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (_index == 0) const _OpenCartBar(),
+            // On every tab, the way the big apps keep it in reach.
+            const OpenCartBar(),
             _BottomBar(
               index: _index,
               onSelect: _select,
@@ -123,95 +121,6 @@ class _AppShellState extends State<AppShell> {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// "You left something at ___" — an unfinished basket, from `GET /v1/carts`.
-///
-/// Only the first is offered. There can be several, one per restaurant, but a
-/// stack of bars would eat the screen and the rest are one tap away inside
-/// their own restaurants.
-class _OpenCartBar extends StatelessWidget {
-  const _OpenCartBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final AppLocalizations l10n = AppLocalizations.of(context);
-    final List<OpenCart> carts = context.watch<CartController>().openCarts;
-
-    if (carts.isEmpty) return const SizedBox.shrink();
-    final OpenCart cart = carts.first;
-
-    // Slides up from behind the navigation bar the first time an unfinished
-    // basket is found, rather than appearing mid-air.
-    return Reveal(
-      from: AxisDirection.up,
-      duration: AppMotion.settled,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: Material(
-          color: AppColors.greenDeep,
-          borderRadius: BorderRadius.circular(AppTheme.radius),
-          elevation: 8,
-          shadowColor: AppColors.greenDeep.withValues(alpha: 0.45),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppTheme.radius),
-            onTap:
-                () => Navigator.of(context).pushNamed(
-                  AppRoutes.cart,
-                  arguments: CartArgs(restaurantId: cart.restaurantId),
-                ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text(
-                          cart.restaurantName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Text(
-                          l10n.itemsInCart(cart.itemCount),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Rupees(
-                    cart.grandTotal,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.arrow_forward_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

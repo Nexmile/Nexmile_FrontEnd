@@ -2089,6 +2089,14 @@ class AppLocalizationsMl extends AppLocalizations {
   String get supportActionFailed => 'അത് നടന്നില്ല. വീണ്ടും ശ്രമിക്കുക.';
 
   @override
+  String get supportOrderNotFound =>
+      'ആ ഓർഡർ നിങ്ങളുടെ അക്കൗണ്ടിൽ കണ്ടെത്തിയില്ല.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ഇപ്പോൾ ആ ഓർഡർ പരിശോധിക്കാനായില്ല. നിങ്ങളുടെ ചോദ്യം ടൈപ്പ് ചെയ്യാം.';
+
+  @override
   String get restaurantNew => 'പുതിയത്';
 
   @override

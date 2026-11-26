@@ -2082,6 +2082,13 @@ class AppLocalizationsKok extends AppLocalizations {
   String get supportActionFailed => 'तें जावंक ना. परत यत्न करात.';
 
   @override
+  String get supportOrderNotFound => 'ही ऑर्डर तुमच्या खात्यांत मेळ्ळी ना.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'आतां ही ऑर्डर पळोवंक जायना. तुमी तुमचो प्रस्न बरोवंक शकतात.';
+
+  @override
   String get restaurantNew => 'नवें';
 
   @override

@@ -2081,6 +2081,13 @@ class AppLocalizationsSd extends AppLocalizations {
   String get supportActionFailed => 'اهو نه ٿي سگهيو. ٻيهر ڪوشش ڪريو.';
 
   @override
+  String get supportOrderNotFound => 'اهو آرڊر توهان جي کاتي ۾ نه مليو.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'هن وقت اهو آرڊر ڏسي نه سگهياسين. توهان پنهنجو سوال لکي سگهو ٿا.';
+
+  @override
   String get restaurantNew => 'نئون';
 
   @override

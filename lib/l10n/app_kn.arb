@@ -728,6 +728,8 @@
   "supportChatWithUs": "ನಮ್ಮೊಂದಿಗೆ ಚಾಟ್ ಮಾಡಿ",
   "supportChatWithUsBody": "ನಮ್ಮ AI ಸಹಾಯಕ ಕ್ಷಣಗಳಲ್ಲಿ ಉತ್ತರಿಸುತ್ತದೆ; ಬೇಕಾದಾಗ ನಮ್ಮ ತಂಡದ ಒಬ್ಬರು ಮುಂದುವರಿಸುತ್ತಾರೆ.",
   "supportActionFailed": "ಅದು ಆಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "supportOrderNotFound": "ಆ ಆರ್ಡರ್ ನಿಮ್ಮ ಖಾತೆಯಲ್ಲಿ ಸಿಗಲಿಲ್ಲ.",
+  "supportOrderLookupDown": "ಈಗ ಆ ಆರ್ಡರ್ ಪರಿಶೀಲಿಸಲು ಆಗಲಿಲ್ಲ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಬಹುದು.",
   "restaurantNew": "ಹೊಸದು",
   "walletHideBalance": "ಬ್ಯಾಲೆನ್ಸ್ ಮರೆಮಾಡಿ",
   "walletShowBalance": "ಬ್ಯಾಲೆನ್ಸ್ ತೋರಿಸಿ",

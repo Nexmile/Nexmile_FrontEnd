@@ -728,6 +728,8 @@
   "supportChatWithUs": "ہم سے چیٹ کریں",
   "supportChatWithUsBody": "ہمارا AI اسسٹنٹ چند سیکنڈ میں جواب دیتا ہے، اور ضرورت ہو تو کوئی انسان بات سنبھال لیتا ہے۔",
   "supportActionFailed": "یہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+  "supportOrderNotFound": "یہ آرڈر آپ کے اکاؤنٹ میں نہیں ملا۔",
+  "supportOrderLookupDown": "ابھی یہ آرڈر دیکھا نہیں جا سکا۔ آپ اپنا سوال لکھ سکتے ہیں۔",
   "restaurantNew": "نیا",
   "walletHideBalance": "بیلنس چھپائیں",
   "walletShowBalance": "بیلنس دکھائیں",

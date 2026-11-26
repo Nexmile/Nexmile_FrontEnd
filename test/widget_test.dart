@@ -678,6 +678,23 @@ class _RecordingSupport extends DemoSupportRepository {
   ApiException? failNextSend;
   bool offline = false;
 
+  /// Refusals for the next order picks, one per try, oldest first.
+  final List<int> refuseSelects = <int>[];
+  int selectTries = 0;
+
+  @override
+  Future<SupportPoll> selectOrder(String id, int orderId) {
+    _check();
+    selectTries++;
+    if (refuseSelects.isNotEmpty) {
+      throw ApiException(
+        kind: ApiErrorKind.server,
+        statusCode: refuseSelects.removeAt(0),
+      );
+    }
+    return super.selectOrder(id, orderId);
+  }
+
   void _check() {
     if (offline) throw const ApiException(kind: ApiErrorKind.network);
   }
@@ -6015,6 +6032,113 @@ void main() {
     });
   });
 
+  group('cart bar', () {
+    test('the bar follows the basket without reading every cart again',
+        () async {
+      final FakeStorefrontRepository repo = FakeStorefrontRepository();
+      final CartController cart = CartController(repository: repo);
+      expect(cart.barCart, isNull);
+
+      await cart.addItem('r1', menuItemId: 1);
+      expect(cart.barCart?.restaurantName, 'Anjappar Chettinad');
+      expect(cart.barCart?.itemCount, 1);
+
+      // Closed is "not now": back once the basket changes.
+      cart.closeBar(cart.barCart!);
+      expect(cart.barCart, isNull);
+      repo.lines = <Map<String, dynamic>>[
+        <String, dynamic>{'id': 501, 'menu_item_id': 1, 'quantity': 2},
+      ];
+      await cart.setQuantity('r1', cartItemId: 501, quantity: 2);
+      expect(cart.barCart?.itemCount, 2);
+
+      // Emptied, or ordered: nothing left behind.
+      await cart.empty('r1');
+      expect(cart.barCart, isNull);
+      await cart.addItem('r1', menuItemId: 1);
+      expect(cart.barCart, isNotNull);
+      await cart.checkout(
+        'r1',
+        fulfilmentType: FulfilmentType.delivery,
+        paymentMethod: 'cod',
+        addressId: 1,
+      );
+      expect(cart.barCart, isNull);
+      cart.dispose();
+    });
+
+    testWidgets('the bar is on both tabs, opens the cart and the menu, and '
+        'closes', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..openCartList = <OpenCart>[
+            const OpenCart(
+              restaurantId: 'r1',
+              restaurantName: 'Anjappar Chettinad',
+              itemCount: 2,
+              grandTotal: 340,
+            ),
+          ],
+      );
+      await _settleSplash(tester);
+      final Finder bar = find.byKey(const ValueKey<String>('open-cart-bar'));
+      expect(bar, findsOneWidget);
+      expect(find.descendant(of: bar, matching: find.text('Anjappar Chettinad')),
+          findsOneWidget);
+      expect(find.descendant(of: bar, matching: find.text('View cart')),
+          findsOneWidget);
+      expect(find.descendant(of: bar, matching: find.text('2 items')),
+          findsOneWidget);
+
+      await tester.tap(find.text('History').first);
+      await tester.pumpAndSettle();
+      expect(bar, findsOneWidget, reason: 'on every tab');
+
+      await tester.tap(find.byKey(const ValueKey<String>('open-cart-view')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CartScreen), findsOneWidget);
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('open-cart-menu')));
+      await tester.pumpAndSettle();
+      expect(find.byType(RestaurantScreen), findsOneWidget);
+      _nav(tester).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('open-cart-close')));
+      await tester.pumpAndSettle();
+      expect(bar, findsNothing);
+    });
+
+    testWidgets('search carries the bar too', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        storefrontRepository: FakeStorefrontRepository()
+          ..openCartList = <OpenCart>[
+            const OpenCart(
+              restaurantId: 'r1',
+              restaurantName: 'Anjappar Chettinad',
+              itemCount: 1,
+              grandTotal: 120,
+            ),
+          ],
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.search);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('open-cart-bar')), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('wallet screen', () {
     WalletTransaction entry(
       int id,
@@ -6196,6 +6320,46 @@ void main() {
       );
     });
 
+    testWidgets('with no gateway on the server, a 503 says so and the wallet '
+        'stays usable', (WidgetTester tester) async {
+      // What production answers until Razorpay is configured there.
+      final FakeWalletRepository repo = FakeWalletRepository(
+        balance: 150,
+        transactions: <WalletTransaction>[
+          entry(1, WalletEntryKind.refund, 150, order: 'NX1001'),
+        ],
+      )..failCreateWith = const ApiException(
+          kind: ApiErrorKind.server,
+          statusCode: 503,
+          message: 'Adding money is unavailable right now.',
+        );
+      final FakePaymentGateway gateway = FakePaymentGateway();
+      await openWallet(tester, repo: repo, gateway: gateway);
+
+      await tester.tap(find.byKey(const ValueKey<String>('wallet-preset-200')));
+      await tester.pump();
+      await tester.tap(addButton());
+      await tester.pumpAndSettle();
+
+      // Our own translated words, not the server's English sentence, and
+      // refused before Razorpay was ever opened.
+      expect(
+        find.text("Adding money isn't available right now. Please try again later."),
+        findsOneWidget,
+      );
+      expect(find.text('Adding money is unavailable right now.'), findsNothing);
+      expect(gateway.opened, 0);
+      // Nothing else on the screen is lost, and it can be tried again.
+      expect(find.text('₹150'), findsWidgets);
+      expect(addEnabled(tester), isTrue);
+
+      repo.failCreateWith = null;
+      await tester.tap(addButton());
+      await tester.pumpAndSettle();
+      expect(gateway.opened, 1);
+      expect(find.text('₹200 added to your wallet'), findsOneWidget);
+    });
+
     testWidgets('a second tap while a payment is open starts nothing',
         (WidgetTester tester) async {
       final FakeWalletRepository repo = FakeWalletRepository();
@@ -6367,6 +6531,16 @@ void main() {
       expect(ai.actions.single.orderId, 10432);
       expect(ai.feedback, 'up');
 
+      // "Which order?": the id arrives as a string, with a title.
+      final SupportAction pick = SupportAction.fromJson(<String, dynamic>{
+        'code': 'select_order',
+        'label': 'இதுதான்',
+        'order_id': '10432',
+        'title': 'NX10432 · Anjappar',
+      })!;
+      expect(pick.orderId, 10432);
+      expect(pick.title, 'NX10432 · Anjappar');
+
       // A first name only, and only on a person.
       final SupportMessage agent = SupportMessage.fromJson(<String, dynamic>{
         'id': '2',
@@ -6435,6 +6609,13 @@ void main() {
                 200,
               );
             }
+            if (path.endsWith('/order')) {
+              return http.Response(
+                '{"data":{"id":"t1","status":"open"},'
+                '"meta":{"pending_reply":true}}',
+                200,
+              );
+            }
             if (path.endsWith('/entry')) {
               return http.Response(
                 jsonEncode(<String, dynamic>{
@@ -6497,6 +6678,12 @@ void main() {
 
       await repo.feedback('m9', 'down');
       expect(seen.last.url.path, '/api/v1/support/messages/m9/feedback');
+
+      final SupportPoll picked = await repo.selectOrder('t1', 10432);
+      expect(seen.last.url.path, '/api/v1/support/conversations/t1/order');
+      // A number here, though the action sent it as a string.
+      expect(jsonDecode(seen.last.body), <String, dynamic>{'order_id': 10432});
+      expect(picked.pendingReply, isTrue);
     });
 
     testWidgets('a build without the support server shows no way in',
@@ -6727,6 +6914,145 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('How can we help?'), findsOneWidget);
       expect(find.byKey(const ValueKey<String>('support-composer')), findsOneWidget);
+    });
+
+    testWidgets('with two orders on the way, the assistant asks which, and the '
+        'answer follows the pick', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      await _askSupport(tester, 'where is my order');
+      expect(find.text('You have two orders on the way. Which one?'),
+          findsOneWidget);
+      // The label alone: the server's finished, translated text. The bare
+      // restaurant name is not stacked above it as well.
+      expect(find.text('The Anjappar Chettinad order'), findsOneWidget);
+      expect(find.text('The Saravana Bhavan order'), findsOneWidget);
+      expect(find.text('Anjappar Chettinad'), findsNothing);
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('support-action-select_order-2')),
+      );
+      await tester.pump();
+      expect(support.selected, <int>[2]);
+      // Polled for, exactly as after a message.
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsOneWidget);
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('You can follow this order live on the map.'),
+          findsOneWidget);
+      expect(find.text('Track it'), findsOneWidget);
+    });
+
+    Future<_RecordingSupport> askWhichOrder(
+      WidgetTester tester,
+      List<int> refusals,
+    ) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport()
+        ..refuseSelects.addAll(refusals);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      await _askSupport(tester, 'where is my order');
+      await tester.tap(
+        find.byKey(const ValueKey<String>('support-action-select_order-2')),
+      );
+      await tester.pump();
+      return support;
+    }
+
+    testWidgets('a 503 on picking an order is tried once more, quietly',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = await askWhichOrder(tester, <int>[503]);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+      expect(support.selectTries, 2);
+      expect(support.selected, <int>[2]);
+      expect(find.byKey(const ValueKey<String>('support-notice')), findsNothing);
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('You can follow this order live on the map.'),
+          findsOneWidget);
+    });
+
+    testWidgets('an order system that stays down leaves a small note, and the '
+        'chat carries on', (WidgetTester tester) async {
+      final _RecordingSupport support =
+          await askWhichOrder(tester, <int>[503, 503]);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+      expect(support.selectTries, 2);
+
+      final Finder note = find.byKey(const ValueKey<String>('support-notice'));
+      expect(note, findsOneWidget);
+      expect(
+        find.text(
+          "Couldn't check that order just now. You can still type your question.",
+        ),
+        findsOneWidget,
+      );
+      // Not the chat being down: no "call us" card, no error, and the
+      // composer is still there.
+      expect(
+        find.text(
+          "Chat can't be reached right now. Call us, or try again in a few minutes.",
+        ),
+        findsNothing,
+      );
+      expect(find.text("That didn't go through. Try again."), findsNothing);
+      expect(find.byKey(const ValueKey<String>('support-composer')),
+          findsOneWidget);
+
+      // A message that gets through puts the note away.
+      await _askSupport(tester, 'it is the Saravana one');
+      expect(note, findsNothing);
+    });
+
+    testWidgets('an order not on this account says so in a note',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = await askWhichOrder(tester, <int>[404]);
+      await tester.pumpAndSettle();
+      // A 404 is an answer, not a hiccup: asked once.
+      expect(support.selectTries, 1);
+      expect(find.text("We couldn't find that order on your account."),
+          findsOneWidget);
+
+      // And it can be put aside.
+      await tester.tap(find.descendant(
+        of: find.byKey(const ValueKey<String>('support-notice')),
+        matching: find.byIcon(Icons.close_rounded),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('support-notice')), findsNothing);
+    });
+
+    testWidgets('a thread closed in the meantime shows as closed',
+        (WidgetTester tester) async {
+      await askWhichOrder(tester, <int>[409]);
+      await tester.pumpAndSettle();
+      expect(find.text('This chat is closed.'), findsWidgets);
+      expect(find.byKey(const ValueKey<String>('support-start-new')),
+          findsOneWidget);
     });
 
     testWidgets('"Need help?" on an order opens the chat about that order',
@@ -8047,6 +8373,14 @@ void main() {
           seed: _languageChosenAs(code),
           session: _testSession(),
           storefrontRepository: FakeStorefrontRepository()
+            ..openCartList = <OpenCart>[
+              const OpenCart(
+                restaurantId: 'r1',
+                restaurantName: 'Anjappar Chettinad Restaurant',
+                itemCount: 12,
+                grandTotal: 1340,
+              ),
+            ]
             ..orderStatus = 'delivered'
             ..orderList = <String>['delivered']
             ..orderExtra = <String, dynamic>{

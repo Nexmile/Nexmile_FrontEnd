@@ -2077,6 +2077,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportActionFailed => 'That didn\'t go through. Try again.';
 
   @override
+  String get supportOrderNotFound =>
+      'We couldn\'t find that order on your account.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'Couldn\'t check that order just now. You can still type your question.';
+
+  @override
   String get restaurantNew => 'New';
 
   @override

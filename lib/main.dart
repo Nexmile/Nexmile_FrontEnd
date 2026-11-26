@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart'
-    show kDebugMode, LicenseEntryWithLineBreaks, LicenseRegistry;
+    show LicenseEntryWithLineBreaks, LicenseRegistry;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -93,17 +93,17 @@ Future<void> main() async {
   // never re-registered means notifications stop arriving with nothing to see.
   if (authController.isSignedIn) unawaited(deviceRegistrar.register());
 
-  // The support chat's server is agreed but not built. `--dart-define=
-  // NEXMILE_SUPPORT=live` talks to it once it is; `demo` plays it out on the
-  // phone, saying so on screen; anything else, and every release build
-  // that does not ask, hides the chat entirely, so no customer meets sample
-  // answers by accident. Debug builds show the demo.
-  const String supportMode = String.fromEnvironment('NEXMILE_SUPPORT');
+  // The support chat talks to the live server. The server's own switch,
+  // `chat_enabled` in `/v1/app/config`, turns it off without a release.
+  // `--dart-define=NEXMILE_SUPPORT=demo` plays it out on the phone instead,
+  // with a banner saying so, for showing the screens offline; `off` hides
+  // it entirely.
+  const String supportMode =
+      String.fromEnvironment('NEXMILE_SUPPORT', defaultValue: 'live');
   final SupportRepository? supportRepository = switch (supportMode) {
-    'live' => ApiSupportRepository(apiClient),
     'demo' => DemoSupportRepository(),
-    '' when kDebugMode => DemoSupportRepository(),
-    _ => null,
+    'off' => null,
+    _ => ApiSupportRepository(apiClient),
   };
 
   runApp(

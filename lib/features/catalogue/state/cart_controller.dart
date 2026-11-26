@@ -35,6 +35,56 @@ class CartController extends ChangeNotifier {
 
   List<OpenCart> get openCarts => List<OpenCart>.unmodifiable(_openCarts);
 
+  /// Baskets whose bar the customer closed, with how many items they held
+  /// then. Closing is only "not now": the bar comes back once that basket
+  /// changes, and on the next launch.
+  final Map<String, int> _closedBars = <String, int>{};
+
+  /// The basket the cart bar offers: the first one not closed as it stands.
+  OpenCart? get barCart {
+    for (final OpenCart cart in _openCarts) {
+      if (cart.itemCount > 0 && _closedBars[cart.restaurantId] != cart.itemCount) {
+        return cart;
+      }
+    }
+    return null;
+  }
+
+  void closeBar(OpenCart cart) {
+    _closedBars[cart.restaurantId] = cart.itemCount;
+    notifyListeners();
+  }
+
+  /// Keeps the bar's list true to the basket the server just returned, so a
+  /// dish added on a restaurant page is on the bar back home without
+  /// another read.
+  void _syncOpenCart(Cart cart) {
+    final String id = cart.restaurant.id;
+    final int at =
+        _openCarts.indexWhere((OpenCart open) => open.restaurantId == id);
+    final List<OpenCart> next = List<OpenCart>.of(_openCarts);
+    if (cart.isEmpty) {
+      if (at >= 0) next.removeAt(at);
+    } else {
+      final OpenCart open = OpenCart.fromCart(
+        cart,
+        imageUrl: at >= 0 ? _openCarts[at].imageUrl : null,
+      );
+      if (at >= 0) {
+        next[at] = open;
+      } else {
+        next.insert(0, open);
+      }
+    }
+    _openCarts = next;
+  }
+
+  void _dropOpenCart(String restaurantId) {
+    _openCarts = _openCarts
+        .where((OpenCart open) => open.restaurantId != restaurantId)
+        .toList();
+  }
+
   bool get isLoading => _isLoading;
 
   /// True while an add/remove/quantity call is in flight, so the steppers can
@@ -74,10 +124,12 @@ class CartController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _cart = await _repository.cart(
+      final Cart cart = await _repository.cart(
         restaurantId,
         fulfilmentType: fulfilmentType,
       );
+      _cart = cart;
+      _syncOpenCart(cart);
       return null;
     } on ApiException catch (error) {
       // A restaurant with no basket yet is not an error worth surfacing.
@@ -97,7 +149,9 @@ class CartController extends ChangeNotifier {
     _fieldErrors = const <String, List<String>>{};
     notifyListeners();
     try {
-      _cart = await action();
+      final Cart cart = await action();
+      _cart = cart;
+      _syncOpenCart(cart);
       return null;
     } on ApiException catch (error) {
       _fieldErrors = error.errors;
@@ -202,6 +256,7 @@ class CartController extends ChangeNotifier {
     try {
       await _repository.emptyCart(restaurantId);
       _cart = null;
+      _dropOpenCart(restaurantId);
       return null;
     } on ApiException catch (error) {
       return authFailureFrom(error, validationFailure: AuthFailure.unknown);
@@ -252,6 +307,8 @@ class CartController extends ChangeNotifier {
         noCutlery: noCutlery,
       );
       _cart = null;
+      // Placed: no longer something left behind.
+      _dropOpenCart(restaurantId);
       return (order, null);
     } on ApiException catch (error) {
       _fieldErrors = error.errors;
@@ -284,6 +341,7 @@ class CartController extends ChangeNotifier {
   void clear() {
     _cart = null;
     _openCarts = <OpenCart>[];
+    _closedBars.clear();
     _fieldErrors = const <String, List<String>>{};
     notifyListeners();
   }

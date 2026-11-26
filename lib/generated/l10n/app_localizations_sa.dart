@@ -2083,6 +2083,13 @@ class AppLocalizationsSa extends AppLocalizations {
   String get supportActionFailed => 'तत् न सम्पन्नम्। पुनः प्रयत्नं करोतु।';
 
   @override
+  String get supportOrderNotFound => 'एषः आदेशः भवतः खाते न लब्धः।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'इदानीम् एषः आदेशः द्रष्टुं न शक्यते। भवान् स्वप्रश्नं लेखितुं शक्नोति।';
+
+  @override
   String get restaurantNew => 'नूतनम्';
 
   @override

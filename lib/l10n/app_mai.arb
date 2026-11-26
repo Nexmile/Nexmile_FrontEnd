@@ -728,6 +728,8 @@
   "supportChatWithUs": "हमरा सँ चैट करू",
   "supportChatWithUsBody": "हमर AI सहायक किछु सेकंड मे उत्तर दैत अछि, आ जखन अहाँकेँ जरूरति हो तँ कियो व्यक्ति आगाँ सम्हारैत छथि।",
   "supportActionFailed": "ई नहि भऽ सकल। फेर कोशिश करू।",
+  "supportOrderNotFound": "ई ऑर्डर अहाँक खातामे नहि भेटल।",
+  "supportOrderLookupDown": "एखन ई ऑर्डर देखल नहि जा सकल। अहाँ अपन प्रश्न लिखि सकैत छी।",
   "restaurantNew": "नव",
   "walletHideBalance": "बैलेंस नुकाउ",
   "walletShowBalance": "बैलेंस देखाउ",

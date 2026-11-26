@@ -2091,6 +2091,13 @@ class AppLocalizationsSat extends AppLocalizations {
       'ᱱᱚᱶᱟ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ᱾';
 
   @override
+  String get supportOrderNotFound => 'ᱱᱚᱶᱟ ᱚᱨᱰᱟᱨ ᱟᱢᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ ᱨᱮ ᱵᱟᱝ ᱧᱟᱢ ᱞᱮᱱᱟ᱾';
+
+  @override
+  String get supportOrderLookupDown =>
+      'ᱱᱤᱛᱚᱜ ᱱᱚᱶᱟ ᱚᱨᱰᱟᱨ ᱵᱟᱝ ᱧᱮᱞ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾ ᱟᱢ ᱟᱢᱟᱜ ᱠᱩᱠᱞᱤ ᱚᱞ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾';
+
+  @override
   String get restaurantNew => 'ᱱᱟᱶᱟ';
 
   @override

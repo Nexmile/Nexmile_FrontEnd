@@ -2075,6 +2075,14 @@ class AppLocalizationsBn extends AppLocalizations {
   String get supportActionFailed => 'কাজটি হয়নি। আবার চেষ্টা করুন।';
 
   @override
+  String get supportOrderNotFound =>
+      'এই অর্ডারটি আপনার অ্যাকাউন্টে পাওয়া যায়নি।';
+
+  @override
+  String get supportOrderLookupDown =>
+      'এখন অর্ডারটি দেখা গেল না। আপনি প্রশ্নটি লিখে পাঠাতে পারেন।';
+
+  @override
   String get restaurantNew => 'নতুন';
 
   @override

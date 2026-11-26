@@ -2096,6 +2096,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get supportActionFailed => 'அது நடக்கவில்லை. மீண்டும் முயற்சிக்கவும்.';
 
   @override
+  String get supportOrderNotFound => 'அந்த ஆர்டர் உங்கள் கணக்கில் இல்லை.';
+
+  @override
+  String get supportOrderLookupDown =>
+      'இப்போது அந்த ஆர்டரைப் பார்க்க முடியவில்லை. உங்கள் கேள்வியைத் தட்டச்சு செய்யலாம்.';
+
+  @override
   String get restaurantNew => 'புதியது';
 
   @override

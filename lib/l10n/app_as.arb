@@ -728,6 +728,8 @@
   "supportChatWithUs": "আমাৰ সৈতে চেট কৰক",
   "supportChatWithUsBody": "আমাৰ AI সহায়কে কেইছেকেণ্ডমানতে উত্তৰ দিয়ে, আৰু আপোনাক প্ৰয়োজন হ'লে এজন মানুহে দায়িত্ব লয়।",
   "supportActionFailed": "কামটো নহ'ল। পুনৰ চেষ্টা কৰক।",
+  "supportOrderNotFound": "এই অৰ্ডাৰটো আপোনাৰ একাউণ্টত পোৱা নগ'ল।",
+  "supportOrderLookupDown": "এতিয়া অৰ্ডাৰটো চাব পৰা নগ'ল। আপুনি প্ৰশ্নটো লিখি পঠিয়াব পাৰে।",
   "restaurantNew": "নতুন",
   "walletHideBalance": "বেলেন্স লুকুৱাওক",
   "walletShowBalance": "বেলেন্স দেখুৱাওক",

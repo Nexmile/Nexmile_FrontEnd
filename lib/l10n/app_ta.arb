@@ -728,6 +728,8 @@
   "supportChatWithUs": "எங்களுடன் சாட் செய்யுங்கள்",
   "supportChatWithUsBody": "எங்கள் AI உதவியாளர் சில நொடிகளில் பதில் அளிக்கும்; தேவைப்பட்டால் ஒரு நபர் தொடர்ந்து உதவுவார்.",
   "supportActionFailed": "அது நடக்கவில்லை. மீண்டும் முயற்சிக்கவும்.",
+  "supportOrderNotFound": "அந்த ஆர்டர் உங்கள் கணக்கில் இல்லை.",
+  "supportOrderLookupDown": "இப்போது அந்த ஆர்டரைப் பார்க்க முடியவில்லை. உங்கள் கேள்வியைத் தட்டச்சு செய்யலாம்.",
   "restaurantNew": "புதியது",
   "walletHideBalance": "இருப்பை மறை",
   "walletShowBalance": "இருப்பைக் காட்டு",

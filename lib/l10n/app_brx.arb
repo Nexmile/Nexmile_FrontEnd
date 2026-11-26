@@ -728,6 +728,8 @@
   "supportChatWithUs": "जोंजों चेट खालाम",
   "supportChatWithUsBody": "जोंनि AI एसिस्टेन्टआ खायसे सेकेन्डआव फिननाय होयो, आरो नोंथांनो नांब्ला मोनसे सुबुङा मदद होगोन।",
   "supportActionFailed": "बेयो जायाखै। फिन नाजा।",
+  "supportOrderNotFound": "बे ओर्डारखौ नोंथांनि एकाउन्टआव मोनाखै।",
+  "supportOrderLookupDown": "दानो बे ओर्डारखौ नायनो हायाखै। नोंथाङ नोंथांनि सोंथिखौ लिरनो हागोन।",
   "restaurantNew": "गोदान",
   "walletHideBalance": "बेलेन्स उखुम",
   "walletShowBalance": "बेलेन्स दिन्थि",

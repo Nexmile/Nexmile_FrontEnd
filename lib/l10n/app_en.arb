@@ -2019,6 +2019,12 @@
   "supportActionFailed": "That didn't go through. Try again.",
   "@supportActionFailed": {"description": "When asking for a person or closing the chat failed."},
 
+  "supportOrderNotFound": "We couldn't find that order on your account.",
+  "@supportOrderNotFound": {"description": "Small note in the support chat when the order the customer picked is not on their account (server answered 404). The chat carries on."},
+
+  "supportOrderLookupDown": "Couldn't check that order just now. You can still type your question.",
+  "@supportOrderLookupDown": {"description": "Small note in the support chat when the order system could not be reached after the customer picked an order (503). The chat itself still works, so it invites them to type."},
+
   "restaurantNew": "New",
   "@restaurantNew": {"description": "Badge on a restaurant with fewer than three ratings, shown where the star rating would be. Shown in capitals in languages that have them. Must stay one very short word."},
 

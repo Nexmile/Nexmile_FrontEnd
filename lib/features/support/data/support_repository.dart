@@ -33,6 +33,11 @@ abstract class SupportRepository {
     required String clientId,
   });
 
+  /// `POST /v1/support/conversations/{id}/order`: the customer picked one of
+  /// their live orders from a `select_order` button. The assistant answers
+  /// about it, so the reply is polled for exactly as after a message.
+  Future<SupportPoll> selectOrder(String id, int orderId);
+
   /// `POST /v1/support/conversations/{id}/handover`: a ticket for a person.
   Future<SupportHandover> handover(String id);
 
@@ -105,6 +110,25 @@ class ApiSupportRepository implements SupportRepository {
       );
     }
     return saved;
+  }
+
+  @override
+  Future<SupportPoll> selectOrder(String id, int orderId) async {
+    final Map<String, dynamic> response = await _client.post(
+      '$_base/conversations/$id/order',
+      // A number here, though the action carries it as a string.
+      body: <String, dynamic>{'order_id': orderId},
+    );
+    final Object? data = response['data'];
+    final Object? meta = response['meta'];
+    final Object? pending =
+        meta is Map<String, dynamic> ? meta['pending_reply'] : null;
+    return SupportPoll(
+      messages: SupportConversation.messagesFrom(
+        data is Map<String, dynamic> ? data['messages'] : data,
+      ),
+      pendingReply: pending is bool ? pending : null,
+    );
   }
 
   @override

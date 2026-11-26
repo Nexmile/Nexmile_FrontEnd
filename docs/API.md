@@ -283,19 +283,15 @@ Filters (all / money added / money spent), search and the date range run on the 
 `GET /v1/wallet/transactions?page=`), and a downloadable PDF receipt (the app shares a text receipt
 built from the transaction instead).
 
-## 7. Support chat (built, answering 503 until switched on)
+## 7. Support chat (live)
 
-The contract is the backend's work item, "Nexmile Support Bubble — Flutter Work Item". **Every
-endpoint is built and returns 503 until the support platform is switched on** (a shared secret, a
-queue worker and a model key on the backend's side). The app handles the 503 as "assistant
-unavailable". Until it answers, builds use a demo
-([demo_support_repository.dart](../lib/features/support/data/demo_support_repository.dart)), which
-answers on the phone with canned English and a banner saying so.
-
-Which one a build uses is `--dart-define=NEXMILE_SUPPORT=…`: `live` for
-[support_repository.dart](../lib/features/support/data/support_repository.dart), `demo` for the
-demo. Debug builds default to the demo. **A release build that does not ask gets neither, and every way
-into the chat is hidden**, so no customer meets sample answers.
+The backend's contract is "Nexmile Support Bubble — Flutter Work Item" (and `docs/SUPPORT.md` in the
+backend repository). **The endpoints are live on production**, and builds talk to them by default
+([support_repository.dart](../lib/features/support/data/support_repository.dart)). The server's own
+switch is `chat_enabled` in `/v1/app/config`. `--dart-define=NEXMILE_SUPPORT=demo` swaps in an
+on-phone demo for showing the screens offline
+([demo_support_repository.dart](../lib/features/support/data/demo_support_repository.dart)), with a
+banner saying the answers are samples; `NEXMILE_SUPPORT=off` hides the chat.
 
 | Method | Path | Used for |
 |---|---|---|
@@ -305,6 +301,7 @@ into the chat is hidden**, so no customer meets sample answers.
 | `GET` | `/v1/support/conversations/{id}` | The thread and `pending_reply`, which brings back the typing indicator after an app restart. Fetching it marks it read. |
 | `GET` | `/v1/support/conversations/{id}/messages?after_id=` | Polled every 2 s while a reply is outstanding, for at most 30 s; never while idle. `meta.pending_reply` keeps the typing dots for a second question, and ends the wait early when a job finished with no answer. |
 | `POST` | `/v1/support/conversations/{id}/messages` | `content` and `client_id` (a UUID made per message, sent again unchanged on retry). `202` with the saved message. |
+| `POST` | `/v1/support/conversations/{id}/order` | `{"order_id": 10432}` (a number, though the `select_order` action carries it as a string): the customer picked one of several live orders. Answers with `meta.pending_reply: true`, and the reply is polled for exactly as after a message. Refusals: `404` (not this customer's order) is a small note in the chat; `409` (thread closed) shows the chat as closed with "Start a new chat"; `503` (platform or order system unreachable) is tried once more after 2 s, then left as a small note while the customer keeps typing. None of them closes the chat. |
 | `POST` | `/v1/support/conversations/{id}/handover` | `system_message` is shown exactly as sent; the app writes no promise of its own. |
 | `POST` | `/v1/support/conversations/{id}/close` | The composer becomes "Start a new chat". |
 | `POST` | `/v1/support/messages/{id}/feedback` | `{"value": "up"}` or `{"value": "down"}` (confirmed). |
@@ -313,7 +310,10 @@ into the chat is hidden**, so no customer meets sample answers.
   "AI assistant" label; a person shows a first name, an initial and a bordered bubble, never the AI's
   style. `system` is centred text, not a bubble.
 - Action codes `track_order`, `view_order`, `call_rider`, `reorder`, `leave_review`, `talk_to_person`,
-  `close_thread`. Unknown codes are skipped silently. Order destinations fetch fresh data on arrival
+  `close_thread`, and `select_order` (one button per live order when there are several). The button
+  shows the translated `label` alone; it already names the restaurant, and `title` (the bare name) is
+  not drawn. A finished order gets `view_order` (order details) rather than `track_order`. Unknown
+  codes are skipped silently. Order destinations fetch fresh data on arrival
   (the rider's number comes from `/track`), so nothing shown is read out of the AI's words.
 - The thread and the draft live on the phone (shared preferences) so the chat opens before the network
   answers and works read-only offline. Both are wiped on sign-out and account deletion.
