@@ -69,8 +69,13 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     final LatLng? rider = tracking != null && tracking.hasRiderPosition
         ? LatLng(tracking.riderLatitude!, tracking.riderLongitude!)
         : null;
-    final LatLng? destination = order?.deliveryLocation?.toLatLng();
-    final LatLng? restaurant = order?.restaurantLocation?.toLatLng();
+    // The two pins come with every tracking response, so the map has its
+    // ends from the first poll, rider or no rider; the order's own copy is
+    // the fallback for an older server.
+    final LatLng? destination =
+        (tracking?.destinationPin ?? order?.deliveryLocation)?.toLatLng();
+    final LatLng? restaurant =
+        (tracking?.restaurantPin ?? order?.restaurantLocation)?.toLatLng();
     final List<LatLng> serverRoute = tracking == null
         ? const <LatLng>[]
         : tracking.route
@@ -129,7 +134,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                         lineTo: nextStop,
                         heading: tracking?.riderHeading,
                         destinationLabel: l10n.trackingPinYou,
-                        restaurantLabel: order?.restaurantName,
+                        restaurantLabel:
+                            tracking?.restaurantName ?? order?.restaurantName,
                         interactive: true,
                         follow: _follow,
                         padding: EdgeInsets.only(
@@ -359,6 +365,9 @@ class _TrackingSheet extends StatelessWidget {
     final OrderTracking? t = tracking;
     final Order? o = order;
     final OrderStatus status = t?.status ?? o?.status ?? OrderStatus.placed;
+    final bool hasRider = t?.riderName?.trim().isNotEmpty ?? false;
+    // No rider yet on an order still in flight: a partner is being found.
+    final bool finding = !hasRider && status.isActive;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -392,63 +401,32 @@ class _TrackingSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          _EtaCard(tracking: t, distanceToGo: distanceToGo),
-          const SizedBox(height: 18),
-          OrderProgress(status: status, shimmer: true),
-          const SizedBox(height: 18),
-          _RiderCard(
+          _EtaCard(
             tracking: t,
-            onCall: onCall,
-            onMessage: onMessage,
+            distanceToGo: distanceToGo,
+            finding: finding,
             waiting: o != null && o.dispatchStatus.isNews
                 ? dispatchMessage(o, l10n)
                 : null,
           ),
+          const SizedBox(height: 18),
+          OrderProgress(status: status, shimmer: true),
+          // Only once there is someone to show. Before that the card above
+          // says a partner is being found, rather than an empty card here.
+          if (hasRider) ...<Widget>[
+            const SizedBox(height: 18),
+            _RiderCard(
+              key: const ValueKey<String>('tracking-rider-card'),
+              tracking: t!,
+              onCall: onCall,
+              onMessage: onMessage,
+            ),
+          ],
           if (o != null) ...<Widget>[
             const SizedBox(height: 18),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        l10n.trackingDeliveringTo,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        o.deliveryAddress.isNotEmpty
-                            ? o.deliveryAddress
-                            : '#${o.orderNumber}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  style: OutlinedButton.styleFrom(
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    minimumSize: const Size(0, 44),
-                  ),
-                  child: Text(l10n.trackingOrderDetails),
-                ),
-              ],
-            ),
-            // The question people actually have, at the moment they have it.
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: NeedHelpButton(orderId: o.id, dense: true),
+            _OrderBlock(
+              order: o,
+              restaurantName: t?.restaurantName ?? o.restaurantName,
             ),
           ],
         ],
@@ -459,10 +437,22 @@ class _TrackingSheet extends StatelessWidget {
 
 /// "Arriving in 12 min", on a soft green wash, with how far the rider is.
 class _EtaCard extends StatelessWidget {
-  const _EtaCard({required this.tracking, required this.distanceToGo});
+  const _EtaCard({
+    required this.tracking,
+    required this.distanceToGo,
+    this.finding = false,
+    this.waiting,
+  });
 
   final OrderTracking? tracking;
   final double? distanceToGo;
+
+  /// No rider assigned yet: the card says a partner is being found, with
+  /// a searching mark, instead of a rider line it has nothing to fill with.
+  final bool finding;
+
+  /// The server's own words about the search, when it has news.
+  final String? waiting;
 
   @override
   Widget build(BuildContext context) {
@@ -564,7 +554,33 @@ class _EtaCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (subtitle != null && subtitle.isNotEmpty) ...<Widget>[
+                if (finding) ...<Widget>[
+                  const SizedBox(height: 6),
+                  Row(
+                    key: const ValueKey<String>('tracking-finding'),
+                    children: <Widget>[
+                      const SizedBox.square(
+                        dimension: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.greenDeep,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          waiting ?? l10n.trackingFindingRider,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else if (subtitle != null && subtitle.isNotEmpty) ...<Widget>[
                   const SizedBox(height: 4),
                   Row(
                     children: <Widget>[
@@ -589,19 +605,21 @@ class _EtaCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.orangeDeep.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.delivery_dining_rounded,
-              size: 40,
-              color: AppColors.orangeDeep,
-            ),
-          ),
+          finding
+              ? const _SearchingMark()
+              : Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.orangeDeep.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.delivery_dining_rounded,
+                    size: 40,
+                    color: AppColors.orangeDeep,
+                  ),
+                ),
         ],
       ),
     );
@@ -655,16 +673,14 @@ class _LiveDotState extends State<_LiveDot>
 /// street, then the name, a face, and the two ways to reach them.
 class _RiderCard extends StatelessWidget {
   const _RiderCard({
+    super.key,
     required this.tracking,
     required this.onCall,
     required this.onMessage,
-    this.waiting,
   });
 
-  final OrderTracking? tracking;
-
-  /// What to say before a rider is assigned.
-  final String? waiting;
+  /// Only drawn with a rider assigned: [OrderTracking.riderName] is set.
+  final OrderTracking tracking;
   final ValueChanged<String> onCall;
   final ValueChanged<String> onMessage;
 
@@ -672,35 +688,10 @@ class _RiderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final String? name = tracking?.riderName?.trim();
+    final String name = tracking.riderName!.trim();
 
-    if (name == null || name.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: <Widget>[
-            const SizedBox.square(
-              dimension: 20,
-              child: CircularProgressIndicator(strokeWidth: 2.2),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                waiting ?? l10n.trackingFindingRider,
-                style: theme.textTheme.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final String? phone = tracking?.riderPhone;
-    final String? plate = tracking?.riderVehicleNumber;
+    final String? phone = tracking.riderPhone;
+    final String? plate = tracking.riderVehicleNumber;
     final String first = name.split(' ').first;
     final bool hasPhone = phone != null && phone.isNotEmpty;
 
@@ -735,7 +726,7 @@ class _RiderCard extends StatelessWidget {
                     Text(
                       <String>[
                         l10n.riderLabel,
-                        if (_vehicle(tracking?.riderVehicleType, l10n)
+                        if (_vehicle(tracking.riderVehicleType, l10n)
                             case final String vehicle)
                           vehicle,
                       ].join(' · '),
@@ -761,8 +752,8 @@ class _RiderCard extends StatelessWidget {
               const SizedBox(width: 12),
               _Avatar(
                 initial: first.characters.first.toUpperCase(),
-                photoUrl: tracking?.riderPhotoUrl,
-                rating: tracking?.riderRating,
+                photoUrl: tracking.riderPhotoUrl,
+                rating: tracking.riderRating,
               ),
             ],
           ),
@@ -823,6 +814,252 @@ class _RiderCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Where the order comes from and where it goes, then the two things to do
+/// about it, side by side: the order's details, and help.
+class _OrderBlock extends StatelessWidget {
+  const _OrderBlock({required this.order, this.restaurantName});
+
+  final Order order;
+  final String? restaurantName;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final bool dark = theme.brightness == Brightness.dark;
+    final Color green = dark ? AppColors.greenLight : AppColors.greenDeep;
+    final String? shop = restaurantName?.trim();
+    final bool help = supportChatOn(context);
+
+    final Widget details = FilledButton.icon(
+      key: const ValueKey<String>('tracking-order-details'),
+      onPressed: () => Navigator.of(context).maybePop(),
+      style: FilledButton.styleFrom(
+        backgroundColor: green.withValues(alpha: dark ? 0.22 : 0.12),
+        foregroundColor: green,
+        minimumSize: const Size.fromHeight(46),
+        shape: const StadiumBorder(),
+      ),
+      icon: const Icon(Icons.receipt_long_rounded, size: 19),
+      label: Text(
+        l10n.trackingOrderDetails,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+
+    return Container(
+      key: const ValueKey<String>('tracking-order-block'),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (shop != null && shop.isNotEmpty) ...<Widget>[
+            _PlaceRow(
+              icon: Icons.storefront_rounded,
+              colour: AppColors.orangeDeep,
+              title: shop,
+              detail: '#${order.orderNumber}',
+              detailLtr: true,
+            ),
+            // The two stops joined, the way the map joins them.
+            // Aligned rather than stretched, so it stays a 2 px line under
+            // the icon well instead of a rule across the card.
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(start: 19),
+                child: Container(
+                  width: 2,
+                  height: 14,
+                  margin: const EdgeInsets.symmetric(vertical: 2),
+                  color: theme.colorScheme.outlineVariant,
+                ),
+              ),
+            ),
+          ],
+          _PlaceRow(
+            icon: Icons.home_rounded,
+            colour: green,
+            title: l10n.trackingDeliveringTo,
+            detail: order.deliveryAddress.isNotEmpty
+                ? order.deliveryAddress
+                : '#${order.orderNumber}',
+            titleIsLabel: true,
+          ),
+          const SizedBox(height: 14),
+          if (help)
+            Row(
+              children: <Widget>[
+                Expanded(child: details),
+                const SizedBox(width: 10),
+                // The question people actually have, at the moment they
+                // have it.
+                Expanded(
+                  child: NeedHelpButton(orderId: order.id, outlined: true),
+                ),
+              ],
+            )
+          else
+            details,
+        ],
+      ),
+    );
+  }
+}
+
+/// One end of the journey: a coloured icon well, then what it is.
+class _PlaceRow extends StatelessWidget {
+  const _PlaceRow({
+    required this.icon,
+    required this.colour,
+    required this.title,
+    required this.detail,
+    this.titleIsLabel = false,
+    this.detailLtr = false,
+  });
+
+  final IconData icon;
+  final Color colour;
+  final String title;
+  final String detail;
+
+  /// True when [title] is a small label ("Delivering to") over the detail
+  /// as the main line; false when it is the name, with the detail under it.
+  final bool titleIsLabel;
+  final bool detailLtr;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle? small = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final TextStyle? main = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.w800,
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: colour.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 21, color: colour),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: titleIsLabel ? small : main,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                detail,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textDirection: detailLtr ? TextDirection.ltr : null,
+                style: titleIsLabel
+                    ? main?.copyWith(fontWeight: FontWeight.w700)
+                    : small,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The scooter with rings spreading from it: a partner is being looked
+/// for. Still, rings at rest, when the platform asks for less motion.
+class _SearchingMark extends StatefulWidget {
+  const _SearchingMark();
+
+  @override
+  State<_SearchingMark> createState() => _SearchingMarkState();
+}
+
+class _SearchingMarkState extends State<_SearchingMark>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      key: const ValueKey<String>('tracking-searching'),
+      dimension: 64,
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (BuildContext context, Widget? child) => Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            for (final double offset in <double>[0, 0.5])
+              () {
+                final double t = (_c.value + offset) % 1;
+                return Container(
+                  width: 34 + 30 * t,
+                  height: 34 + 30 * t,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.orangeDeep
+                        .withValues(alpha: 0.18 * (1 - t)),
+                  ),
+                );
+              }(),
+            child!,
+          ],
+        ),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.orangeDeep.withValues(alpha: 0.14),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.delivery_dining_rounded,
+            size: 24,
+            color: AppColors.orangeDeep,
+          ),
+        ),
       ),
     );
   }

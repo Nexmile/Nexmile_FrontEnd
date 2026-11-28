@@ -193,6 +193,24 @@ class SupportController extends ChangeNotifier {
     }
   }
 
+  /// The chip tapped on each answer, by message id. Drawn as selected, with
+  /// the answer's other chips switched off, so a customer can see their tap
+  /// registered and cannot pick a second order by accident.
+  final Map<String, String> _chosen = <String, String>{};
+
+  String? chosenOn(String messageId) => _chosen[messageId];
+
+  void choose(String messageId, String chip) {
+    _chosen[messageId] = chip;
+    notifyListeners();
+  }
+
+  /// Puts the answer's chips back, when what the tap started did not go
+  /// through and the customer needs to try again.
+  void unchoose(String messageId) {
+    if (_chosen.remove(messageId) != null) notifyListeners();
+  }
+
   /// The thread's language as the server has it now. Read fresh from every
   /// response rather than fixed when the chat opened: writing in Tamil script
   /// switches the thread to Tamil on the server.
@@ -491,6 +509,7 @@ class SupportController extends ChangeNotifier {
           createdAt: message.createdAt,
           actions: message.actions,
           card: message.card,
+          spoken: message.spoken,
           feedback: before,
         ),
       );
@@ -501,6 +520,7 @@ class SupportController extends ChangeNotifier {
   Future<void> clear() async {
     _stopWaiting();
     _thread = null;
+    _chosen.clear();
     _entry = const SupportEntry();
     _offline = false;
     _timedOut = false;

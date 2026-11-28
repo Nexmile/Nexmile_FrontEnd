@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -87,6 +88,7 @@ import 'package:nexmile/features/support/data/support_models.dart';
 import 'package:nexmile/features/support/data/support_repository.dart';
 import 'package:nexmile/features/support/presentation/support_screen.dart';
 import 'package:nexmile/features/support/presentation/support_voice.dart';
+import 'package:nexmile/features/catalogue/presentation/widgets/rider_map.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'account_fakes.dart';
@@ -3725,6 +3727,92 @@ void main() {
       expect(find.bySemanticsLabel(RegExp('Live')), findsNothing);
     });
 
+    testWidgets('the map takes both pins from tracking, before any rider',
+        (WidgetTester tester) async {
+      // An order whose own copy has no coordinates; tracking sends both.
+      final OrdersController orders = await openTracking(
+        tester,
+        <String, dynamic>{
+          'status': 'preparing',
+          'rider': null,
+          'restaurant': <String, dynamic>{
+            'name': 'Amma Mess',
+            'latitude': 13.0950,
+            'longitude': 80.2750,
+          },
+          'destination': <String, dynamic>{
+            'latitude': 13.0990,
+            'longitude': 80.2710,
+          },
+        },
+        order: <String, dynamic>{
+          'delivery_address': <String, dynamic>{
+            'line1': '12 Anna Nagar',
+            'city': 'Chennai',
+          },
+        },
+      );
+      addTearDown(orders.stopPolling);
+
+      final RiderMap map = tester.widget<RiderMap>(find.byType(RiderMap));
+      expect(map.restaurant, const LatLng(13.0950, 80.2750));
+      expect(map.destination, const LatLng(13.0990, 80.2710));
+      expect(map.rider, isNull);
+      expect(map.restaurantLabel, 'Amma Mess');
+
+      // No rider: the top card says a partner is being found, and the
+      // rider card is not drawn empty.
+      expect(find.byKey(const ValueKey<String>('tracking-finding')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('tracking-searching')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('tracking-rider-card')),
+        findsNothing,
+      );
+
+      // Where it comes from and where it goes, then the two actions.
+      final Finder block =
+          find.byKey(const ValueKey<String>('tracking-order-block'));
+      expect(
+        find.descendant(of: block, matching: find.text('Amma Mess')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: block, matching: find.text('Delivering to')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: block, matching: find.text('Order details')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a rider assigned gets the rider card, and no searching',
+        (WidgetTester tester) async {
+      final OrdersController orders = await openTracking(
+        tester,
+        <String, dynamic>{
+          'estimated_minutes': 12,
+          'rider': <String, dynamic>{
+            'name': 'Suresh K',
+            'latitude': 13.0830,
+            'longitude': 80.2710,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          },
+        },
+      );
+      addTearDown(orders.stopPolling);
+
+      expect(
+        find.byKey(const ValueKey<String>('tracking-rider-card')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey<String>('tracking-finding')), findsNothing);
+      expect(find.byKey(const ValueKey<String>('tracking-searching')), findsNothing);
+    });
+
     testWidgets('before a rider is assigned it says one is coming',
         (WidgetTester tester) async {
       final OrdersController orders =
@@ -6803,6 +6891,39 @@ void main() {
       expect(SupportOrderCard.fromJson(<String, dynamic>{}), isNull);
     });
 
+    test('a reply is read from spoken when there is one', () {
+      final SupportMessage withSpoken = SupportMessage.fromJson(
+        <String, dynamic>{
+          'id': 'm4',
+          'sender': 'ai',
+          'content': 'Order NX261113ABCD is on the way.',
+          'spoken': 'Your biryani is on the way, about nine minutes out.',
+        },
+      )!;
+      expect(withSpoken.content, 'Order NX261113ABCD is on the way.');
+      expect(
+        withSpoken.toSpeak,
+        'Your biryani is on the way, about nine minutes out.',
+      );
+      // Kept on the phone with the message.
+      expect(
+        SupportMessage.fromJson(withSpoken.toJson())!.spoken,
+        withSpoken.spoken,
+      );
+
+      // Null, or blank, when the content already reads well: read that.
+      for (final Object? spoken in <Object?>[null, '', '  ']) {
+        final SupportMessage plain = SupportMessage.fromJson(<String, dynamic>{
+          'id': 'm5',
+          'sender': 'agent',
+          'content': 'Happy to help.',
+          'spoken': spoken,
+        })!;
+        expect(plain.spoken, isNull);
+        expect(plain.toSpeak, 'Happy to help.');
+      }
+    });
+
     test('speech uses the Indian voice for the language', () {
       expect(speechLocale('ta'), 'ta-IN');
       expect(speechLocale('en'), 'en-IN');
@@ -7350,6 +7471,79 @@ void main() {
           findsOneWidget);
     });
 
+    testWidgets('a tapped chip shows as chosen, and the others switch off',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      await _askSupport(tester, 'where is my order');
+
+      final Finder second =
+          find.byKey(const ValueKey<String>('support-action-select_order-2'));
+      final Finder first =
+          find.byKey(const ValueKey<String>('support-action-select_order-1'));
+      OutlinedButton button(Finder f) => tester.widget<OutlinedButton>(
+            find.descendant(of: f, matching: find.byType(OutlinedButton)),
+          );
+      expect(button(first).onPressed, isNotNull);
+
+      await tester.tap(second);
+      await tester.pump();
+      // The tap registered, visibly: a tick on it, and no second pick.
+      expect(
+        find.descendant(of: second, matching: find.byIcon(Icons.check_rounded)),
+        findsOneWidget,
+      );
+      expect(button(first).onPressed, isNull);
+      expect(button(second).onPressed, isNull);
+      await tester.tap(first, warnIfMissed: false);
+      await tester.pump();
+      expect(support.selected, <int>[2]);
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a pick that does not go through gives the chips back',
+        (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport()
+        ..refuseSelects.add(404);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+      await _askSupport(tester, 'where is my order');
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('support-action-select_order-2')),
+      );
+      await tester.pumpAndSettle();
+      // Not this customer's order: the note says so, and the other order
+      // can still be picked.
+      final OutlinedButton first = tester.widget<OutlinedButton>(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('support-action-select_order-1')),
+          matching: find.byType(OutlinedButton),
+        ),
+      );
+      expect(first.onPressed, isNotNull);
+    });
+
     Future<void> openChatAbout(
       WidgetTester tester,
       _RecordingSupport support, {
@@ -7484,8 +7678,18 @@ void main() {
       expect(voice.listenedIn, <String?>['en']);
       expect(support.received, <String>['where is my order']);
       expect(voice.spoken, hasLength(1));
-      expect(voice.spoken.single.$2, 'You can follow this order live on the map.');
+      // The reply written to be heard, card facts and all; the screen keeps
+      // the written one.
+      expect(
+        voice.spoken.single.$2,
+        'Your order from Anjappar Chettinad is on the way. It should reach '
+        'you in about 12 minutes. Suresh Kumar is bringing it.',
+      );
       expect(voice.spoken.single.$3, 'en');
+      expect(
+        find.text('You can follow this order live on the map.'),
+        findsOneWidget,
+      );
 
       // The reply's speaker is now a stop button, and stops it.
       final String id = voice.spoken.single.$1;

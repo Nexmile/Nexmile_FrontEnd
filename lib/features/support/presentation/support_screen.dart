@@ -108,14 +108,14 @@ class _SupportScreenState extends State<SupportScreen> {
     if (replies.length <= _repliesBefore) return;
     _readNextReply = false;
     final SupportMessage reply = replies.last;
-    _voice.speak(reply.id, reply.content, language: _language);
+    _voice.speak(reply.id, reply.toSpeak, language: _language);
   }
 
   void _readAloud(SupportMessage message) {
     if (_voice.speaking.value == message.id) {
       _voice.stop();
     } else {
-      _voice.speak(message.id, message.content, language: _language);
+      _voice.speak(message.id, message.toSpeak, language: _language);
     }
   }
 
@@ -134,21 +134,40 @@ class _SupportScreenState extends State<SupportScreen> {
     await context.read<SupportController>().send(content);
   }
 
-  Future<void> _handover() async {
+  Future<bool> _handover() async {
     final String failed = AppLocalizations.of(context).supportActionFailed;
     final String? promise = await context.read<SupportController>().handover();
     if (promise == null) _say(failed);
+    return promise != null;
   }
 
-  Future<void> _close() async {
+  Future<bool> _close() async {
     final String failed = AppLocalizations.of(context).supportActionFailed;
     final bool closed = await context.read<SupportController>().close();
     if (!closed) _say(failed);
+    return closed;
+  }
+
+  /// A chip under an answer: marked chosen at once, the answer's other chips
+  /// switched off, then done. If it does not go through, the chips come
+  /// back so the customer can try again.
+  Future<void> _onChip(SupportMessage message, SupportAction action) async {
+    final SupportController chat = context.read<SupportController>();
+    final String chip = chipId(action);
+    // A choice is made once; a destination can be opened again.
+    if (chat.chosenOn(message.id) == chip &&
+        !reopenableChips.contains(action.code)) {
+      return;
+    }
+    chat.choose(message.id, chip);
+    final bool done = await _run(action);
+    if (!done && mounted) chat.unchoose(message.id);
   }
 
   /// What a button under an answer does. Each goes somewhere and fetches
   /// what it shows there; nothing is read out of the assistant's words.
-  Future<void> _run(SupportAction action) async {
+  /// True when it went through.
+  Future<bool> _run(SupportAction action) async {
     Haptics.select();
     final NavigatorState navigator = Navigator.of(context);
     final StorefrontRepository orders = context.read<StorefrontRepository>();
@@ -157,18 +176,23 @@ class _SupportScreenState extends State<SupportScreen> {
     try {
       switch (action.code) {
         case 'talk_to_person':
-          await _handover();
+          return await _handover();
         case 'close_thread':
-          await _close();
+          return await _close();
         case 'select_order' when orderId != null:
           final String closed = AppLocalizations.of(context).supportClosed;
           switch (await context.read<SupportController>().selectOrder(orderId)) {
             case OrderPick.failed:
               _say(failed);
+              return false;
             case OrderPick.closed:
               _say(closed);
-            // A note in the chat says it; the chat carries on.
-            case OrderPick.sent || OrderPick.notFound || OrderPick.unavailable:
+            // A note in the chat says it; the chat carries on. Not found or
+            // unreachable: the note asks for something else, so the other
+            // orders are offered again.
+            case OrderPick.notFound || OrderPick.unavailable:
+              return false;
+            case OrderPick.sent:
               break;
           }
         case 'track_order' when orderId != null:
@@ -184,23 +208,28 @@ class _SupportScreenState extends State<SupportScreen> {
         case 'call_rider' when orderId != null:
           // The number comes from tracking, never from the message.
           final String? phone = (await orders.track(orderId)).riderPhone;
-          if (!mounted) return;
-          if (phone == null) return _say(failed);
+          if (!mounted) return false;
+          if (phone == null) {
+            _say(failed);
+            return false;
+          }
           await openLink(context, Uri(scheme: 'tel', path: phone));
         case 'reorder' when orderId != null:
           final Order order = await orders.order(orderId);
-          if (!mounted) return;
+          if (!mounted) return false;
           await reorder(context, order);
         case 'leave_review' when orderId != null:
           final Order order = await orders.order(orderId);
-          if (!mounted) return;
+          if (!mounted) return false;
           await navigator.pushNamed(
             AppRoutes.rateOrder,
             arguments: RateOrderArgs(order: order),
           );
       }
+      return true;
     } on Object {
       _say(failed);
+      return false;
     }
   }
 
@@ -218,9 +247,10 @@ class _SupportScreenState extends State<SupportScreen> {
       for (final SupportMessage message in messages)
         _MessageRow(
           message: message,
+          chosen: chat.chosenOn(message.id),
           onRetry: () => chat.retry(message),
           onRate: (String value) => chat.rate(message, value),
-          onAction: _run,
+          onAction: (SupportAction action) => _onChip(message, action),
           onRead: _readAloud,
         ),
       if (chat.isWaiting) const _TypingRow(),
@@ -379,6 +409,7 @@ class _SupportScreenState extends State<SupportScreen> {
 class _MessageRow extends StatelessWidget {
   const _MessageRow({
     required this.message,
+    required this.chosen,
     required this.onRetry,
     required this.onRate,
     required this.onAction,
@@ -386,6 +417,9 @@ class _MessageRow extends StatelessWidget {
   });
 
   final SupportMessage message;
+
+  /// The chip tapped on this message, if any: see [chipId].
+  final String? chosen;
   final VoidCallback onRetry;
   final ValueChanged<String> onRate;
   final ValueChanged<SupportAction> onAction;
@@ -398,6 +432,7 @@ class _MessageRow extends StatelessWidget {
       SupportSender.system => _NoticeRow(text: message.content),
       SupportSender.ai || SupportSender.agent => _Theirs(
           message: message,
+          chosen: chosen,
           onRate: onRate,
           onAction: onAction,
           onRead: () => onRead(message),
@@ -497,12 +532,14 @@ class _Mine extends StatelessWidget {
 class _Theirs extends StatelessWidget {
   const _Theirs({
     required this.message,
+    required this.chosen,
     required this.onRate,
     required this.onAction,
     required this.onRead,
   });
 
   final SupportMessage message;
+  final String? chosen;
   final ValueChanged<String> onRate;
   final ValueChanged<SupportAction> onAction;
 
@@ -608,27 +645,21 @@ class _Theirs extends StatelessWidget {
                       runSpacing: 8,
                       children: <Widget>[
                         for (final SupportAction action in actions)
-                          OutlinedButton(
+                          _Chip(
                             key: ValueKey<String>(
                               action.code == 'select_order'
                                   ? 'support-action-select_order-'
                                       '${action.orderId}'
                                   : 'support-action-${action.code}',
                             ),
+                            action: action,
+                            colour: green,
+                            selected: chosen == chipId(action),
+                            // Once one is chosen, the others are off.
+                            enabled: chosen == null ||
+                                (chosen == chipId(action) &&
+                                    reopenableChips.contains(action.code)),
                             onPressed: () => onAction(action),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: green,
-                              side: BorderSide(color: green.withValues(alpha: 0.6)),
-                              minimumSize: const Size(0, 38),
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                            ),
-                            // The label alone: it is the server's finished,
-                            // translated text, and already names the order.
-                            // The title is only for building one's own.
-                            child: Text(action.label),
                           ),
                       ],
                     ),
@@ -692,6 +723,84 @@ class _Theirs extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// What identifies a chip on its message: the action, and the order it is
+/// for when there is one (several "select_order" chips share a code).
+String chipId(SupportAction action) => action.orderId == null
+    ? action.code
+    : '${action.code}-${action.orderId}';
+
+/// Chips that go somewhere and can be gone to again: tapping one marks it
+/// chosen but leaves it working. The rest are choices, made once.
+const Set<String> reopenableChips = <String>{
+  'track_order',
+  'view_order',
+  'call_rider',
+  'reorder',
+  'leave_review',
+};
+
+/// A chip under an answer: outlined; filled with a tick once chosen; greyed
+/// when another chip on the same answer was chosen.
+class _Chip extends StatelessWidget {
+  const _Chip({
+    super.key,
+    required this.action,
+    required this.colour,
+    required this.selected,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final SupportAction action;
+  final Color colour;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color onColour = theme.brightness == Brightness.dark
+        ? Colors.black
+        : Colors.white;
+    return OutlinedButton(
+      onPressed: enabled ? onPressed : null,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: selected ? onColour : colour,
+        backgroundColor: selected ? colour : null,
+        // Chosen and done stays chosen-looking, not greyed like the rest.
+        disabledForegroundColor: selected
+            ? onColour
+            : theme.colorScheme.onSurface.withValues(alpha: 0.38),
+        disabledBackgroundColor: selected ? colour : null,
+        side: BorderSide(
+          color: selected
+              ? colour
+              : enabled
+                  ? colour.withValues(alpha: 0.6)
+                  : theme.colorScheme.outlineVariant,
+        ),
+        minimumSize: const Size(0, 38),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (selected) ...<Widget>[
+            const Icon(Icons.check_rounded, size: 16),
+            const SizedBox(width: 6),
+          ],
+          // The label alone: it is the server's finished, translated text,
+          // and already names the order. The title is only for building
+          // one's own.
+          Flexible(child: Text(action.label)),
         ],
       ),
     );

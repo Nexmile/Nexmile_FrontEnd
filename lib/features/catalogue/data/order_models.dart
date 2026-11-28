@@ -481,6 +481,9 @@ class OrderTracking {
     this.route = const <GeoPoint>[],
     this.routeStartsAt = RouteStart.unknown,
     this.nextStop = NextStop.unknown,
+    this.restaurantPin,
+    this.restaurantName,
+    this.destinationPin,
     this.staleAfter = const Duration(seconds: 45),
     this.cancellationReason,
   });
@@ -529,6 +532,13 @@ class OrderTracking {
   /// Where the rider is riding to now: the restaurant until the food is
   /// collected, then the customer.
   final NextStop nextStop;
+
+  /// The two ends of the journey, on every tracking response: the map is
+  /// drawn from these, not from the rider, who is null until assignment and
+  /// has no position until the food is picked up.
+  final GeoPoint? restaurantPin;
+  final String? restaurantName;
+  final GeoPoint? destinationPin;
 
   /// How old a fix may get before the map says it is updating. Published by
   /// the server as `stale_after_seconds` so both ends use the same number.
@@ -586,6 +596,19 @@ class OrderTracking {
         'restaurant' => RouteStart.restaurant,
         _ => RouteStart.unknown,
       },
+      restaurantPin: GeoPoint.fromJson(
+        json['restaurant'] is Map<String, dynamic>
+            ? json['restaurant'] as Map<String, dynamic>
+            : null,
+      ),
+      restaurantName: json['restaurant'] is Map<String, dynamic>
+          ? _nonEmpty((json['restaurant'] as Map<String, dynamic>)['name'])
+          : null,
+      destinationPin: GeoPoint.fromJson(
+        json['destination'] is Map<String, dynamic>
+            ? json['destination'] as Map<String, dynamic>
+            : null,
+      ),
       nextStop: switch (json['next_stop']) {
         'restaurant' => NextStop.restaurant,
         'customer' => NextStop.customer,

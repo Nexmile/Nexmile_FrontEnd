@@ -340,7 +340,10 @@ banner saying the answers are samples; `NEXMILE_SUPPORT=off` hides the chat.
   `data.language` on the thread, `meta.language` on the poll (beside `meta.pending_reply`, since the
   poll is the only call made while the customer is typing): writing in Tamil script switches
   the thread to Tamil on the server. The voice listens and speaks in it.
-- **Voice.** The mic in an empty composer listens on the phone (speech_to_text, in the thread's
+- **Voice.** Reads a reply's `spoken` when it has one, else its `content`. `spoken` is the same
+  reply written to be heard (order numbers as words, the card's facts in the sentence, since a card is
+  silent); it is null when `content` already reads well, and `content` is what the screen shows.
+  The mic in an empty composer listens on the phone (speech_to_text, in the thread's
   language, `-IN` voices first) and sends what it heard as an ordinary message; the reply is then read
   aloud on the phone (flutter_tts, falling back to en-IN where the language has no voice). Every
   reply has a read-aloud / stop button. Nothing heard offers typing instead, with the cursor in the

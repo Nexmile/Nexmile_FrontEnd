@@ -222,6 +222,7 @@ class DemoSupportRepository implements SupportRepository {
     bool has(List<String> words) => words.any(q.contains);
 
     String content;
+    String? spoken;
     SupportOrderCard? card;
     List<SupportAction> actions = const <SupportAction>[];
     if (has(<String>['refund', 'money', 'charged', 'wrong', 'missing'])) {
@@ -247,8 +248,10 @@ class DemoSupportRepository implements SupportRepository {
       ];
     } else if (has(<String>['where', 'track', 'late', 'status', 'when'])) {
       content = 'You can follow this order live on the map.';
-      // The order card, as the server sends it for a known order.
+      // The order card, as the server sends it for a known order, and the
+      // sentence that says it aloud, since a card is silent.
       card = orderId == null ? null : orderCard(orderId);
+      if (card != null) spoken = spokenCard(card);
       actions = <SupportAction>[
         if (orderId != null)
           SupportAction(code: 'track_order', label: 'Track it', orderId: orderId),
@@ -278,7 +281,19 @@ class DemoSupportRepository implements SupportRepository {
       createdAt: DateTime.now(),
       actions: actions,
       card: card,
+      spoken: spoken,
     );
+  }
+
+  /// The card as a sentence, roughly as the server writes `spoken`.
+  static String? spokenCard(SupportOrderCard card) {
+    final List<String> parts = <String>[
+      if (card.statusLabel case final String status)
+        'Your order from ${card.restaurant ?? 'the restaurant'} is ${status.toLowerCase()}.',
+      if (card.etaMinutes case final int eta) 'It should reach you in about $eta minutes.',
+      if (card.riderName case final String rider) '$rider is bringing it.',
+    ];
+    return parts.isEmpty ? null : parts.join(' ');
   }
 }
 

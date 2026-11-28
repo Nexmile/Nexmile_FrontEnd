@@ -191,6 +191,7 @@ class SupportMessage {
     this.agentName,
     this.actions = const <SupportAction>[],
     this.card,
+    this.spoken,
     this.feedback,
     this.state = DeliveryState.sent,
   });
@@ -211,6 +212,14 @@ class SupportMessage {
 
   /// The order this reply is about, when it is about a settled one.
   final SupportOrderCard? card;
+
+  /// The same reply written to be heard: order numbers as words, and the
+  /// card's facts in the sentence, since a card is silent. Null when
+  /// [content] already reads aloud well.
+  final String? spoken;
+
+  /// What to read aloud: [spoken] when the server wrote one, else [content].
+  String get toSpeak => spoken ?? content;
 
   /// "up", "down" or null, echoed so a reinstall shows what was pressed.
   final String? feedback;
@@ -233,6 +242,7 @@ class SupportMessage {
         agentName: agentName,
         actions: actions,
         card: card,
+        spoken: spoken,
         feedback: feedback ?? this.feedback,
         state: state ?? this.state,
       );
@@ -259,6 +269,10 @@ class SupportMessage {
             action,
       ],
       card: SupportOrderCard.fromJson(json['card']),
+      spoken: () {
+        final String spoken = asString(json['spoken']).trim();
+        return spoken.isEmpty ? null : spoken;
+      }(),
       feedback: feedback == 'up' || feedback == 'down' ? feedback : null,
       // Only ever written by the phone's own store.
       state: switch (state) {
@@ -283,6 +297,7 @@ class SupportMessage {
             for (final SupportAction action in actions) action.toJson(),
           ],
         if (card != null) 'card': card!.toJson(),
+        if (spoken != null) 'spoken': spoken,
         if (feedback != null) 'feedback': feedback,
         if (state != DeliveryState.sent) 'local_state': state.name,
       };

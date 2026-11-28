@@ -228,10 +228,14 @@ class NeedHelpButton extends StatelessWidget {
     required this.orderId,
     this.dense = false,
     this.iconOnly = false,
+    this.outlined = false,
   });
 
   final int orderId;
   final bool dense;
+
+  /// A full-width outlined button, to sit beside another one.
+  final bool outlined;
 
   /// For a top bar, where the order number already needs the room.
   final bool iconOnly;
@@ -250,6 +254,22 @@ class NeedHelpButton extends StatelessWidget {
         tooltip: l10n.supportNeedHelp,
         onPressed: open,
         icon: const Icon(Icons.support_agent_rounded),
+      );
+    }
+    if (outlined) {
+      return OutlinedButton.icon(
+        key: ValueKey<String>('need-help-$orderId'),
+        onPressed: open,
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(46),
+          shape: const StadiumBorder(),
+        ),
+        icon: const Icon(Icons.support_agent_rounded, size: 19),
+        label: Text(
+          l10n.supportNeedHelp,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       );
     }
     return TextButton.icon(
