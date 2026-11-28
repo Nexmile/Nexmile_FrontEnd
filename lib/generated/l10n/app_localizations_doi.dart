@@ -2088,6 +2088,9 @@ class AppLocalizationsDoi extends AppLocalizations {
       'हुनै एह् आर्डर दिक्खेआ नेईं जाई सकेआ। तुस अपना सवाल लिखी सकदे ओ।';
 
   @override
+  String get supportHandedOverNote => 'टीम दा इक सदस्य जवाब देग';
+
+  @override
   String get restaurantNew => 'नमां';
 
   @override

@@ -2089,6 +2089,9 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਹੁਣੇ ਇਹ ਆਰਡਰ ਦੇਖਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਤੁਸੀਂ ਆਪਣਾ ਸਵਾਲ ਲਿਖ ਸਕਦੇ ਹੋ।';
 
   @override
+  String get supportHandedOverNote => 'ਟੀਮ ਦਾ ਇੱਕ ਮੈਂਬਰ ਜਵਾਬ ਦੇਵੇਗਾ';
+
+  @override
   String get restaurantNew => 'ਨਵਾਂ';
 
   @override

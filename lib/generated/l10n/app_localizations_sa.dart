@@ -2090,6 +2090,9 @@ class AppLocalizationsSa extends AppLocalizations {
       'इदानीम् एषः आदेशः द्रष्टुं न शक्यते। भवान् स्वप्रश्नं लेखितुं शक्नोति।';
 
   @override
+  String get supportHandedOverNote => 'दलस्य कश्चन सदस्यः उत्तरं दास्यति';
+
+  @override
   String get restaurantNew => 'नूतनम्';
 
   @override

@@ -730,6 +730,7 @@
   "supportActionFailed": "یہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
   "supportOrderNotFound": "یہ آرڈر آپ کے اکاؤنٹ میں نہیں ملا۔",
   "supportOrderLookupDown": "ابھی یہ آرڈر دیکھا نہیں جا سکا۔ آپ اپنا سوال لکھ سکتے ہیں۔",
+  "supportHandedOverNote": "ٹیم کا ایک رکن جواب دے گا",
   "restaurantNew": "نیا",
   "walletHideBalance": "بیلنس چھپائیں",
   "walletShowBalance": "بیلنس دکھائیں",

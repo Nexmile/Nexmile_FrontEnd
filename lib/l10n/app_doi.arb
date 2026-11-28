@@ -730,6 +730,7 @@
   "supportActionFailed": "एह् नेईं होई सकेआ। फ्ही कोशिश करो।",
   "supportOrderNotFound": "एह् आर्डर तुंदे खाते च नेईं लब्भा।",
   "supportOrderLookupDown": "हुनै एह् आर्डर दिक्खेआ नेईं जाई सकेआ। तुस अपना सवाल लिखी सकदे ओ।",
+  "supportHandedOverNote": "टीम दा इक सदस्य जवाब देग",
   "restaurantNew": "नमां",
   "walletHideBalance": "बैलेंस छपाओ",
   "walletShowBalance": "बैलेंस दस्सो",

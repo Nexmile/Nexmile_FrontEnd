@@ -730,6 +730,7 @@
   "supportActionFailed": "ई नहि भऽ सकल। फेर कोशिश करू।",
   "supportOrderNotFound": "ई ऑर्डर अहाँक खातामे नहि भेटल।",
   "supportOrderLookupDown": "एखन ई ऑर्डर देखल नहि जा सकल। अहाँ अपन प्रश्न लिखि सकैत छी।",
+  "supportHandedOverNote": "टीमक एकटा सदस्य जवाब देताह",
   "restaurantNew": "नव",
   "walletHideBalance": "बैलेंस नुकाउ",
   "walletShowBalance": "बैलेंस देखाउ",

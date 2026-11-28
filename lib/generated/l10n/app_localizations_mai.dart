@@ -2077,6 +2077,9 @@ class AppLocalizationsMai extends AppLocalizations {
       'एखन ई ऑर्डर देखल नहि जा सकल। अहाँ अपन प्रश्न लिखि सकैत छी।';
 
   @override
+  String get supportHandedOverNote => 'टीमक एकटा सदस्य जवाब देताह';
+
+  @override
   String get restaurantNew => 'नव';
 
   @override

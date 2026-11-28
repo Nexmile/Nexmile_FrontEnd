@@ -2098,6 +2098,9 @@ class AppLocalizationsSat extends AppLocalizations {
       'ᱱᱤᱛᱚᱜ ᱱᱚᱶᱟ ᱚᱨᱰᱟᱨ ᱵᱟᱝ ᱧᱮᱞ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾ ᱟᱢ ᱟᱢᱟᱜ ᱠᱩᱠᱞᱤ ᱚᱞ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾';
 
   @override
+  String get supportHandedOverNote => 'ᱴᱤᱢ ᱨᱮᱱᱟᱜ ᱢᱤᱫ ᱥᱚᱫᱚᱥ ᱛᱮᱞᱟ ᱮᱢᱟ';
+
+  @override
   String get restaurantNew => 'ᱱᱟᱶᱟ';
 
   @override

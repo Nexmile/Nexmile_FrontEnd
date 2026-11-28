@@ -730,6 +730,7 @@
   "supportActionFailed": "त्यो हुन सकेन। पुनः प्रयास गर्नुहोस्।",
   "supportOrderNotFound": "यो अर्डर तपाईंको खातामा भेटिएन।",
   "supportOrderLookupDown": "अहिले यो अर्डर हेर्न सकिएन। तपाईं आफ्नो प्रश्न लेख्न सक्नुहुन्छ।",
+  "supportHandedOverNote": "टोलीका एक सदस्यले जवाफ दिनुहुनेछ",
   "restaurantNew": "नयाँ",
   "walletHideBalance": "ब्यालेन्स लुकाउनुहोस्",
   "walletShowBalance": "ब्यालेन्स देखाउनुहोस्",

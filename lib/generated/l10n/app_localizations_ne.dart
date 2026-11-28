@@ -2090,6 +2090,9 @@ class AppLocalizationsNe extends AppLocalizations {
       'अहिले यो अर्डर हेर्न सकिएन। तपाईं आफ्नो प्रश्न लेख्न सक्नुहुन्छ।';
 
   @override
+  String get supportHandedOverNote => 'टोलीका एक सदस्यले जवाफ दिनुहुनेछ';
+
+  @override
   String get restaurantNew => 'नयाँ';
 
   @override

@@ -2079,6 +2079,9 @@ class AppLocalizationsGu extends AppLocalizations {
       'હમણાં આ ઓર્ડર તપાસી શકાયો નથી. તમે તમારો પ્રશ્ન લખી શકો છો.';
 
   @override
+  String get supportHandedOverNote => 'ટીમના એક સભ્ય જવાબ આપશે';
+
+  @override
   String get restaurantNew => 'નવું';
 
   @override

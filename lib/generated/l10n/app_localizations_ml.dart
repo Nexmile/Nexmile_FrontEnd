@@ -2097,6 +2097,9 @@ class AppLocalizationsMl extends AppLocalizations {
       'ഇപ്പോൾ ആ ഓർഡർ പരിശോധിക്കാനായില്ല. നിങ്ങളുടെ ചോദ്യം ടൈപ്പ് ചെയ്യാം.';
 
   @override
+  String get supportHandedOverNote => 'ടീമിലെ ഒരാൾ മറുപടി നൽകും';
+
+  @override
   String get restaurantNew => 'പുതിയത്';
 
   @override

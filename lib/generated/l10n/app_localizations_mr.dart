@@ -2082,6 +2082,9 @@ class AppLocalizationsMr extends AppLocalizations {
       'आत्ता ही ऑर्डर तपासता आली नाही. तुम्ही तुमचा प्रश्न टाइप करू शकता.';
 
   @override
+  String get supportHandedOverNote => 'टीममधील एक सदस्य उत्तर देईल';
+
+  @override
   String get restaurantNew => 'नवीन';
 
   @override

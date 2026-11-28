@@ -2088,6 +2088,9 @@ class AppLocalizationsSd extends AppLocalizations {
       'هن وقت اهو آرڊر ڏسي نه سگهياسين. توهان پنهنجو سوال لکي سگهو ٿا.';
 
   @override
+  String get supportHandedOverNote => 'ٽيم جو هڪ ميمبر جواب ڏيندو';
+
+  @override
   String get restaurantNew => 'نئون';
 
   @override

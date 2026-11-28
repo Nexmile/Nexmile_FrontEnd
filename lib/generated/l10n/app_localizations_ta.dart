@@ -2103,6 +2103,10 @@ class AppLocalizationsTa extends AppLocalizations {
       'இப்போது அந்த ஆர்டரைப் பார்க்க முடியவில்லை. உங்கள் கேள்வியைத் தட்டச்சு செய்யலாம்.';
 
   @override
+  String get supportHandedOverNote =>
+      'எங்கள் குழுவைச் சேர்ந்த ஒருவர் பதில் அளிப்பார்';
+
+  @override
   String get restaurantNew => 'புதியது';
 
   @override

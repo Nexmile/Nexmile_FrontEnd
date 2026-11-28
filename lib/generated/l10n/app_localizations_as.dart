@@ -2086,6 +2086,9 @@ class AppLocalizationsAs extends AppLocalizations {
       'এতিয়া অৰ্ডাৰটো চাব পৰা নগ\'ল। আপুনি প্ৰশ্নটো লিখি পঠিয়াব পাৰে।';
 
   @override
+  String get supportHandedOverNote => 'দলৰ এজন সদস্যই উত্তৰ দিব';
+
+  @override
   String get restaurantNew => 'নতুন';
 
   @override

@@ -27,7 +27,7 @@ abstract class SupportRepository {
 
   /// `POST /v1/support/conversations/{id}/messages`. A 202 with the
   /// customer's own message saved; the reply comes later, by polling.
-  Future<SupportMessage> send(
+  Future<SupportSent> send(
     String id, {
     required String content,
     required String clientId,
@@ -93,7 +93,7 @@ class ApiSupportRepository implements SupportRepository {
   }
 
   @override
-  Future<SupportMessage> send(
+  Future<SupportSent> send(
     String id, {
     required String content,
     required String clientId,
@@ -109,7 +109,13 @@ class ApiSupportRepository implements SupportRepository {
         message: 'The saved message had no sender',
       );
     }
-    return saved;
+    final Object? meta = response['meta'];
+    final Object? pending =
+        meta is Map<String, dynamic> ? meta['pending_reply'] : null;
+    return SupportSent(
+      message: saved,
+      pendingReply: pending is bool ? pending : null,
+    );
   }
 
   @override

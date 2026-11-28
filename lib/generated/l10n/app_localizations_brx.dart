@@ -2086,6 +2086,9 @@ class AppLocalizationsBrx extends AppLocalizations {
       'दानो बे ओर्डारखौ नायनो हायाखै। नोंथाङ नोंथांनि सोंथिखौ लिरनो हागोन।';
 
   @override
+  String get supportHandedOverNote => 'दलनि मोनसे सदस्यआ फिननाय होगोन';
+
+  @override
   String get restaurantNew => 'गोदान';
 
   @override

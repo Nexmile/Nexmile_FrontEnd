@@ -2080,6 +2080,9 @@ class AppLocalizationsMni extends AppLocalizations {
       'হৌজিক অর্দর অসি য়েংবা ঙমদ্রে। নহাক্না নহাক্কী ৱাহং ইবা য়াই।';
 
   @override
+  String get supportHandedOverNote => 'তীমগী মীওই অমনা পাউখুম পীগনি';
+
+  @override
   String get restaurantNew => 'অনৌবা';
 
   @override

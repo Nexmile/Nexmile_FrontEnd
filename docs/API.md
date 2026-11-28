@@ -299,8 +299,8 @@ banner saying the answers are samples; `NEXMILE_SUPPORT=off` hides the chat.
 | `GET` | `/v1/support/entry` | Reads without creating a thread: a customer who never asked for help gets `unread: 0, has_open_thread: false, available: true`. The home bubble: `label` (server wording), `unread` (badge), `available` (false when the platform cannot be reached: the bubble still shows, and the chat leads with a person and the phone number). |
 | `POST` | `/v1/support/conversations` | `order_id` (optional) and `language`. Answers with the open thread if there is one; a different `order_id` moves that thread to the new order, with a system line saying so. **Marks the thread read**, so opening the chat is one call and clears the badge. |
 | `GET` | `/v1/support/conversations/{id}` | The thread and `pending_reply`, which brings back the typing indicator after an app restart. Fetching it marks it read. |
-| `GET` | `/v1/support/conversations/{id}/messages?after_id=` | Polled every 2 s while a reply is outstanding, for at most 30 s; never while idle. `meta.pending_reply` keeps the typing dots for a second question, and ends the wait early when a job finished with no answer. |
-| `POST` | `/v1/support/conversations/{id}/messages` | `content` and `client_id` (a UUID made per message, sent again unchanged on retry). `202` with the saved message. |
+| `GET` | `/v1/support/conversations/{id}/messages?after_id=` | Polled every 2 s while a reply is outstanding, for at most 30 s; never while idle. `meta.pending_reply` keeps the typing dots for a second question; `false` with nothing new ends the wait quietly, with no failure shown. |
+| `POST` | `/v1/support/conversations/{id}/messages` | `content` and `client_id` (a UUID made per message, sent again unchanged on retry). `202` with the saved message and `meta.pending_reply`: `true` starts the typing dots and the poll; `false` means no automated reply is queued, so there are no dots, no poll and no "took too long". Once the thread's `status` is `handed_over`, a person owns it: never dots or a timeout, only a quiet "A member of the team will reply" note, and the customer keeps writing. |
 | `POST` | `/v1/support/conversations/{id}/order` | `{"order_id": 10432}` (a number, though the `select_order` action carries it as a string): the customer picked one of several live orders. Answers with `meta.pending_reply: true`, and the reply is polled for exactly as after a message. Refusals: `404` (not this customer's order) is a small note in the chat; `409` (thread closed) shows the chat as closed with "Start a new chat"; `503` (platform or order system unreachable) is tried once more after 2 s, then left as a small note while the customer keeps typing. None of them closes the chat. |
 | `POST` | `/v1/support/conversations/{id}/handover` | `system_message` is shown exactly as sent; the app writes no promise of its own. |
 | `POST` | `/v1/support/conversations/{id}/close` | The composer becomes "Start a new chat". |
@@ -318,7 +318,7 @@ banner saying the answers are samples; `NEXMILE_SUPPORT=off` hides the chat.
 - The thread and the draft live on the phone (shared preferences) so the chat opens before the network
   answers and works read-only offline. Both are wiped on sign-out and account deletion.
 - Failures: a message that does not send stays on screen as "Not sent · Try again"; a reply that has
-  not come in 30 s (or that the server says is no longer being written) shows "That took too long"
+  not come in 30 s while the server still says one is being written shows "That took too long"
   with "Try again", which **asks again**: the last unanswered question is sent again with its own
   `client_id`, which the server does not store twice but answers again when nothing is in flight (a
   worker that died mid-job). `429` asks the customer to slow down and is never retried automatically.

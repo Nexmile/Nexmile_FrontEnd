@@ -708,7 +708,7 @@ class _RecordingSupport extends DemoSupportRepository {
   }
 
   @override
-  Future<SupportMessage> send(
+  Future<SupportSent> send(
     String id, {
     required String content,
     required String clientId,
@@ -6588,6 +6588,7 @@ void main() {
                     'content': 'where is my order',
                     'client_id': 'c-1',
                   },
+                  'meta': <String, dynamic>{'pending_reply': false},
                 }),
                 202,
               );
@@ -6653,9 +6654,11 @@ void main() {
         'language': 'ta',
       });
 
-      final SupportMessage saved =
+      final SupportSent sent =
           await repo.send('t1', content: 'where is my order', clientId: 'c-1');
-      expect(saved.clientId, 'c-1');
+      expect(sent.message.clientId, 'c-1');
+      // Read off the 202: false means nothing is coming automatically.
+      expect(sent.pendingReply, isFalse);
       expect(jsonDecode(seen.last.body), <String, dynamic>{
         'content': 'where is my order',
         'client_id': 'c-1',
@@ -6803,8 +6806,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('a reply job that died is asked for again, and answered',
-        (WidgetTester tester) async {
+    testWidgets('with no reply queued the chat waits quietly: no dots, and '
+        'no "took too long"', (WidgetTester tester) async {
       _useTallPhone(tester);
       final _RecordingSupport support = _RecordingSupport()..loseNextReply = true;
       await _pumpApp(
@@ -6823,20 +6826,56 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey<String>('support-send')));
       await tester.pump();
-      // Nothing in flight and nothing came: no need to wait out 30 seconds.
-      await tester.pump(const Duration(seconds: 2));
-      await tester.pumpAndSettle();
-      expect(find.text('That took too long.'), findsOneWidget);
-
-      await tester.tap(find.widgetWithText(TextButton, 'Try again'));
-      await tester.pump();
-      for (int i = 0; i < 2; i++) {
+      // The send said `pending_reply: false`: nothing to wait for, so no
+      // typing dots and no polling...
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsNothing);
+      // ...and, a full 30 seconds on, no claim that anything failed.
+      for (int i = 0; i < 16; i++) {
         await tester.pump(const Duration(seconds: 2));
       }
       await tester.pumpAndSettle();
-      expect(find.textContaining('This is a demo answer'), findsOneWidget);
       expect(find.text('That took too long.'), findsNothing);
-      expect(support.clientIds.toSet(), hasLength(1));
+      expect(find.text('hello'), findsOneWidget);
+    });
+
+    testWidgets('once a person owns the thread: a quiet note, no dots, and '
+        'the customer keeps writing', (WidgetTester tester) async {
+      _useTallPhone(tester);
+      final _RecordingSupport support = _RecordingSupport();
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(AppRoutes.support);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('support-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Talk to a person'));
+      await tester.pumpAndSettle();
+      final Finder note =
+          find.byKey(const ValueKey<String>('support-handed-over'));
+      expect(note, findsOneWidget);
+      expect(find.text('A member of the team will reply'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('support-composer')),
+        'the bag was torn',
+      );
+      await tester.tap(find.byKey(const ValueKey<String>('support-send')));
+      await tester.pump();
+      // Stored and on its way to the agent, with no instant answer promised.
+      expect(support.received, contains('the bag was torn'));
+      expect(find.byKey(const ValueKey<String>('support-typing')), findsNothing);
+      for (int i = 0; i < 16; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('That took too long.'), findsNothing);
+      expect(note, findsOneWidget);
     });
 
     testWidgets('a message that does not get through stays, and is retried '

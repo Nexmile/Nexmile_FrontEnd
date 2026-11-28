@@ -2083,6 +2083,9 @@ class AppLocalizationsUr extends AppLocalizations {
       'ابھی یہ آرڈر دیکھا نہیں جا سکا۔ آپ اپنا سوال لکھ سکتے ہیں۔';
 
   @override
+  String get supportHandedOverNote => 'ٹیم کا ایک رکن جواب دے گا';
+
+  @override
   String get restaurantNew => 'نیا';
 
   @override

@@ -2089,6 +2089,9 @@ class AppLocalizationsKok extends AppLocalizations {
       'आतां ही ऑर्डर पळोवंक जायना. तुमी तुमचो प्रस्न बरोवंक शकतात.';
 
   @override
+  String get supportHandedOverNote => 'टीमांतलो एक वांगडी जाप दितलो';
+
+  @override
   String get restaurantNew => 'नवें';
 
   @override

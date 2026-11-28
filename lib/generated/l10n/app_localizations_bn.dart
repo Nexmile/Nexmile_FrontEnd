@@ -2083,6 +2083,9 @@ class AppLocalizationsBn extends AppLocalizations {
       'এখন অর্ডারটি দেখা গেল না। আপনি প্রশ্নটি লিখে পাঠাতে পারেন।';
 
   @override
+  String get supportHandedOverNote => 'টিমের একজন সদস্য উত্তর দেবেন';
+
+  @override
   String get restaurantNew => 'নতুন';
 
   @override

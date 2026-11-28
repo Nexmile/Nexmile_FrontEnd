@@ -165,6 +165,14 @@ class _SupportScreenState extends State<SupportScreen> {
           action: l10n.retry,
           onAction: chat.askAgain,
         ),
+      // A person owns the thread: no dots, no timeout, just the promise.
+      // The composer stays open; what the customer writes reaches them.
+      if (chat.isHandedOver && !closed)
+        _NoticeRow(
+          key: const ValueKey<String>('support-handed-over'),
+          icon: Icons.support_agent_rounded,
+          text: l10n.supportHandedOverNote,
+        ),
     ];
 
     return Scaffold(
@@ -713,27 +721,47 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
 
 /// The app talking, not a person: centred and quiet, never a bubble.
 class _NoticeRow extends StatelessWidget {
-  const _NoticeRow({required this.text, this.action, this.onAction});
+  const _NoticeRow({
+    super.key,
+    required this.text,
+    this.action,
+    this.onAction,
+    this.icon,
+  });
 
   final String text;
   final String? action;
   final VoidCallback? onAction;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final TextStyle? style = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      fontStyle: icon == null ? FontStyle.italic : null,
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 4, 24, 14),
       child: Column(
         children: <Widget>[
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
+          if (icon == null)
+            Text(text, textAlign: TextAlign.center, style: style)
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(
+                  icon,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(text, textAlign: TextAlign.center, style: style),
+                ),
+              ],
             ),
-          ),
           if (action != null)
             TextButton(onPressed: onAction, child: Text(action!)),
         ],

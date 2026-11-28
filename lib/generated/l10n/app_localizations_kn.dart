@@ -2085,6 +2085,9 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಈಗ ಆ ಆರ್ಡರ್ ಪರಿಶೀಲಿಸಲು ಆಗಲಿಲ್ಲ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಬಹುದು.';
 
   @override
+  String get supportHandedOverNote => 'ನಮ್ಮ ತಂಡದ ಸದಸ್ಯರೊಬ್ಬರು ಉತ್ತರಿಸುತ್ತಾರೆ';
+
+  @override
   String get restaurantNew => 'ಹೊಸದು';
 
   @override

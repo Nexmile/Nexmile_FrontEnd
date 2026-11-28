@@ -319,6 +319,18 @@ class SupportPoll {
   final bool? pendingReply;
 }
 
+/// A message the server has saved (`202`), and whether an automated reply
+/// to it is being written (`meta.pending_reply`; null when the server did not
+/// say). False means nothing is coming automatically: no waiting, no
+/// "took too long".
+@immutable
+class SupportSent {
+  const SupportSent({required this.message, this.pendingReply});
+
+  final SupportMessage message;
+  final bool? pendingReply;
+}
+
 /// `POST .../handover`: the new status and the server's own promise, shown
 /// exactly as written.
 @immutable

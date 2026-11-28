@@ -110,6 +110,12 @@ class SupportController extends ChangeNotifier {
   bool _timedOut = false;
   bool get replyTimedOut => _timedOut;
 
+  /// A person owns the thread (`status: handed_over`). Nothing answers
+  /// automatically: no typing, no timeout, just a quiet note that the team
+  /// will reply. The customer keeps writing; their messages reach the agent.
+  bool get isHandedOver =>
+      _thread?.status == ConversationStatus.handedOver;
+
   SupportProblem? _problem;
   SupportProblem? get problem => _problem;
 
@@ -230,16 +236,19 @@ class SupportController extends ChangeNotifier {
     final SupportRepository repository = _repository!;
     final SupportConversation thread = _thread!;
     try {
-      final SupportMessage saved = await repository.send(
+      final SupportSent sent = await repository.send(
         thread.id,
         content: local.content,
         clientId: local.clientId!,
       );
-      _replace(local.clientId, saved.copyWith(state: DeliveryState.sent));
+      _replace(
+        local.clientId,
+        sent.message.copyWith(state: DeliveryState.sent),
+      );
       _offline = false;
       _notice = null;
       if (_problem == SupportProblem.slowDown) _problem = null;
-      _startWaiting();
+      _awaitReplyIf(sent.pendingReply);
     } on ApiException catch (error) {
       _replace(local.clientId, local.copyWith(state: DeliveryState.failed));
       _offline = error.kind == ApiErrorKind.network;
@@ -270,13 +279,13 @@ class SupportController extends ChangeNotifier {
     _waiting = true;
     notifyListeners();
     try {
-      await repository.send(
+      final SupportSent sent = await repository.send(
         thread.id,
         content: question.content,
         clientId: question.clientId!,
       );
       _offline = false;
-      _startWaiting();
+      _awaitReplyIf(sent.pendingReply);
     } on ApiException catch (error) {
       // The question itself is saved; only the asking again failed.
       _waiting = false;
@@ -463,7 +472,27 @@ class SupportController extends ChangeNotifier {
   // ---------------------------------------------------------------------------
   // Waiting for the reply
 
+  /// Waits for an automated reply only when one is coming: `pending_reply`
+  /// true, or unsaid by an older server. False, or a person owning the
+  /// thread, means nothing will arrive on its own, so there is nothing to
+  /// wait for and nothing to call too long.
+  void _awaitReplyIf(bool? pendingReply) {
+    if (pendingReply == false || isHandedOver) {
+      _stopWaiting();
+      _timedOut = false;
+      notifyListeners();
+      return;
+    }
+    _startWaiting();
+  }
+
   void _startWaiting() {
+    if (isHandedOver) {
+      _stopWaiting();
+      _timedOut = false;
+      notifyListeners();
+      return;
+    }
     _waiting = true;
     _timedOut = false;
     // A new question earns a fresh 30 seconds.
@@ -504,10 +533,10 @@ class SupportController extends ChangeNotifier {
         // question: keep the dots, with a fresh 30 seconds for it.
         _polls = 0;
       } else if (poll.pendingReply == false) {
-        // Nothing being written and nothing came: the job ended without an
-        // answer, and waiting out the 30 seconds would only keep the dots up.
+        // Nothing is being written and nothing is coming: stop, quietly.
+        // This is not a failure, so it is not called one.
         _stopWaiting();
-        _timedOut = true;
+        _timedOut = false;
         notifyListeners();
         return;
       }

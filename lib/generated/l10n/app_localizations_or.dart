@@ -2084,6 +2084,9 @@ class AppLocalizationsOr extends AppLocalizations {
       'ବର୍ତ୍ତମାନ ଏହି ଅର୍ଡର ଯାଞ୍ଚ ହୋଇପାରିଲା ନାହିଁ। ଆପଣ ନିଜ ପ୍ରଶ୍ନ ଲେଖିପାରିବେ।';
 
   @override
+  String get supportHandedOverNote => 'ଦଳର ଜଣେ ସଦସ୍ୟ ଉତ୍ତର ଦେବେ';
+
+  @override
   String get restaurantNew => 'ନୂଆ';
 
   @override

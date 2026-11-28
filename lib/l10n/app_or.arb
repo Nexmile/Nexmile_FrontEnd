@@ -730,6 +730,7 @@
   "supportActionFailed": "ଏହା ହୋଇପାରିଲା ନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
   "supportOrderNotFound": "ଏହି ଅର୍ଡର ଆପଣଙ୍କ ଖାତାରେ ମିଳିଲା ନାହିଁ।",
   "supportOrderLookupDown": "ବର୍ତ୍ତମାନ ଏହି ଅର୍ଡର ଯାଞ୍ଚ ହୋଇପାରିଲା ନାହିଁ। ଆପଣ ନିଜ ପ୍ରଶ୍ନ ଲେଖିପାରିବେ।",
+  "supportHandedOverNote": "ଦଳର ଜଣେ ସଦସ୍ୟ ଉତ୍ତର ଦେବେ",
   "restaurantNew": "ନୂଆ",
   "walletHideBalance": "ବାଲାନ୍ସ ଲୁଚାନ୍ତୁ",
   "walletShowBalance": "ବାଲାନ୍ସ ଦେଖାନ୍ତୁ",

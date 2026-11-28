@@ -29,8 +29,8 @@ class DemoSupportRepository implements SupportRepository {
   /// False to play out a support platform that cannot be reached.
   bool available = true;
 
-  /// Drops the answer to the next question, as a worker that died mid-job
-  /// would.
+  /// Queues no answer to the next question, and says so: the send comes
+  /// back with `pending_reply: false`.
   bool loseNextReply = false;
 
   @override
@@ -78,7 +78,7 @@ class DemoSupportRepository implements SupportRepository {
   }
 
   @override
-  Future<SupportMessage> send(
+  Future<SupportSent> send(
     String id, {
     required String content,
     required String clientId,
@@ -90,10 +90,13 @@ class DemoSupportRepository implements SupportRepository {
           _messages.indexWhere((SupportMessage m) => m.clientId == clientId);
       final bool answered =
           _messages.skip(at + 1).any((SupportMessage m) => !m.isMine);
-      if (_queue.isEmpty && !answered) {
+      if (_queue.isEmpty && !answered && !_handedOver) {
         _queue.add(_Queued(_answer(_messages[at].content)));
       }
-      return _messages[at];
+      return SupportSent(
+        message: _messages[at],
+        pendingReply: _queue.isNotEmpty,
+      );
     }
     received.add(content);
     final SupportMessage saved = SupportMessage(
@@ -105,13 +108,16 @@ class DemoSupportRepository implements SupportRepository {
     );
     _messages.add(saved);
     if (loseNextReply) {
-      // A worker killed mid-job: no failure, and no answer ever coming.
+      // Nothing queued: the server says so with `pending_reply: false`.
       loseNextReply = false;
-    } else {
+    } else if (!_handedOver) {
+      // Once a person owns the thread, the assistant stays out of it.
       _queue.add(_Queued(_answer(content)));
     }
-    return saved;
+    return SupportSent(message: saved, pendingReply: _queue.isNotEmpty);
   }
+
+  bool get _handedOver => _thread?.status == ConversationStatus.handedOver;
 
   /// The orders the demo pretends are on their way, for "which one?".
   static const List<(int, String)> liveOrders = <(int, String)>[

@@ -2089,6 +2089,9 @@ class AppLocalizationsTe extends AppLocalizations {
       'ప్రస్తుతం ఆ ఆర్డర్‌ను చూడలేకపోయాం. మీ ప్రశ్నను టైప్ చేయవచ్చు.';
 
   @override
+  String get supportHandedOverNote => 'మా బృందంలోని ఒకరు జవాబిస్తారు';
+
+  @override
   String get restaurantNew => 'కొత్తది';
 
   @override

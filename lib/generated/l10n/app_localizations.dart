@@ -3722,6 +3722,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t check that order just now. You can still type your question.'**
   String get supportOrderLookupDown;
 
+  /// Quiet note at the foot of the support chat once a person owns the conversation. No instant answer is coming, but the customer can keep writing and their messages reach the agent.
+  ///
+  /// In en, this message translates to:
+  /// **'A member of the team will reply'**
+  String get supportHandedOverNote;
+
   /// Badge on a restaurant with fewer than three ratings, shown where the star rating would be. Shown in capitals in languages that have them. Must stay one very short word.
   ///
   /// In en, this message translates to:

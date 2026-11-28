@@ -2093,6 +2093,9 @@ class AppLocalizationsKs extends AppLocalizations {
       'وۄنۍ ہیٚکو نہٕ یہ آرڈر وُچِتھ۔ توٚہۍ ہیٚکِو پنُن سوال لیٚکھِتھ۔';
 
   @override
+  String get supportHandedOverNote => 'ٹیمُک اکھ ممبر دِیہِ جواب';
+
+  @override
   String get restaurantNew => 'نوٚو';
 
   @override

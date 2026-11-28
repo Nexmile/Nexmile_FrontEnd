@@ -2085,6 +2085,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t check that order just now. You can still type your question.';
 
   @override
+  String get supportHandedOverNote => 'A member of the team will reply';
+
+  @override
   String get restaurantNew => 'New';
 
   @override
