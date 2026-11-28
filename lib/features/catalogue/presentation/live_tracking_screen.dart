@@ -71,11 +71,33 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         : null;
     final LatLng? destination = order?.deliveryLocation?.toLatLng();
     final LatLng? restaurant = order?.restaurantLocation?.toLatLng();
-    final List<LatLng> route = tracking == null
+    final List<LatLng> serverRoute = tracking == null
         ? const <LatLng>[]
         : tracking.route
             .map((GeoPoint p) => p.toLatLng())
             .toList(growable: false);
+    // What the server's route joins. Before pickup it is the food's journey,
+    // restaurant to customer: drawn whole, as a road, with the rider placed
+    // on their own. Otherwise it is the rider's road, and used only when
+    // they are actually on it; one that starts somewhere else would be drawn
+    // as a straight line to its far end with "0.0 km away" under it.
+    final bool foodsJourney =
+        tracking?.routeStartsAt == RouteStart.restaurant;
+    final List<LatLng> route = foodsJourney
+        ? const <LatLng>[]
+        : _routeFromRider(serverRoute, rider);
+    final List<LatLng> foodRoute =
+        foodsJourney ? serverRoute : const <LatLng>[];
+    // The rider's next stop, which the dotted line points at and the
+    // distance is measured to. The server says so; an older one is read
+    // from the status instead.
+    final bool beforePickup = switch (tracking?.nextStop) {
+      NextStop.restaurant => true,
+      NextStop.customer => false,
+      _ => tracking != null && _beforePickup.contains(tracking.status),
+    };
+    final LatLng? nextStop =
+        beforePickup ? (restaurant ?? destination) : destination;
 
     final MediaQueryData media = MediaQuery.of(context);
     final double screen = media.size.height;
@@ -103,6 +125,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                         destination: destination,
                         restaurant: restaurant,
                         route: route,
+                        foodRoute: foodRoute,
+                        lineTo: nextStop,
                         heading: tracking?.riderHeading,
                         destinationLabel: l10n.trackingPinYou,
                         restaurantLabel: order?.restaurantName,
@@ -174,7 +198,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                 scroll: scroll,
                 tracking: tracking,
                 order: order,
-                distanceToGo: _distanceToGo(rider, destination, route),
+                distanceToGo: _distanceToGo(rider, nextStop, route),
                 onCall: (String phone) =>
                     _launch(Uri(scheme: 'tel', path: phone)),
                 onMessage: (String phone) =>
@@ -187,8 +211,36 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     );
   }
 
-  /// How far the rider still has to ride: along the road when there is one,
-  /// as the crow flies when there is not.
+  /// The statuses in which the rider has not collected the food yet.
+  static const Set<OrderStatus> _beforePickup = <OrderStatus>{
+    OrderStatus.placed,
+    OrderStatus.accepted,
+    OrderStatus.preparing,
+    OrderStatus.readyForPickup,
+    OrderStatus.riderAssigned,
+    OrderStatus.reachedRestaurant,
+  };
+
+  /// Further than this from every point of the route, the route is not the
+  /// rider's: wider than GPS drift, narrower than a wrong neighbourhood.
+  static const double _onRouteMetres = 150;
+
+  /// [route] when the rider is on it, otherwise nothing, so the map falls
+  /// back to the dashed direction line and the distance to a straight line.
+  /// With no rider position yet there is nothing to check against, and the
+  /// map does not draw a line anyway.
+  static List<LatLng> _routeFromRider(List<LatLng> route, LatLng? rider) {
+    if (route.length < 2 || rider == null) return route;
+    final RoutePath path = RoutePath(route);
+    if (!path.isUsable) return const <LatLng>[];
+    return path.project(rider).offRouteMetres <= _onRouteMetres
+        ? route
+        : const <LatLng>[];
+  }
+
+  /// How far the rider is from their next stop: along their road when they
+  /// are on one, as the crow flies when they are not (including before
+  /// pickup, when the road drawn is the food's and not theirs).
   static double? _distanceToGo(
     LatLng? rider,
     LatLng? destination,

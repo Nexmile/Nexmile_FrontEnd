@@ -145,6 +145,29 @@ void main() {
       expect(tracking.isStale(DateTime.utc(2026, 11, 9, 10, 15, 25)), isTrue);
     });
 
+    test('says what the route joins and where the rider is heading', () {
+      final OrderTracking before = OrderTracking.fromJson(<String, dynamic>{
+        ...trackJson(route: r'_p~iF~ps|U_ulLnnqC_mqNvxq`@'),
+        'route_starts_at': 'restaurant',
+        'next_stop': 'restaurant',
+      });
+      expect(before.routeStartsAt, RouteStart.restaurant);
+      expect(before.nextStop, NextStop.restaurant);
+
+      final OrderTracking after = OrderTracking.fromJson(<String, dynamic>{
+        ...trackJson(),
+        'route_starts_at': 'rider',
+        'next_stop': 'customer',
+      });
+      expect(after.routeStartsAt, RouteStart.rider);
+      expect(after.nextStop, NextStop.customer);
+
+      // An older server says neither.
+      final OrderTracking older = OrderTracking.fromJson(trackJson());
+      expect(older.routeStartsAt, RouteStart.unknown);
+      expect(older.nextStop, NextStop.unknown);
+    });
+
     test('a null route and a null rider are both normal', () {
       final OrderTracking tracking = OrderTracking.fromJson(<String, dynamic>{
         'status': 'confirmed',

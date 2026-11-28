@@ -43,6 +43,8 @@ class RiderMap extends StatefulWidget {
     this.destination,
     this.restaurant,
     this.route = const <LatLng>[],
+    this.foodRoute = const <LatLng>[],
+    this.lineTo,
     this.heading,
     this.destinationLabel,
     this.restaurantLabel,
@@ -66,6 +68,17 @@ class RiderMap extends StatefulWidget {
   /// The road from the server's Directions call. Empty until it sends one, and
   /// then the map draws a curved dashed arc instead.
   final List<LatLng> route;
+
+  /// The food's journey, restaurant to customer, when the server sends that
+  /// instead of the rider's own road (before pickup). Drawn whole as a road,
+  /// with the rider placed beside it and the dashed arc taking them to the
+  /// restaurant. Never used to move the rider marker: they are not on it.
+  final List<LatLng> foodRoute;
+
+  /// Where that dashed arc points when there is no route: the rider's next
+  /// stop, which is the restaurant until the food is collected. Defaults to
+  /// [destination].
+  final LatLng? lineTo;
 
   /// Direction of travel from the phone, clockwise from north. When null, the
   /// scooter follows the route or the direction of movement.
@@ -152,7 +165,8 @@ class _RiderMapState extends State<RiderMap> with TickerProviderStateMixin {
     super.initState();
     _shown = widget.rider;
     _path = _buildPath(widget.route);
-    if (_path != null || (widget.rider != null && widget.destination != null)) {
+    if (_path != null ||
+        (widget.rider != null && (widget.lineTo ?? widget.destination) != null)) {
       _reveal.forward();
     }
   }
@@ -416,9 +430,12 @@ class _RiderMapState extends State<RiderMap> with TickerProviderStateMixin {
             ? const <LatLng>[]
             : path != null
             ? _remainingRoute(path, rider)
-            : destination != null
+            : (widget.lineTo ?? destination) != null
             ? () {
-              final List<LatLng> arc = arcBetween(rider, destination);
+              final List<LatLng> arc = arcBetween(
+                rider,
+                widget.lineTo ?? destination!,
+              );
               final double reveal = Curves.easeOutCubic.transform(
                 _reveal.value,
               );
@@ -470,6 +487,28 @@ class _RiderMapState extends State<RiderMap> with TickerProviderStateMixin {
           ),
       },
       polylines: <gm.Polyline>{
+        if (widget.foodRoute.length >= 2) ...<gm.Polyline>{
+          gm.Polyline(
+            polylineId: const gm.PolylineId('food-route-casing'),
+            points: widget.foodRoute.map(_g).toList(growable: false),
+            width: 9,
+            color: _routeCasing,
+            jointType: gm.JointType.round,
+            startCap: gm.Cap.roundCap,
+            endCap: gm.Cap.roundCap,
+            zIndex: 1,
+          ),
+          gm.Polyline(
+            polylineId: const gm.PolylineId('food-route-core'),
+            points: widget.foodRoute.map(_g).toList(growable: false),
+            width: 5,
+            color: _routeCore,
+            jointType: gm.JointType.round,
+            startCap: gm.Cap.roundCap,
+            endCap: gm.Cap.roundCap,
+            zIndex: 2,
+          ),
+        },
         if (line.length >= 2 && path != null) ...<gm.Polyline>{
           gm.Polyline(
             polylineId: const gm.PolylineId('route-casing'),

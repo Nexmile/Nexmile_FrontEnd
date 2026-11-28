@@ -479,6 +479,8 @@ class OrderTracking {
     this.riderHeading,
     this.riderUpdatedAt,
     this.route = const <GeoPoint>[],
+    this.routeStartsAt = RouteStart.unknown,
+    this.nextStop = NextStop.unknown,
     this.staleAfter = const Duration(seconds: 45),
     this.cancellationReason,
   });
@@ -517,6 +519,16 @@ class OrderTracking {
   /// server computes one, in which case the map falls back to a dashed line
   /// of sight.
   final List<GeoPoint> route;
+
+  /// Which end [route] starts from. Before pickup the server sends the
+  /// food's journey, restaurant to customer, which does not move while the
+  /// rider fetches it; after pickup it is the rider's own road. Unknown from
+  /// a server that predates the field.
+  final RouteStart routeStartsAt;
+
+  /// Where the rider is riding to now: the restaurant until the food is
+  /// collected, then the customer.
+  final NextStop nextStop;
 
   /// How old a fix may get before the map says it is updating. Published by
   /// the server as `stale_after_seconds` so both ends use the same number.
@@ -569,6 +581,16 @@ class OrderTracking {
       route: json['route'] is String
           ? decodePolyline(json['route'] as String)
           : const <GeoPoint>[],
+      routeStartsAt: switch (json['route_starts_at']) {
+        'rider' => RouteStart.rider,
+        'restaurant' => RouteStart.restaurant,
+        _ => RouteStart.unknown,
+      },
+      nextStop: switch (json['next_stop']) {
+        'restaurant' => NextStop.restaurant,
+        'customer' => NextStop.customer,
+        _ => NextStop.unknown,
+      },
       staleAfter: json['stale_after_seconds'] == null
           ? const Duration(seconds: 45)
           : Duration(seconds: asInt(json['stale_after_seconds'], 45)),
@@ -576,6 +598,12 @@ class OrderTracking {
     );
   }
 }
+
+/// Where a tracking route begins. See [OrderTracking.routeStartsAt].
+enum RouteStart { rider, restaurant, unknown }
+
+/// The stop the rider is riding to. See [OrderTracking.nextStop].
+enum NextStop { restaurant, customer, unknown }
 
 /// Decodes a Google encoded polyline, the format the Directions API returns
 /// its route in.

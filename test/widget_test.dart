@@ -6,6 +6,7 @@ import 'dart:io' show File;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nexmile/app.dart';
@@ -3448,8 +3449,9 @@ void main() {
   group('live tracking', () {
     Future<OrdersController> openTracking(
       WidgetTester tester,
-      Map<String, dynamic> track,
-    ) async {
+      Map<String, dynamic> track, {
+      Map<String, dynamic> order = const <String, dynamic>{},
+    }) async {
       _useTallScreen(tester);
       final FakeStorefrontRepository repo = FakeStorefrontRepository()
         ..orderStatus = 'picked_up'
@@ -3461,6 +3463,7 @@ void main() {
             'latitude': 13.0990,
             'longitude': 80.2710,
           },
+          ...order,
         };
       await _pumpApp(
         tester,
@@ -3522,6 +3525,138 @@ void main() {
       // Picked up is the third of four steps.
       expect(find.text('On the way'), findsOneWidget);
       expect(find.byTooltip('Call'), findsOneWidget);
+    });
+
+    Set<String> lineIds(WidgetTester tester) => tester
+        .widget<gm.GoogleMap>(find.byType(gm.GoogleMap))
+        .polylines
+        .map((gm.Polyline line) => line.polylineId.value)
+        .toSet();
+
+    testWidgets('a route the rider is not on is not drawn as their road',
+        (WidgetTester tester) async {
+      // A short route by the customer's door while the rider is 1.8 km
+      // away: a stale or wrong-leg route from the server. Taken at face
+      // value it drew a straight solid line and "0.0 km away".
+      final OrdersController orders = await openTracking(
+        tester,
+        <String, dynamic>{
+          'estimated_minutes': 12,
+          'route': r'sh}nAsy|hNcBcB',
+          'rider': <String, dynamic>{
+            'name': 'Suresh K',
+            'latitude': 13.0830,
+            'longitude': 80.2710,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          },
+        },
+      );
+      addTearDown(orders.stopPolling);
+
+      expect(find.text('Suresh is 1.8 km away'), findsOneWidget);
+      expect(find.text('Suresh is 0.0 km away'), findsNothing);
+      expect(lineIds(tester), isNot(contains('route-core')));
+      expect(lineIds(tester), contains('arc'));
+    });
+
+    testWidgets('a route from the rider is drawn and measured along the road',
+        (WidgetTester tester) async {
+      // East 1.1 km, north 1.8 km, west 1.1 km: 3.9 km by road, 1.8 km as
+      // the crow flies.
+      final OrdersController orders = await openTracking(
+        tester,
+        <String, dynamic>{
+          'estimated_minutes': 12,
+          'route': r'wgznAw||hN?o}@_cB??n}@',
+          'rider': <String, dynamic>{
+            'name': 'Suresh K',
+            'latitude': 13.0830,
+            'longitude': 80.2710,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          },
+        },
+      );
+      addTearDown(orders.stopPolling);
+
+      expect(find.text('Suresh is 3.9 km away'), findsOneWidget);
+      expect(lineIds(tester), contains('route-core'));
+      expect(lineIds(tester), isNot(contains('arc')));
+    });
+
+    testWidgets(
+        "before pickup the road is the food's journey, the rider beside it",
+        (WidgetTester tester) async {
+      // The restaurant sits about 600 m from the customer and the rider is
+      // 1.4 km from the restaurant, riding to it. The server's route is the
+      // food's road, restaurant to customer, and says so.
+      final OrdersController orders = await openTracking(
+        tester,
+        <String, dynamic>{
+          'status': 'preparing',
+          'estimated_minutes': 20,
+          'route': r'wr|nAwu}hN_X??~W',
+          'route_starts_at': 'restaurant',
+          'next_stop': 'restaurant',
+          'rider': <String, dynamic>{
+            'name': 'Suresh K',
+            'latitude': 13.0830,
+            'longitude': 80.2710,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          },
+        },
+        order: <String, dynamic>{
+          'restaurant': <String, dynamic>{
+            'name': 'Amma Mess',
+            'latitude': 13.0950,
+            'longitude': 80.2750,
+          },
+        },
+      );
+      addTearDown(orders.stopPolling);
+
+      // The food's road is drawn whole, and kept even though the rider is
+      // not on it; the rider's way to the kitchen is the dotted line.
+      expect(lineIds(tester), containsAll(<String>[
+        'food-route-core',
+        'food-route-casing',
+        'arc',
+      ]));
+      expect(lineIds(tester), isNot(contains('route-core')));
+      // Straight to the next stop, the restaurant: never along the food's
+      // road, which is not the rider's.
+      expect(find.text('Suresh is 1.4 km away'), findsOneWidget);
+    });
+
+    testWidgets('the dotted line follows next_stop over the status',
+        (WidgetTester tester) async {
+      // Still "preparing" by status, which alone would point at the
+      // restaurant (1.4 km), but the server says the next stop is the
+      // customer, and it wins: with no route at all, the line and the
+      // distance both go to the customer (1.8 km).
+      final OrdersController orders = await openTracking(
+        tester,
+        <String, dynamic>{
+          'status': 'preparing',
+          'next_stop': 'customer',
+          'rider': <String, dynamic>{
+            'name': 'Suresh K',
+            'latitude': 13.0830,
+            'longitude': 80.2710,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          },
+        },
+        order: <String, dynamic>{
+          'restaurant': <String, dynamic>{
+            'name': 'Amma Mess',
+            'latitude': 13.0950,
+            'longitude': 80.2750,
+          },
+        },
+      );
+      addTearDown(orders.stopPolling);
+
+      expect(find.text('Suresh is 1.8 km away'), findsOneWidget);
+      expect(lineIds(tester), contains('arc'));
     });
 
     testWidgets('an old fix says the location is updating',
