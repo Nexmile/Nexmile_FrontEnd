@@ -2107,6 +2107,30 @@ class AppLocalizationsTa extends AppLocalizations {
       'எங்கள் குழுவைச் சேர்ந்த ஒருவர் பதில் அளிப்பார்';
 
   @override
+  String get supportVoiceSpeak => 'பேசு';
+
+  @override
+  String get supportVoiceListening => 'கேட்கிறோம்…';
+
+  @override
+  String get supportVoiceHint =>
+      'உங்கள் கேள்வியைக் கேளுங்கள். நீங்கள் பேசி முடித்ததும் அது அனுப்பப்படும்.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'சரியாகக் கேட்கவில்லை. மீண்டும் முயற்சிக்கவும், அல்லது மெசேஜைத் தட்டச்சு செய்யவும்.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'எங்களுடன் பேச மைக்ரோஃபோனை அனுமதிக்கவும். நீங்கள் இப்போதும் தட்டச்சு செய்யலாம்.';
+
+  @override
+  String get supportVoiceReadAloud => 'சத்தமாகப் படி';
+
+  @override
+  String get supportVoiceStop => 'நிறுத்து';
+
+  @override
   String get restaurantNew => 'புதியது';
 
   @override

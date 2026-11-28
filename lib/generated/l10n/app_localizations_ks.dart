@@ -2096,6 +2096,30 @@ class AppLocalizationsKs extends AppLocalizations {
   String get supportHandedOverNote => 'ٹیمُک اکھ ممبر دِیہِ جواب';
 
   @override
+  String get supportVoiceSpeak => 'وَنِو';
+
+  @override
+  String get supportVoiceListening => 'بوزان چھِ…';
+
+  @override
+  String get supportVoiceHint =>
+      'پنُن سوال پرٛژھِو۔ کتھ بند کرنہٕ پتہٕ یِیہِ یہ سوزنہٕ۔';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ٹھیک پٲٹھۍ آو نہ بوزنہٕ۔ دوبارٕ کوشش کرِو، یا میسج لیٚکھِو۔';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'اسہِ سٕتؠ کتھ کرنہٕ خٲطرٕ مائیکروفونُک اجازت دِیِو۔ توہہِ ہیٚکِو ٹایپ تہٕ کٔرِتھ۔';
+
+  @override
+  String get supportVoiceReadAloud => 'پٔرِتھ بوزنٲوِو';
+
+  @override
+  String get supportVoiceStop => 'بند کرِو';
+
+  @override
   String get restaurantNew => 'نوٚو';
 
   @override

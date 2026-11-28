@@ -33,6 +33,20 @@ class DemoSupportRepository implements SupportRepository {
   /// back with `pending_reply: false`.
   bool loseNextReply = false;
 
+  /// The order card on the demo's answer about a known order, given its id.
+  /// Sample figures by default; a test swaps in its own.
+  SupportOrderCard? Function(int orderId) orderCard = (int orderId) =>
+      SupportOrderCard(
+        orderId: orderId,
+        orderNumber: 'NX$orderId',
+        restaurant: 'Anjappar Chettinad',
+        status: 'picked_up',
+        statusLabel: 'On the way',
+        etaMinutes: 12,
+        distanceMetres: 1800,
+        riderName: 'Suresh Kumar',
+      );
+
   @override
   Future<SupportEntry> entry() async => SupportEntry(
         hasOpenThread: _thread != null && !_thread!.isClosed,
@@ -49,6 +63,7 @@ class DemoSupportRepository implements SupportRepository {
       id: 'demo-thread-${_nextId++}',
       status: ConversationStatus.open,
       orderId: orderId,
+      language: language,
     );
     return _snapshot();
   }
@@ -74,6 +89,7 @@ class DemoSupportRepository implements SupportRepository {
     return SupportPoll(
       messages: List<SupportMessage>.of(_messages.skip(from)),
       pendingReply: _queue.isNotEmpty,
+      language: _thread?.language,
     );
   }
 
@@ -99,6 +115,11 @@ class DemoSupportRepository implements SupportRepository {
       );
     }
     received.add(content);
+    // As the server does: writing in Tamil script switches the thread to
+    // Tamil, and it stays there.
+    if (RegExp('[\u0B80-\u0BFF]').hasMatch(content)) {
+      _thread = _thread?.copyWith(language: 'ta');
+    }
     final SupportMessage saved = SupportMessage(
       id: _id(),
       sender: SupportSender.customer,
@@ -114,7 +135,11 @@ class DemoSupportRepository implements SupportRepository {
       // Once a person owns the thread, the assistant stays out of it.
       _queue.add(_Queued(_answer(content)));
     }
-    return SupportSent(message: saved, pendingReply: _queue.isNotEmpty);
+    return SupportSent(
+      message: saved,
+      pendingReply: _queue.isNotEmpty,
+      language: _thread?.language,
+    );
   }
 
   bool get _handedOver => _thread?.status == ConversationStatus.handedOver;
@@ -197,6 +222,7 @@ class DemoSupportRepository implements SupportRepository {
     bool has(List<String> words) => words.any(q.contains);
 
     String content;
+    SupportOrderCard? card;
     List<SupportAction> actions = const <SupportAction>[];
     if (has(<String>['refund', 'money', 'charged', 'wrong', 'missing'])) {
       content = "Refunds and wrong or missing items need a person to look at "
@@ -221,6 +247,8 @@ class DemoSupportRepository implements SupportRepository {
       ];
     } else if (has(<String>['where', 'track', 'late', 'status', 'when'])) {
       content = 'You can follow this order live on the map.';
+      // The order card, as the server sends it for a known order.
+      card = orderId == null ? null : orderCard(orderId);
       actions = <SupportAction>[
         if (orderId != null)
           SupportAction(code: 'track_order', label: 'Track it', orderId: orderId),
@@ -249,6 +277,7 @@ class DemoSupportRepository implements SupportRepository {
       content: content,
       createdAt: DateTime.now(),
       actions: actions,
+      card: card,
     );
   }
 }

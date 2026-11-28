@@ -2092,6 +2092,30 @@ class AppLocalizationsKok extends AppLocalizations {
   String get supportHandedOverNote => 'टीमांतलो एक वांगडी जाप दितलो';
 
   @override
+  String get supportVoiceSpeak => 'उलयात';
+
+  @override
+  String get supportVoiceListening => 'आयकतां…';
+
+  @override
+  String get supportVoiceHint =>
+      'तुमचो प्रस्न विचारात. तुमी उलोवप थांबयतकच तो धाडलो वतलो.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'बरें आयकूंक आयलें ना. परत यत्न करात, वा मेसेज बरयात.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'आमचे कडेन उलोवंक मायक्रोफोनाची परवानगी दियात. तुमी टायप लेगीत करूंक शकतात.';
+
+  @override
+  String get supportVoiceReadAloud => 'व्हड आवाजान वाचात';
+
+  @override
+  String get supportVoiceStop => 'थांबयात';
+
+  @override
   String get restaurantNew => 'नवें';
 
   @override

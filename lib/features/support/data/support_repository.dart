@@ -89,6 +89,7 @@ class ApiSupportRepository implements SupportRepository {
     return SupportPoll(
       messages: SupportConversation.messagesFrom(response['data']),
       pendingReply: pending is bool ? pending : null,
+      language: _language(response),
     );
   }
 
@@ -115,6 +116,7 @@ class ApiSupportRepository implements SupportRepository {
     return SupportSent(
       message: saved,
       pendingReply: pending is bool ? pending : null,
+      language: _language(response),
     );
   }
 
@@ -134,6 +136,7 @@ class ApiSupportRepository implements SupportRepository {
         data is Map<String, dynamic> ? data['messages'] : data,
       ),
       pendingReply: pending is bool ? pending : null,
+      language: _language(response),
     );
   }
 
@@ -151,6 +154,17 @@ class ApiSupportRepository implements SupportRepository {
         '$_base/messages/$messageId/feedback',
         body: <String, dynamic>{'value': value},
       );
+
+  /// The thread's language from a response: `data.language` where `data` is
+  /// an object, otherwise `meta.language`. Null when it carried neither.
+  static String? _language(Map<String, dynamic> response) {
+    final Object? data = response['data'];
+    final Object? meta = response['meta'];
+    return SupportConversation.languageFrom(
+      (data is Map<String, dynamic> ? data['language'] : null) ??
+          (meta is Map<String, dynamic> ? meta['language'] : null),
+    );
+  }
 
   /// Laravel resources wrap the object in `data`; a bare object is taken as
   /// it is.

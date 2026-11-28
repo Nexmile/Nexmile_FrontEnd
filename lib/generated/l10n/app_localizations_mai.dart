@@ -2080,6 +2080,30 @@ class AppLocalizationsMai extends AppLocalizations {
   String get supportHandedOverNote => 'टीमक एकटा सदस्य जवाब देताह';
 
   @override
+  String get supportVoiceSpeak => 'बाजू';
+
+  @override
+  String get supportVoiceListening => 'सुनि रहल छी…';
+
+  @override
+  String get supportVoiceHint =>
+      'अपन प्रश्न पूछू। जखन अहाँ बाजब बन्न करब, तखन ई पठाओल जायत।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ठीक सँ सुनल नहि गेल। फेर कोशिश करू, वा मैसेज लिखू।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'हमरा सँ बात करबाक लेल माइक्रोफोनक अनुमति दिअ। अहाँ एखनो टाइप कऽ सकैत छी।';
+
+  @override
+  String get supportVoiceReadAloud => 'पढ़ि कऽ सुनाउ';
+
+  @override
+  String get supportVoiceStop => 'रोकू';
+
+  @override
   String get restaurantNew => 'नव';
 
   @override

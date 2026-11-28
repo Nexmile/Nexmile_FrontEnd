@@ -2083,6 +2083,30 @@ class AppLocalizationsMni extends AppLocalizations {
   String get supportHandedOverNote => 'তীমগী মীওই অমনা পাউখুম পীগনি';
 
   @override
+  String get supportVoiceSpeak => 'ৱা ঙাংবিয়ু';
+
+  @override
+  String get supportVoiceListening => 'তারি…';
+
+  @override
+  String get supportVoiceHint =>
+      'নহাক্কী ৱাহং হংবিয়ু। ৱা ঙাংবা লেপ্লবা মতুংদা মসি থাগনি।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ফজনা তাবা ঙমদ্রে। অমুক হন্না হোৎনবিয়ু, নত্ত্রগা মেসেজ ইবিয়ু।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'ঐখোয়গা ৱা শাননবা মাইক্রোফোনগী অয়াবা পীয়ু। নহাক্না হৌজিকসু মেসেজ ইবা য়াই।';
+
+  @override
+  String get supportVoiceReadAloud => 'পাদুনা তাহনবিয়ু';
+
+  @override
+  String get supportVoiceStop => 'লেপ্পিয়ু';
+
+  @override
   String get restaurantNew => 'অনৌবা';
 
   @override

@@ -2082,6 +2082,30 @@ class AppLocalizationsGu extends AppLocalizations {
   String get supportHandedOverNote => 'ટીમના એક સભ્ય જવાબ આપશે';
 
   @override
+  String get supportVoiceSpeak => 'બોલો';
+
+  @override
+  String get supportVoiceListening => 'સાંભળી રહ્યા છીએ…';
+
+  @override
+  String get supportVoiceHint =>
+      'તમારો પ્રશ્ન પૂછો. તમે બોલવાનું બંધ કરશો એટલે તે મોકલાઈ જશે.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'બરાબર સંભળાયું નહીં. ફરી પ્રયાસ કરો, અથવા મેસેજ લખો.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'અમારી સાથે વાત કરવા માટે માઇક્રોફોનની પરવાનગી આપો. તમે હજુ પણ ટાઇપ કરી શકો છો.';
+
+  @override
+  String get supportVoiceReadAloud => 'વાંચી સંભળાવો';
+
+  @override
+  String get supportVoiceStop => 'રોકો';
+
+  @override
   String get restaurantNew => 'નવું';
 
   @override

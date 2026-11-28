@@ -86,6 +86,100 @@ class SupportAction {
       };
 }
 
+/// The order an assistant reply is about, as a few labelled rows under it:
+/// `card` on the message, null on most of them.
+///
+/// Every field is absent when the server does not know it, never empty, so
+/// a row is drawn only for what is here: an order still in the kitchen has
+/// no arrival time and no distance, and "Arriving in: —" would read as a
+/// broken screen.
+@immutable
+class SupportOrderCard {
+  const SupportOrderCard({
+    this.orderId,
+    this.orderNumber,
+    this.restaurant,
+    this.status,
+    this.statusLabel,
+    this.etaMinutes,
+    this.distanceMetres,
+    this.riderName,
+    this.trackingStale = false,
+  });
+
+  final int? orderId;
+  final String? orderNumber;
+  final String? restaurant;
+
+  /// The raw status, for picking an icon. Never shown.
+  final String? status;
+
+  /// The server's own words for the status, already in the chat's language.
+  final String? statusLabel;
+
+  final int? etaMinutes;
+
+  /// Only once the rider is carrying the order.
+  final int? distanceMetres;
+  final String? riderName;
+
+  /// The rider's last fix is over ten minutes old: the distance is shown
+  /// greyed, as where they were rather than where they are.
+  final bool trackingStale;
+
+  bool get _hasAnything =>
+      orderNumber != null ||
+      restaurant != null ||
+      statusLabel != null ||
+      etaMinutes != null ||
+      distanceMetres != null ||
+      riderName != null;
+
+  /// Null for no card, or one with nothing in it to draw.
+  static SupportOrderCard? fromJson(Object? raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    String? text(Object? value) {
+      final String v = asString(value).trim();
+      return v.isEmpty ? null : v;
+    }
+
+    int? number(Object? value) {
+      if (value == null) return null;
+      final int v = asInt(value, -1);
+      return v < 0 ? null : v;
+    }
+
+    final Object? rider = raw['rider'];
+    final int orderId = asInt(raw['order_id']);
+    final SupportOrderCard card = SupportOrderCard(
+      orderId: orderId > 0 ? orderId : null,
+      orderNumber: text(raw['order_number']),
+      // Always a plain string: the server flattens its own nested name.
+      restaurant: text(raw['restaurant']),
+      status: text(raw['status']),
+      statusLabel: text(raw['status_label']),
+      etaMinutes: number(raw['eta_minutes']),
+      distanceMetres: number(raw['distance_metres']),
+      riderName: text(raw['rider_name']) ??
+          (rider is Map<String, dynamic> ? text(rider['name']) : null),
+      trackingStale: asBool(raw['tracking_stale']),
+    );
+    return card._hasAnything ? card : null;
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        if (orderId != null) 'order_id': orderId,
+        if (orderNumber != null) 'order_number': orderNumber,
+        if (restaurant != null) 'restaurant': restaurant,
+        if (status != null) 'status': status,
+        if (statusLabel != null) 'status_label': statusLabel,
+        if (etaMinutes != null) 'eta_minutes': etaMinutes,
+        if (distanceMetres != null) 'distance_metres': distanceMetres,
+        if (riderName != null) 'rider_name': riderName,
+        if (trackingStale) 'tracking_stale': true,
+      };
+}
+
 @immutable
 class SupportMessage {
   const SupportMessage({
@@ -96,6 +190,7 @@ class SupportMessage {
     this.clientId,
     this.agentName,
     this.actions = const <SupportAction>[],
+    this.card,
     this.feedback,
     this.state = DeliveryState.sent,
   });
@@ -113,6 +208,9 @@ class SupportMessage {
   /// A first name, and only ever on [SupportSender.agent].
   final String? agentName;
   final List<SupportAction> actions;
+
+  /// The order this reply is about, when it is about a settled one.
+  final SupportOrderCard? card;
 
   /// "up", "down" or null, echoed so a reinstall shows what was pressed.
   final String? feedback;
@@ -134,6 +232,7 @@ class SupportMessage {
         clientId: clientId,
         agentName: agentName,
         actions: actions,
+        card: card,
         feedback: feedback ?? this.feedback,
         state: state ?? this.state,
       );
@@ -159,6 +258,7 @@ class SupportMessage {
           if (SupportAction.fromJson(raw) case final SupportAction action)
             action,
       ],
+      card: SupportOrderCard.fromJson(json['card']),
       feedback: feedback == 'up' || feedback == 'down' ? feedback : null,
       // Only ever written by the phone's own store.
       state: switch (state) {
@@ -182,6 +282,7 @@ class SupportMessage {
           'actions': <Map<String, dynamic>>[
             for (final SupportAction action in actions) action.toJson(),
           ],
+        if (card != null) 'card': card!.toJson(),
         if (feedback != null) 'feedback': feedback,
         if (state != DeliveryState.sent) 'local_state': state.name,
       };
@@ -220,11 +321,18 @@ class SupportConversation {
     this.orderId,
     this.pendingReply = false,
     this.messages = const <SupportMessage>[],
+    this.language,
   });
 
   final String id;
   final ConversationStatus status;
   final int? orderId;
+
+  /// The thread's language as the server has it now, such as `ta` or `en`.
+  /// It can change under the customer: typing in Tamil script switches the
+  /// thread to Tamil. Read fresh from every response, never fixed at open;
+  /// the voice speaks and listens in it.
+  final String? language;
 
   /// True while the assistant is still writing, so a reopened app shows it
   /// typing rather than a thread that looks finished.
@@ -238,6 +346,7 @@ class SupportConversation {
     bool? pendingReply,
     List<SupportMessage>? messages,
     int? orderId,
+    String? language,
   }) =>
       SupportConversation(
         id: id,
@@ -245,6 +354,7 @@ class SupportConversation {
         orderId: orderId ?? this.orderId,
         pendingReply: pendingReply ?? this.pendingReply,
         messages: messages ?? this.messages,
+        language: language ?? this.language,
       );
 
   static SupportConversation fromJson(Map<String, dynamic> json) {
@@ -255,7 +365,14 @@ class SupportConversation {
       orderId: orderId > 0 ? orderId : null,
       pendingReply: asBool(json['pending_reply']),
       messages: SupportConversation.messagesFrom(json['messages']),
+      language: languageFrom(json['language']),
     );
+  }
+
+  /// A language code, or null for none.
+  static String? languageFrom(Object? raw) {
+    final String code = asString(raw).trim();
+    return code.isEmpty ? null : code;
   }
 
   static List<SupportMessage> messagesFrom(Object? raw) => <SupportMessage>[
@@ -268,6 +385,7 @@ class SupportConversation {
         'id': id,
         'status': status.wire,
         if (orderId != null) 'order_id': orderId,
+        if (language != null) 'language': language,
         'messages': <Map<String, dynamic>>[
           for (final SupportMessage message in messages) message.toJson(),
         ],
@@ -313,10 +431,13 @@ class SupportEntry {
 /// say).
 @immutable
 class SupportPoll {
-  const SupportPoll({required this.messages, this.pendingReply});
+  const SupportPoll({required this.messages, this.pendingReply, this.language});
 
   final List<SupportMessage> messages;
   final bool? pendingReply;
+
+  /// The thread's language, when this response carried it.
+  final String? language;
 }
 
 /// A message the server has saved (`202`), and whether an automated reply
@@ -325,10 +446,14 @@ class SupportPoll {
 /// "took too long".
 @immutable
 class SupportSent {
-  const SupportSent({required this.message, this.pendingReply});
+  const SupportSent({required this.message, this.pendingReply, this.language});
 
   final SupportMessage message;
   final bool? pendingReply;
+
+  /// The thread's language, when this response carried it: the message just
+  /// sent may be what switched it.
+  final String? language;
 }
 
 /// `POST .../handover`: the new status and the server's own promise, shown

@@ -13,6 +13,7 @@ import '../../catalogue/data/storefront_repository.dart';
 import '../../catalogue/presentation/reorder_flow.dart';
 import '../data/support_models.dart';
 import '../state/support_controller.dart';
+import 'support_voice.dart';
 
 /// The support chat. The assistant answers first and says it is the
 /// assistant on every message; a person answers later, under their own
@@ -31,9 +32,23 @@ class _SupportScreenState extends State<SupportScreen> {
     text: context.read<SupportController>().draft,
   );
 
+  /// So "type instead" after voice that heard nothing puts the cursor there.
+  final FocusNode _composerFocus = FocusNode();
+
+  late final SupportController _chat = context.read<SupportController>();
+  /// Looked up when the screen opens: it is still needed in [dispose], to
+  /// stop a reply mid-sentence, when looking anything up is too late.
+  late final SupportVoice _voice;
+
+  /// Set when the customer asked by voice: the next reply is read aloud.
+  bool _readNextReply = false;
+  int _repliesBefore = 0;
+
   @override
   void initState() {
     super.initState();
+    _voice = context.read<SupportVoice>();
+    _chat.addListener(_onChat);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<SupportController>().open(
@@ -51,8 +66,57 @@ class _SupportScreenState extends State<SupportScreen> {
 
   @override
   void dispose() {
+    _chat.removeListener(_onChat);
+    // Leaving the chat stops a reply mid-sentence, as closing a call would.
+    _voice.stop();
+    _composerFocus.dispose();
     _composer.dispose();
     super.dispose();
+  }
+
+  /// The language to listen and speak in: the thread's, as the server has it
+  /// now, else the app's.
+  String get _language =>
+      _chat.language ?? Localizations.localeOf(context).languageCode;
+
+  /// The microphone: listen, send what was heard as an ordinary message,
+  /// and read the reply aloud when it comes.
+  Future<void> _speak() async {
+    Haptics.tap();
+    final String notHeard = AppLocalizations.of(context).supportVoiceNotHeard;
+    await _voice.stop();
+    if (!mounted) return;
+    final String? heard = await _voice.listen(context, language: _language);
+    if (!mounted || heard == null) return;
+    if (heard.trim().isEmpty) {
+      // Nothing recognised: typing is the way on, with the cursor there.
+      _say(notHeard);
+      _composerFocus.requestFocus();
+      return;
+    }
+    _repliesBefore = _chat.messages.where((SupportMessage m) => m.isReply).length;
+    _readNextReply = true;
+    await _send(heard);
+  }
+
+  void _onChat() {
+    if (!_readNextReply || !mounted) return;
+    final List<SupportMessage> replies = <SupportMessage>[
+      for (final SupportMessage m in _chat.messages)
+        if (m.isReply) m,
+    ];
+    if (replies.length <= _repliesBefore) return;
+    _readNextReply = false;
+    final SupportMessage reply = replies.last;
+    _voice.speak(reply.id, reply.content, language: _language);
+  }
+
+  void _readAloud(SupportMessage message) {
+    if (_voice.speaking.value == message.id) {
+      _voice.stop();
+    } else {
+      _voice.speak(message.id, message.content, language: _language);
+    }
   }
 
   void _say(String text) {
@@ -157,6 +221,7 @@ class _SupportScreenState extends State<SupportScreen> {
           onRetry: () => chat.retry(message),
           onRate: (String value) => chat.rate(message, value),
           onAction: _run,
+          onRead: _readAloud,
         ),
       if (chat.isWaiting) const _TypingRow(),
       if (chat.replyTimedOut)
@@ -172,6 +237,16 @@ class _SupportScreenState extends State<SupportScreen> {
           key: const ValueKey<String>('support-handed-over'),
           icon: Icons.support_agent_rounded,
           text: l10n.supportHandedOverNote,
+          // The thread is reused on every open while it waits for a person,
+          // so this is the way back to the assistant if nobody answers.
+          action: l10n.supportStartNew,
+          actionKey: const ValueKey<String>('support-handed-over-new'),
+          onAction: chat.isBusy || chat.isLoading
+              ? null
+              : () => chat.startOverFromHandover(
+                    orderId: widget.args.orderId,
+                    language: Localizations.localeOf(context).languageCode,
+                  ),
         ),
     ];
 
@@ -285,6 +360,8 @@ class _SupportScreenState extends State<SupportScreen> {
           else
             _Composer(
               controller: _composer,
+              focusNode: _composerFocus,
+              onSpeak: _speak,
               // Open while a reply is on its way: a second thought typed
               // while waiting must not be lost. Read-only offline, or with
               // no thread to post to.
@@ -305,12 +382,14 @@ class _MessageRow extends StatelessWidget {
     required this.onRetry,
     required this.onRate,
     required this.onAction,
+    required this.onRead,
   });
 
   final SupportMessage message;
   final VoidCallback onRetry;
   final ValueChanged<String> onRate;
   final ValueChanged<SupportAction> onAction;
+  final ValueChanged<SupportMessage> onRead;
 
   @override
   Widget build(BuildContext context) {
@@ -321,6 +400,7 @@ class _MessageRow extends StatelessWidget {
           message: message,
           onRate: onRate,
           onAction: onAction,
+          onRead: () => onRead(message),
         ),
     };
   }
@@ -419,11 +499,15 @@ class _Theirs extends StatelessWidget {
     required this.message,
     required this.onRate,
     required this.onAction,
+    required this.onRead,
   });
 
   final SupportMessage message;
   final ValueChanged<String> onRate;
   final ValueChanged<SupportAction> onAction;
+
+  /// Reads this reply aloud, or stops it if it is the one being read.
+  final VoidCallback onRead;
 
   @override
   Widget build(BuildContext context) {
@@ -510,6 +594,13 @@ class _Theirs extends StatelessWidget {
                       style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
                     ),
                   ),
+                  if (message.card case final SupportOrderCard card) ...<Widget>[
+                    const SizedBox(height: 8),
+                    _OrderCard(
+                      key: ValueKey<String>('support-card-${message.id}'),
+                      card: card,
+                    ),
+                  ],
                   if (actions.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 8),
                     Wrap(
@@ -552,6 +643,32 @@ class _Theirs extends StatelessWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      const SizedBox(width: 2),
+                      // Read aloud, or stop: the playback control for a
+                      // reply, the assistant's or a person's.
+                      ValueListenableBuilder<String?>(
+                        valueListenable: context.read<SupportVoice>().speaking,
+                        builder: (BuildContext context, String? speaking, _) {
+                          final bool playing = speaking == message.id;
+                          return IconButton(
+                            key: ValueKey<String>('support-read-${message.id}'),
+                            tooltip: playing
+                                ? l10n.supportVoiceStop
+                                : l10n.supportVoiceReadAloud,
+                            visualDensity: VisualDensity.compact,
+                            iconSize: 18,
+                            onPressed: onRead,
+                            icon: Icon(
+                              playing
+                                  ? Icons.stop_circle_rounded
+                                  : Icons.volume_up_outlined,
+                              color: playing
+                                  ? green
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          );
+                        },
+                      ),
                       if (isAi) ...<Widget>[
                         const SizedBox(width: 4),
                         _Thumb(
@@ -575,6 +692,153 @@ class _Theirs extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The order a reply is about, under the reply: a heading, then a labelled
+/// row for each thing the server knows. A row with nothing to say is not
+/// drawn, so an order still in the kitchen shows its status and nothing
+/// pretending to be an arrival time.
+class _OrderCard extends StatelessWidget {
+  const _OrderCard({super.key, required this.card});
+
+  final SupportOrderCard card;
+
+  /// Picked from the raw status, never from the translated words.
+  IconData get _statusIcon => switch (card.status) {
+        'delivered' => Icons.check_circle_rounded,
+        'cancelled' || 'rejected' => Icons.cancel_rounded,
+        'picked_up' ||
+        'out_for_delivery' ||
+        'on_the_way' ||
+        'reached_customer' =>
+          Icons.delivery_dining_rounded,
+        'preparing' ||
+        'accepted' ||
+        'ready_for_pickup' ||
+        'rider_assigned' ||
+        'reached_restaurant' =>
+          Icons.soup_kitchen_rounded,
+        _ => Icons.receipt_long_rounded,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color green = isDark ? AppColors.greenLight : AppColors.greenDeep;
+    final Color muted = theme.colorScheme.onSurfaceVariant;
+
+    final String? heading = card.restaurant ?? card.orderNumber;
+    final String? subheading =
+        card.restaurant != null && card.orderNumber != null
+            ? '#${card.orderNumber}'
+            : null;
+
+    final int? metres = card.distanceMetres;
+    final String? distance = metres == null
+        ? null
+        : l10n.kilometresAway((metres / 1000).toStringAsFixed(1));
+    final String? rider = card.riderName?.split(RegExp(r'\s+')).first;
+    final String? riderLine = rider != null && distance != null
+        ? l10n.trackingRiderAway(rider, distance)
+        : rider ?? distance;
+
+    final List<(IconData, String, String, bool)> rows =
+        <(IconData, String, String, bool)>[
+      if (card.statusLabel case final String status)
+        (_statusIcon, l10n.walletDetailStatus, status, false),
+      if (card.etaMinutes case final int eta)
+        (Icons.schedule_rounded, l10n.arrivingIn, l10n.minutesAway(eta), false),
+      // Greyed when the last fix is old: where the rider was, not where
+      // they are.
+      if (riderLine != null)
+        (
+          Icons.two_wheeler_rounded,
+          l10n.riderLabel,
+          riderLine,
+          card.trackingStale && distance != null,
+        ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (heading != null)
+            Row(
+              children: <Widget>[
+                Icon(Icons.receipt_long_rounded, size: 18, color: green),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        heading,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      if (subheading != null)
+                        Text(
+                          subheading,
+                          textDirection: TextDirection.ltr,
+                          style: theme.textTheme.labelSmall
+                              ?.copyWith(color: muted),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          if (heading != null && rows.isNotEmpty)
+            Divider(height: 18, color: theme.colorScheme.outlineVariant),
+          for (final (IconData icon, String label, String value, bool stale)
+              in rows)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(icon, size: 18, color: stale ? muted : green),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          label,
+                          style: theme.textTheme.labelSmall
+                              ?.copyWith(color: muted),
+                        ),
+                        Text(
+                          value,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: stale
+                                ? muted.withValues(alpha: 0.7)
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -725,12 +989,14 @@ class _NoticeRow extends StatelessWidget {
     super.key,
     required this.text,
     this.action,
+    this.actionKey,
     this.onAction,
     this.icon,
   });
 
   final String text;
   final String? action;
+  final Key? actionKey;
   final VoidCallback? onAction;
   final IconData? icon;
 
@@ -763,7 +1029,11 @@ class _NoticeRow extends StatelessWidget {
               ],
             ),
           if (action != null)
-            TextButton(onPressed: onAction, child: Text(action!)),
+            TextButton(
+              key: actionKey,
+              onPressed: onAction,
+              child: Text(action!),
+            ),
         ],
       ),
     );
@@ -935,15 +1205,21 @@ class _EmptyChat extends StatelessWidget {
 class _Composer extends StatelessWidget {
   const _Composer({
     required this.controller,
+    required this.focusNode,
     required this.enabled,
     required this.onChanged,
     required this.onSend,
+    required this.onSpeak,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final bool enabled;
   final ValueChanged<String> onChanged;
   final VoidCallback onSend;
+
+  /// The microphone: asks the question by voice.
+  final VoidCallback onSpeak;
 
   @override
   Widget build(BuildContext context) {
@@ -965,6 +1241,7 @@ class _Composer extends StatelessWidget {
                 child: TextField(
                   key: const ValueKey<String>('support-composer'),
                   controller: controller,
+                  focusNode: focusNode,
                   enabled: enabled,
                   minLines: 1,
                   maxLines: 5,
@@ -987,15 +1264,25 @@ class _Composer extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              IconButton.filled(
-                key: const ValueKey<String>('support-send'),
-                tooltip: l10n.supportSend,
-                onPressed: enabled ? onSend : null,
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.greenDeep,
-                  foregroundColor: Colors.white,
-                ),
-                icon: const Icon(Icons.send_rounded),
+              // The microphone while the box is empty, send once there is
+              // something to send: the one button is always the next step.
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: controller,
+                builder: (BuildContext context, TextEditingValue value, _) {
+                  final bool typed = value.text.trim().isNotEmpty;
+                  return IconButton.filled(
+                    key: ValueKey<String>(
+                      typed ? 'support-send' : 'support-mic',
+                    ),
+                    tooltip: typed ? l10n.supportSend : l10n.supportVoiceSpeak,
+                    onPressed: enabled ? (typed ? onSend : onSpeak) : null,
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.greenDeep,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: Icon(typed ? Icons.send_rounded : Icons.mic_rounded),
+                  );
+                },
               ),
             ],
           ),

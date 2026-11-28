@@ -2093,6 +2093,30 @@ class AppLocalizationsSa extends AppLocalizations {
   String get supportHandedOverNote => 'दलस्य कश्चन सदस्यः उत्तरं दास्यति';
 
   @override
+  String get supportVoiceSpeak => 'वदतु';
+
+  @override
+  String get supportVoiceListening => 'शृण्मः…';
+
+  @override
+  String get supportVoiceHint =>
+      'स्वप्रश्नं पृच्छतु। यदा भवान् वदनात् विरमति तदा सः प्रेष्यते।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'सम्यक् न श्रुतम्। पुनः प्रयत्नं करोतु, अथवा सन्देशं लिखतु।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'अस्माभिः सह वक्तुं ध्वनिग्राहकस्य अनुमतिं ददातु। भवान् अधुना अपि टङ्कयितुं शक्नोति।';
+
+  @override
+  String get supportVoiceReadAloud => 'उच्चैः पठतु';
+
+  @override
+  String get supportVoiceStop => 'स्थगयतु';
+
+  @override
   String get restaurantNew => 'नूतनम्';
 
   @override

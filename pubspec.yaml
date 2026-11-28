@@ -40,6 +40,10 @@ dependencies:
   # no audio upload and nothing to key or bill.
   speech_to_text: ^7.0.0
 
+  # Reads support-chat replies aloud for a customer who spoke the question.
+  # On-device engines (ta-IN, en-IN and the rest), nothing uploaded.
+  flutter_tts: ^4.2.5
+
   # The tax invoice is a printable HTML page rather than JSON, and a rider's
   # phone number is only useful if it can be dialled.
   url_launcher: ^6.3.1

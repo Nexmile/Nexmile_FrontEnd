@@ -2086,6 +2086,30 @@ class AppLocalizationsBn extends AppLocalizations {
   String get supportHandedOverNote => 'টিমের একজন সদস্য উত্তর দেবেন';
 
   @override
+  String get supportVoiceSpeak => 'বলুন';
+
+  @override
+  String get supportVoiceListening => 'শুনছি…';
+
+  @override
+  String get supportVoiceHint =>
+      'আপনার প্রশ্ন জিজ্ঞেস করুন। কথা বলা থামালেই এটি পাঠানো হবে।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ঠিকমতো শোনা গেল না। আবার চেষ্টা করুন, অথবা মেসেজ লিখুন।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'আমাদের সঙ্গে কথা বলতে মাইক্রোফোনের অনুমতি দিন। আপনি এখনও টাইপ করতে পারেন।';
+
+  @override
+  String get supportVoiceReadAloud => 'পড়ে শোনান';
+
+  @override
+  String get supportVoiceStop => 'থামান';
+
+  @override
   String get restaurantNew => 'নতুন';
 
   @override

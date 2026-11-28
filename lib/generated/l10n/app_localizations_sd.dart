@@ -2091,6 +2091,30 @@ class AppLocalizationsSd extends AppLocalizations {
   String get supportHandedOverNote => 'ٽيم جو هڪ ميمبر جواب ڏيندو';
 
   @override
+  String get supportVoiceSpeak => 'ڳالهايو';
+
+  @override
+  String get supportVoiceListening => 'ٻڌي رهيا آهيون…';
+
+  @override
+  String get supportVoiceHint =>
+      'پنهنجو سوال پڇو. ڳالهائڻ بند ڪندي ئي اهو موڪليو ويندو.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'صحيح ٻڌي نه سگهياسين. ٻيهر ڪوشش ڪريو، يا ميسيج لکو.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'اسان سان ڳالهائڻ لاءِ مائڪروفون جي اجازت ڏيو. توهان اڃا به ٽائيپ ڪري سگهو ٿا.';
+
+  @override
+  String get supportVoiceReadAloud => 'پڙهي ٻڌايو';
+
+  @override
+  String get supportVoiceStop => 'روڪيو';
+
+  @override
   String get restaurantNew => 'نئون';
 
   @override

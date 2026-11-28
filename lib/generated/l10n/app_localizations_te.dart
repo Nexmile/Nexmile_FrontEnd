@@ -2092,6 +2092,30 @@ class AppLocalizationsTe extends AppLocalizations {
   String get supportHandedOverNote => 'మా బృందంలోని ఒకరు జవాబిస్తారు';
 
   @override
+  String get supportVoiceSpeak => 'మాట్లాడండి';
+
+  @override
+  String get supportVoiceListening => 'వింటున్నాం…';
+
+  @override
+  String get supportVoiceHint =>
+      'మీ ప్రశ్న అడగండి. మీరు మాట్లాడటం ఆపగానే అది పంపబడుతుంది.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'సరిగ్గా వినిపించలేదు. మళ్ళీ ప్రయత్నించండి, లేదా మెసేజ్ టైప్ చేయండి.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'మాతో మాట్లాడటానికి మైక్రోఫోన్‌ను అనుమతించండి. మీరు ఇప్పటికీ టైప్ చేయవచ్చు.';
+
+  @override
+  String get supportVoiceReadAloud => 'చదివి వినిపించండి';
+
+  @override
+  String get supportVoiceStop => 'ఆపండి';
+
+  @override
   String get restaurantNew => 'కొత్తది';
 
   @override

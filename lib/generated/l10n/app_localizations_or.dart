@@ -2087,6 +2087,30 @@ class AppLocalizationsOr extends AppLocalizations {
   String get supportHandedOverNote => 'ଦଳର ଜଣେ ସଦସ୍ୟ ଉତ୍ତର ଦେବେ';
 
   @override
+  String get supportVoiceSpeak => 'କୁହନ୍ତୁ';
+
+  @override
+  String get supportVoiceListening => 'ଶୁଣୁଛୁ…';
+
+  @override
+  String get supportVoiceHint =>
+      'ଆପଣଙ୍କ ପ୍ରଶ୍ନ ପଚାରନ୍ତୁ। କହିବା ବନ୍ଦ କଲେ ଏହା ପଠାଯିବ।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ଠିକ ଶୁଣାଗଲା ନାହିଁ। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ, କିମ୍ବା ମେସେଜ ଟାଇପ କରନ୍ତୁ।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'ଆମ ସହ କଥା ହେବା ପାଇଁ ମାଇକ୍ରୋଫୋନ ଅନୁମତି ଦିଅନ୍ତୁ। ଆପଣ ତଥାପି ଟାଇପ କରିପାରିବେ।';
+
+  @override
+  String get supportVoiceReadAloud => 'ପଢ଼ି ଶୁଣାନ୍ତୁ';
+
+  @override
+  String get supportVoiceStop => 'ବନ୍ଦ କରନ୍ତୁ';
+
+  @override
   String get restaurantNew => 'ନୂଆ';
 
   @override

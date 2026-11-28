@@ -3728,6 +3728,48 @@ abstract class AppLocalizations {
   /// **'A member of the team will reply'**
   String get supportHandedOverNote;
 
+  /// Tooltip on the support chat microphone button.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak'**
+  String get supportVoiceSpeak;
+
+  /// Title while the support chat microphone records. Same as listeningNow, kept separate so it matches the chat's script.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get supportVoiceListening;
+
+  /// Under "Listening…" while the support chat microphone records.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your question. It\'s sent when you stop talking.'**
+  String get supportVoiceHint;
+
+  /// Speech recognition heard nothing; the customer can type instead.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t catch that. Try again, or type your message.'**
+  String get supportVoiceNotHeard;
+
+  /// Microphone permission refused in the support chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the microphone to talk to us. You can still type.'**
+  String get supportVoiceMicDenied;
+
+  /// Tooltip on the speaker button beside a support reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud'**
+  String get supportVoiceReadAloud;
+
+  /// Tooltip to stop reading a support reply aloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get supportVoiceStop;
+
   /// Badge on a restaurant with fewer than three ratings, shown where the star rating would be. Shown in capitals in languages that have them. Must stay one very short word.
   ///
   /// In en, this message translates to:

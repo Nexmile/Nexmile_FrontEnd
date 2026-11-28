@@ -2088,6 +2088,30 @@ class AppLocalizationsKn extends AppLocalizations {
   String get supportHandedOverNote => 'ನಮ್ಮ ತಂಡದ ಸದಸ್ಯರೊಬ್ಬರು ಉತ್ತರಿಸುತ್ತಾರೆ';
 
   @override
+  String get supportVoiceSpeak => 'ಮಾತನಾಡಿ';
+
+  @override
+  String get supportVoiceListening => 'ಕೇಳುತ್ತಿದ್ದೇವೆ…';
+
+  @override
+  String get supportVoiceHint =>
+      'ನಿಮ್ಮ ಪ್ರಶ್ನೆ ಕೇಳಿ. ನೀವು ಮಾತು ನಿಲ್ಲಿಸಿದ ಕೂಡಲೇ ಅದನ್ನು ಕಳುಹಿಸಲಾಗುತ್ತದೆ.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ಸರಿಯಾಗಿ ಕೇಳಿಸಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ಮೆಸೇಜ್ ಟೈಪ್ ಮಾಡಿ.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'ನಮ್ಮೊಂದಿಗೆ ಮಾತನಾಡಲು ಮೈಕ್ರೋಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ. ನೀವು ಈಗಲೂ ಟೈಪ್ ಮಾಡಬಹುದು.';
+
+  @override
+  String get supportVoiceReadAloud => 'ಗಟ್ಟಿಯಾಗಿ ಓದಿ';
+
+  @override
+  String get supportVoiceStop => 'ನಿಲ್ಲಿಸಿ';
+
+  @override
   String get restaurantNew => 'ಹೊಸದು';
 
   @override

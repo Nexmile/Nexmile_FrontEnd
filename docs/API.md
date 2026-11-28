@@ -327,6 +327,24 @@ banner saying the answers are samples; `NEXMILE_SUPPORT=off` hides the chat.
   a message that fails shows "Not sent". An AI that is merely down is handled on the server: it still
   answers `202`, keeps the message and hands over to a person.
 - After a handover the customer can keep typing; it is added to the thread and the AI stays quiet.
+  The "A member of the team will reply" note also offers **Start a new chat**, since a thread waiting
+  for a person is reused on every open: it posts `/close` (a failure there is ignored) and then
+  `POST /conversations` for a fresh thread with the assistant.
+- **Order card.** A reply about a settled order may carry `card` beside `content`: `order_id`,
+  `order_number`, `restaurant` (a plain string), `status` (raw, for the icon only),
+  `status_label` (the server's translated words), `eta_minutes`, `distance_metres` (only while the
+  rider carries it), `rider_name` and `tracking_stale`. Drawn under the reply as a heading and
+  labelled rows; a field that is absent gets no row at all, never a dash. Headings are the app's
+  (Status, Arriving in, Delivery partner). `tracking_stale: true` greys the rider's distance.
+- **Language.** The thread's `language` is read from every response and never fixed at open:
+  `data.language` on the thread, `meta.language` on the poll (beside `meta.pending_reply`, since the
+  poll is the only call made while the customer is typing): writing in Tamil script switches
+  the thread to Tamil on the server. The voice listens and speaks in it.
+- **Voice.** The mic in an empty composer listens on the phone (speech_to_text, in the thread's
+  language, `-IN` voices first) and sends what it heard as an ordinary message; the reply is then read
+  aloud on the phone (flutter_tts, falling back to en-IN where the language has no voice). Every
+  reply has a read-aloud / stop button. Nothing heard offers typing instead, with the cursor in the
+  box. No audio leaves the phone and the API is unchanged.
 - Push `support.reply` (`type` and `conversation_id` only; no preview, by design, since a lock screen
   is read by whoever holds the phone) opens the chat
   ([push_destination.dart](../lib/core/push/push_destination.dart)).

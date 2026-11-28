@@ -2101,6 +2101,30 @@ class AppLocalizationsSat extends AppLocalizations {
   String get supportHandedOverNote => 'ᱴᱤᱢ ᱨᱮᱱᱟᱜ ᱢᱤᱫ ᱥᱚᱫᱚᱥ ᱛᱮᱞᱟ ᱮᱢᱟ';
 
   @override
+  String get supportVoiceSpeak => 'ᱨᱚᱲ ᱢᱮ';
+
+  @override
+  String get supportVoiceListening => 'ᱟᱸᱡᱚᱢ ᱠᱟᱱᱟ…';
+
+  @override
+  String get supportVoiceHint =>
+      'ᱟᱢᱟᱜ ᱠᱩᱠᱞᱤ ᱠᱩᱞᱤ ᱢᱮ᱾ ᱨᱚᱲ ᱵᱚᱸᱫᱚ ᱛᱟᱭᱚᱢ ᱱᱚᱶᱟ ᱠᱩᱞᱚᱜ-ᱟ᱾';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ᱵᱮᱥ ᱛᱮ ᱵᱟᱝ ᱟᱸᱡᱚᱢ ᱫᱟᱲᱮ ᱞᱮᱱᱟ᱾ ᱫᱩᱦᱲᱟᱹ ᱠᱩᱨᱩᱢᱩᱴᱩ ᱢᱮ, ᱵᱟᱝᱠᱷᱟᱱ ᱢᱮᱥᱮᱡ ᱴᱟᱭᱤᱯ ᱢᱮ᱾';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'ᱟᱞᱮ ᱥᱟᱶ ᱜᱟᱞᱚᱪ ᱞᱟᱹᱜᱤᱫ ᱢᱟᱭᱠᱨᱚᱯᱷᱚᱱ ᱨᱮᱭᱟᱜ ᱦᱩᱠᱩᱢ ᱮᱢ ᱢᱮ᱾ ᱟᱢ ᱱᱤᱛ ᱦᱚᱸ ᱴᱟᱭᱤᱯ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ᱾';
+
+  @override
+  String get supportVoiceReadAloud => 'ᱟᱲᱟᱝ ᱛᱮ ᱯᱟᱲᱦᱟᱣ ᱢᱮ';
+
+  @override
+  String get supportVoiceStop => 'ᱵᱚᱸᱫᱚ ᱢᱮ';
+
+  @override
   String get restaurantNew => 'ᱱᱟᱶᱟ';
 
   @override

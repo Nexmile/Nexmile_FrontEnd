@@ -26,6 +26,7 @@ import 'features/catalogue/state/orders_controller.dart';
 import 'features/catalogue/state/rated_orders.dart';
 import 'features/catalogue/state/storefront_controller.dart';
 import 'features/support/data/support_repository.dart';
+import 'features/support/presentation/support_voice.dart';
 import 'features/support/state/support_controller.dart';
 import 'features/wallet/data/payment_gateway.dart';
 import 'features/wallet/data/wallet_repository.dart';
@@ -46,6 +47,7 @@ class NexmileApp extends StatefulWidget {
     this.pushService = const NoopPushService(),
     this.supportRepository,
     this.supportIsDemo = false,
+    this.supportVoice,
   });
 
   final PreferencesService preferences;
@@ -83,11 +85,18 @@ class NexmileApp extends StatefulWidget {
   /// Answers come from the demo, and the chat says so.
   final bool supportIsDemo;
 
+  /// Speaking to the support assistant and hearing it. The phone's own
+  /// engines unless a test hands in a stand-in.
+  final SupportVoice? supportVoice;
+
   @override
   State<NexmileApp> createState() => _NexmileAppState();
 }
 
 class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
+  late final SupportVoice _supportVoice =
+      widget.supportVoice ?? DeviceSupportVoice();
+
   /// Needed because a notification tap has no `BuildContext` of its own — it
   /// arrives from a stream, not from a widget.
   final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
@@ -176,6 +185,7 @@ class _NexmileAppState extends State<NexmileApp> with WidgetsBindingObserver {
           ),
         ),
         Provider<PushService>.value(value: widget.pushService),
+        Provider<SupportVoice>.value(value: _supportVoice),
         Provider<LocationService>.value(value: locationService),
         Provider<StorefrontRepository>.value(value: storefrontRepository),
         // Storefront state. The cart and the order history both live on the

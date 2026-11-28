@@ -14,7 +14,29 @@ import '../../../../generated/l10n/app_localizations.dart';
 /// Recognition runs on the device's own recogniser, so no audio leaves the
 /// phone and there is no API key or per-request cost. Returns the transcript,
 /// or null if the customer cancelled or nothing was heard.
-Future<String?> showVoiceSearchSheet(BuildContext context) {
+Future<String?> showVoiceSearchSheet(BuildContext context) async {
+  final String? heard = await showVoiceInputSheet(context);
+  return heard == null || heard.isEmpty ? null : heard;
+}
+
+/// The same listening sheet, for anything that takes a spoken line: the
+/// search bar, and the support chat, which passes its own wording and the
+/// thread's [language] (such as `ta`) to listen in.
+///
+/// Returns the transcript; an empty string when the recogniser finished but
+/// heard nothing, so the caller can offer typing instead; null when the
+/// customer cancelled, or voice could not be used at all (which the sheet
+/// has already said).
+Future<String?> showVoiceInputSheet(
+  BuildContext context, {
+  String? language,
+  String? listeningTitle,
+  String? hint,
+  String? actionLabel,
+  String? unavailableTitle,
+  String? unavailableBody,
+  String? deniedBody,
+}) {
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
@@ -24,12 +46,39 @@ Future<String?> showVoiceSearchSheet(BuildContext context) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (BuildContext context) => const _VoiceSearchSheet(),
+    builder: (BuildContext context) => _VoiceSearchSheet(
+      language: language,
+      listeningTitle: listeningTitle,
+      hint: hint,
+      actionLabel: actionLabel,
+      unavailableTitle: unavailableTitle,
+      unavailableBody: unavailableBody,
+      deniedBody: deniedBody,
+    ),
   );
 }
 
 class _VoiceSearchSheet extends StatefulWidget {
-  const _VoiceSearchSheet();
+  const _VoiceSearchSheet({
+    this.language,
+    this.listeningTitle,
+    this.hint,
+    this.actionLabel,
+    this.unavailableTitle,
+    this.unavailableBody,
+    this.deniedBody,
+  });
+
+  /// Listened in when the device has it; the app's language otherwise.
+  final String? language;
+
+  /// The wording around the mic. Null keeps the search sheet's own.
+  final String? listeningTitle;
+  final String? hint;
+  final String? actionLabel;
+  final String? unavailableTitle;
+  final String? unavailableBody;
+  final String? deniedBody;
 
   @override
   State<_VoiceSearchSheet> createState() => _VoiceSearchSheetState();
@@ -91,21 +140,25 @@ class _VoiceSearchSheetState extends State<_VoiceSearchSheet>
 
     setState(() => _phase = _Phase.listening);
 
-    // Match the app's language where the device supports it, so a Tamil
-    // customer can dictate in Tamil rather than being forced into English.
-    final String appLocale =
-        context.read<LocaleController>().locale.toLanguageTag();
-    final List<LocaleName> locales = await _speech.locales();
-    final String? matched = locales
-        .map((LocaleName l) => l.localeId)
-        .cast<String?>()
-        .firstWhere(
-          (String? id) =>
-              id != null &&
-              id.replaceAll('_', '-').toLowerCase().startsWith(
-                    appLocale.split('-').first.toLowerCase(),
-                  ),
-          orElse: () => null,
+    // Match the language asked for, else the app's, where the device
+    // supports it, so a Tamil customer can dictate in Tamil rather than being
+    // forced into English. The Indian variant first: en-IN hears Indian
+    // English far better than en-US does.
+    final String wanted = (widget.language ??
+            context.read<LocaleController>().locale.toLanguageTag())
+        .split(RegExp('[-_]'))
+        .first
+        .toLowerCase();
+    final List<String> ids = <String>[
+      for (final LocaleName l in await _speech.locales())
+        l.localeId.replaceAll('_', '-'),
+    ];
+    final String? matched = ids.cast<String?>().firstWhere(
+          (String? id) => id!.toLowerCase() == '$wanted-in',
+          orElse: () => ids.cast<String?>().firstWhere(
+                (String? id) => id!.toLowerCase().startsWith(wanted),
+                orElse: () => null,
+              ),
         );
 
     await _speech.listen(
@@ -131,10 +184,14 @@ class _VoiceSearchSheetState extends State<_VoiceSearchSheet>
     );
   }
 
+  bool _finished = false;
+
+  /// Hands back what was heard: an empty string when nothing was, so the
+  /// caller can tell "heard nothing" from "cancelled".
   void _finish() {
-    if (!mounted) return;
-    final String text = _heard.trim();
-    Navigator.of(context).pop(text.isEmpty ? null : text);
+    if (!mounted || _finished) return;
+    _finished = true;
+    Navigator.of(context).pop(_heard.trim());
   }
 
   @override
@@ -143,11 +200,16 @@ class _VoiceSearchSheetState extends State<_VoiceSearchSheet>
     final AppLocalizations l10n = AppLocalizations.of(context);
 
     final String title = switch (_phase) {
-      _Phase.listening => l10n.listeningNow,
-      _Phase.starting => l10n.listeningNow,
-      _Phase.unavailable => l10n.voiceUnavailable,
+      _Phase.listening => widget.listeningTitle ?? l10n.listeningNow,
+      _Phase.starting => widget.listeningTitle ?? l10n.listeningNow,
+      _Phase.unavailable => widget.unavailableTitle ?? l10n.voiceUnavailable,
       _Phase.denied => l10n.microphoneDenied,
     };
+    final String? failedBody = _phase == _Phase.denied
+        ? (widget.deniedBody ?? l10n.voiceUnavailableBody)
+        : (widget.unavailableTitle != null
+            ? widget.unavailableBody
+            : l10n.voiceUnavailableBody);
 
     final bool failed = _phase == _Phase.unavailable || _phase == _Phase.denied;
 
@@ -184,7 +246,9 @@ class _VoiceSearchSheetState extends State<_VoiceSearchSheet>
             constraints: const BoxConstraints(minHeight: 54),
             child: Text(
               _heard.isEmpty
-                  ? (failed ? l10n.voiceUnavailableBody : l10n.speakNowHint)
+                  ? (failed
+                      ? (failedBody ?? '')
+                      : (widget.hint ?? l10n.speakNowHint))
                   : _heard,
               textAlign: TextAlign.center,
               maxLines: 3,
@@ -219,7 +283,7 @@ class _VoiceSearchSheetState extends State<_VoiceSearchSheet>
                       foregroundColor: Colors.white,
                       minimumSize: const Size.fromHeight(50),
                     ),
-                    child: Text(l10n.searchTitle),
+                    child: Text(widget.actionLabel ?? l10n.searchTitle),
                   ),
                 ),
               ],

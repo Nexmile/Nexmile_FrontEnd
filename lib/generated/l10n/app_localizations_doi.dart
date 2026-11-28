@@ -2091,6 +2091,30 @@ class AppLocalizationsDoi extends AppLocalizations {
   String get supportHandedOverNote => 'टीम दा इक सदस्य जवाब देग';
 
   @override
+  String get supportVoiceSpeak => 'बोलो';
+
+  @override
+  String get supportVoiceListening => 'सुनदे आं…';
+
+  @override
+  String get supportVoiceHint =>
+      'अपना सवाल पुच्छो। बोलना बंद करदे गै एह् भेजेआ जाग।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ठीक सुनेआ नेईं जाई सकेआ। फ्ही कोशिश करो, जां मैसेज लिखो।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'साढ़े कन्नै गल्ल करने आस्तै माइक्रोफोन दी इजाजत देओ। तुस हुन बी टाइप करी सकदे ओ।';
+
+  @override
+  String get supportVoiceReadAloud => 'पढ़ियै सुनाओ';
+
+  @override
+  String get supportVoiceStop => 'रोको';
+
+  @override
   String get restaurantNew => 'नमां';
 
   @override

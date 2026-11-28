@@ -2089,6 +2089,30 @@ class AppLocalizationsHi extends AppLocalizations {
   String get supportHandedOverNote => 'टीम का कोई सदस्य जवाब देगा';
 
   @override
+  String get supportVoiceSpeak => 'बोलें';
+
+  @override
+  String get supportVoiceListening => 'सुन रहे हैं…';
+
+  @override
+  String get supportVoiceHint =>
+      'अपना सवाल पूछें। बोलना बंद करते ही यह भेज दिया जाएगा।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ठीक से सुनाई नहीं दिया। फिर कोशिश करें, या मैसेज लिखें।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'हमसे बात करने के लिए माइक्रोफ़ोन की अनुमति दें। आप अब भी टाइप कर सकते हैं।';
+
+  @override
+  String get supportVoiceReadAloud => 'पढ़कर सुनाएँ';
+
+  @override
+  String get supportVoiceStop => 'रोकें';
+
+  @override
   String get restaurantNew => 'नया';
 
   @override

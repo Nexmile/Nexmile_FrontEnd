@@ -2093,6 +2093,30 @@ class AppLocalizationsNe extends AppLocalizations {
   String get supportHandedOverNote => 'टोलीका एक सदस्यले जवाफ दिनुहुनेछ';
 
   @override
+  String get supportVoiceSpeak => 'बोल्नुहोस्';
+
+  @override
+  String get supportVoiceListening => 'सुन्दै छौं…';
+
+  @override
+  String get supportVoiceHint =>
+      'आफ्नो प्रश्न सोध्नुहोस्। तपाईंले बोल्न रोकेपछि यो पठाइन्छ।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'राम्ररी सुनिएन। पुनः प्रयास गर्नुहोस्, वा म्यासेज लेख्नुहोस्।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'हामीसँग कुरा गर्न माइक्रोफोनको अनुमति दिनुहोस्। तपाईं अझै पनि टाइप गर्न सक्नुहुन्छ।';
+
+  @override
+  String get supportVoiceReadAloud => 'पढेर सुनाउनुहोस्';
+
+  @override
+  String get supportVoiceStop => 'रोक्नुहोस्';
+
+  @override
   String get restaurantNew => 'नयाँ';
 
   @override

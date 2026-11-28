@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io' show File;
 
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,7 @@ import 'package:nexmile/features/support/data/demo_support_repository.dart';
 import 'package:nexmile/features/support/data/support_models.dart';
 import 'package:nexmile/features/support/data/support_repository.dart';
 import 'package:nexmile/features/support/presentation/support_screen.dart';
+import 'package:nexmile/features/support/presentation/support_voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'account_fakes.dart';
@@ -626,6 +628,7 @@ Future<void> _pumpApp(
   FakeAccountRepository? accountRepository,
   PushService pushService = const NoopPushService(),
   SupportRepository? supportRepository,
+  SupportVoice? supportVoice,
 }) async {
   final PreferencesService preferences = await _prefs(seed);
   _authRepo = repository ?? FakeAuthRepository();
@@ -656,8 +659,37 @@ Future<void> _pumpApp(
       pushService: pushService,
       supportRepository: supportRepository,
       supportIsDemo: supportRepository is DemoSupportRepository,
+      supportVoice: supportVoice,
     ),
   );
+}
+
+/// A microphone that hears what the test says, and a speaker that writes
+/// down what it reads.
+class _FakeVoice implements SupportVoice {
+  /// What the next listen hears: words, '' for nothing, null for cancelled.
+  String? nextHeard = 'where is my order';
+  final List<String?> listenedIn = <String?>[];
+  final List<(String, String, String?)> spoken = <(String, String, String?)>[];
+  final ValueNotifier<String?> _speaking = ValueNotifier<String?>(null);
+
+  @override
+  Future<String?> listen(BuildContext context, {String? language}) async {
+    listenedIn.add(language);
+    return nextHeard;
+  }
+
+  @override
+  Future<void> speak(String id, String text, {String? language}) async {
+    spoken.add((id, text, language));
+    _speaking.value = id;
+  }
+
+  @override
+  Future<void> stop() async => _speaking.value = null;
+
+  @override
+  ValueListenable<String?> get speaking => _speaking;
 }
 
 /// The demo support server, with a record of what was asked of it and a
@@ -667,6 +699,14 @@ class _RecordingSupport extends DemoSupportRepository {
 
   int? startedWithOrder;
   String? startedInLanguage;
+  int starts = 0;
+  int closes = 0;
+
+  @override
+  Future<void> close(String id) {
+    closes++;
+    return super.close(id);
+  }
   int fetches = 0;
 
   @override
@@ -703,6 +743,7 @@ class _RecordingSupport extends DemoSupportRepository {
   @override
   Future<SupportConversation> start({int? orderId, String? language}) {
     _check();
+    starts++;
     startedWithOrder = orderId;
     startedInLanguage = language;
     return super.start(orderId: orderId, language: language);
@@ -751,6 +792,8 @@ Future<void> _askSupport(WidgetTester tester, String text) async {
     find.byKey(const ValueKey<String>('support-composer')),
     text,
   );
+  // The mic becomes send once there is text, on the next frame.
+  await tester.pump();
   await tester.tap(find.byKey(const ValueKey<String>('support-send')));
   await tester.pump();
   for (int i = 0; i < 2; i++) {
@@ -6706,6 +6749,67 @@ void main() {
       expect(newClientId(), isNot(newClientId()));
     });
 
+    test('an order card reads what is there and nothing else', () {
+      final SupportMessage? reply = SupportMessage.fromJson(<String, dynamic>{
+        'id': 'm2',
+        'sender': 'ai',
+        'content': 'It is on the way.',
+        'card': <String, dynamic>{
+          'order_id': '10432',
+          'order_number': 'NX261113ABCD',
+          'restaurant': 'Amma Mess',
+          'status': 'picked_up',
+          'status_label': 'வழியில்',
+          'eta_minutes': 9,
+          'distance_metres': '1450',
+          'rider_name': 'Suresh Kumar',
+          'tracking_stale': true,
+        },
+      });
+      final SupportOrderCard card = reply!.card!;
+      expect(card.orderId, 10432);
+      expect(card.orderNumber, 'NX261113ABCD');
+      expect(card.restaurant, 'Amma Mess');
+      expect(card.statusLabel, 'வழியில்');
+      expect(card.etaMinutes, 9);
+      expect(card.distanceMetres, 1450);
+      expect(card.riderName, 'Suresh Kumar');
+      expect(card.trackingStale, isTrue);
+
+      // Kept on the phone with the rest of the message.
+      final SupportOrderCard? kept =
+          SupportMessage.fromJson(reply.toJson())!.card;
+      expect(kept?.distanceMetres, 1450);
+      expect(kept?.trackingStale, isTrue);
+
+      // In the kitchen: no arrival time, no distance, no rider.
+      final SupportOrderCard kitchen = SupportOrderCard.fromJson(
+        <String, dynamic>{'status': 'preparing', 'status_label': 'Preparing'},
+      )!;
+      expect(kitchen.etaMinutes, isNull);
+      expect(kitchen.distanceMetres, isNull);
+      expect(kitchen.riderName, isNull);
+
+      // No card at all, and a card with nothing in it, are both none.
+      expect(
+        SupportMessage.fromJson(<String, dynamic>{
+          'id': 'm3',
+          'sender': 'ai',
+          'content': 'Hi',
+          'card': null,
+        })!.card,
+        isNull,
+      );
+      expect(SupportOrderCard.fromJson(<String, dynamic>{}), isNull);
+    });
+
+    test('speech uses the Indian voice for the language', () {
+      expect(speechLocale('ta'), 'ta-IN');
+      expect(speechLocale('en'), 'en-IN');
+      expect(speechLocale('hi-IN'), 'hi-IN');
+      expect(speechLocale(null), 'en-IN');
+    });
+
     test('the API is the agreed contract', () async {
       final List<http.Request> seen = <http.Request>[];
       final SupportRepository repo = ApiSupportRepository(
@@ -6722,6 +6826,8 @@ void main() {
                     'sender': 'customer',
                     'content': 'where is my order',
                     'client_id': 'c-1',
+                    // This message is what switched the thread.
+                    'language': 'ta',
                   },
                   'meta': <String, dynamic>{'pending_reply': false},
                 }),
@@ -6741,7 +6847,7 @@ void main() {
             }
             if (path.endsWith('/messages')) {
               return http.Response(
-                '{"data":[],"meta":{"pending_reply":true}}',
+                '{"data":[],"meta":{"pending_reply":true,"language":"ta"}}',
                 200,
               );
             }
@@ -6771,6 +6877,7 @@ void main() {
                   'id': 't1',
                   'status': 'open',
                   'pending_reply': true,
+                  'language': 'en',
                   'messages': <Object>[],
                 },
               }),
@@ -6783,6 +6890,8 @@ void main() {
       final SupportConversation thread =
           await repo.start(orderId: 10432, language: 'ta');
       expect(thread.pendingReply, isTrue);
+      // The server's language, not the one asked for at open.
+      expect(thread.language, 'en');
       expect(seen.last.url.path, '/api/v1/support/conversations');
       expect(jsonDecode(seen.last.body), <String, dynamic>{
         'order_id': 10432,
@@ -6794,6 +6903,7 @@ void main() {
       expect(sent.message.clientId, 'c-1');
       // Read off the 202: false means nothing is coming automatically.
       expect(sent.pendingReply, isFalse);
+      expect(sent.language, 'ta');
       expect(jsonDecode(seen.last.body), <String, dynamic>{
         'content': 'where is my order',
         'client_id': 'c-1',
@@ -6803,6 +6913,7 @@ void main() {
       expect(seen.last.url.queryParameters['after_id'], 'm1');
       expect(poll.messages, isEmpty);
       expect(poll.pendingReply, isTrue);
+      expect(poll.language, 'ta');
 
       final SupportEntry entry = await repo.entry();
       expect(entry.unread, 1);
@@ -6866,6 +6977,8 @@ void main() {
         find.byKey(const ValueKey<String>('support-composer')),
         'hello',
       );
+      // The mic becomes send once there is text, on the next frame.
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey<String>('support-send')));
       await tester.pump();
       expect(find.text('hello'), findsOneWidget);
@@ -6917,6 +7030,8 @@ void main() {
         find.byKey(const ValueKey<String>('support-composer')),
         'hello',
       );
+      // The mic becomes send once there is text, on the next frame.
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey<String>('support-send')));
       await tester.pump();
       for (int i = 0; i < 15; i++) {
@@ -6959,6 +7074,8 @@ void main() {
         find.byKey(const ValueKey<String>('support-composer')),
         'hello',
       );
+      // The mic becomes send once there is text, on the next frame.
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey<String>('support-send')));
       await tester.pump();
       // The send said `pending_reply: false`: nothing to wait for, so no
@@ -7000,6 +7117,8 @@ void main() {
         find.byKey(const ValueKey<String>('support-composer')),
         'the bag was torn',
       );
+      // The mic becomes send once there is text, on the next frame.
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey<String>('support-send')));
       await tester.pump();
       // Stored and on its way to the agent, with no instant answer promised.
@@ -7032,6 +7151,8 @@ void main() {
         find.byKey(const ValueKey<String>('support-composer')),
         'my food is cold',
       );
+      // The mic becomes send once there is text, on the next frame.
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey<String>('support-send')));
       await tester.pumpAndSettle();
       expect(find.text('my food is cold'), findsOneWidget);
@@ -7227,6 +7348,190 @@ void main() {
       expect(find.text('This chat is closed.'), findsWidgets);
       expect(find.byKey(const ValueKey<String>('support-start-new')),
           findsOneWidget);
+    });
+
+    Future<void> openChatAbout(
+      WidgetTester tester,
+      _RecordingSupport support, {
+      _FakeVoice? voice,
+    }) async {
+      _useTallPhone(tester);
+      await _pumpApp(
+        tester,
+        seed: _languageChosen,
+        session: _testSession(),
+        supportRepository: support,
+        supportVoice: voice,
+      );
+      await _settleSplash(tester);
+      _nav(tester).pushNamed(
+        AppRoutes.support,
+        arguments: const SupportArgs(orderId: 7),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    /// Two polls: long enough for the demo's answer to land.
+    Future<void> awaitReply(WidgetTester tester) async {
+      await tester.pump();
+      for (int i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a reply about an order carries its card, row by row',
+        (WidgetTester tester) async {
+      await openChatAbout(tester, _RecordingSupport());
+      await _askSupport(tester, 'where is my order');
+
+      final Finder card = find.byWidgetPredicate(
+        (Widget w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('support-card-'),
+      );
+      expect(card, findsOneWidget);
+      Finder inCard(String text) =>
+          find.descendant(of: card, matching: find.text(text));
+      expect(inCard('Anjappar Chettinad'), findsOneWidget);
+      expect(inCard('#NX7'), findsOneWidget);
+      // Our headings, the server's words.
+      expect(inCard('Status'), findsOneWidget);
+      expect(inCard('On the way'), findsOneWidget);
+      expect(inCard('Arriving in'), findsOneWidget);
+      expect(inCard('12 min'), findsOneWidget);
+      expect(inCard('Delivery partner'), findsOneWidget);
+      expect(inCard('Suresh is 1.8 km away'), findsOneWidget);
+    });
+
+    testWidgets('an order in the kitchen shows no empty rows',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = _RecordingSupport()
+        ..orderCard = (int id) => SupportOrderCard(
+              orderId: id,
+              orderNumber: 'NX$id',
+              restaurant: 'Amma Mess',
+              status: 'preparing',
+              statusLabel: 'Being prepared',
+            );
+      await openChatAbout(tester, support);
+      await _askSupport(tester, 'where is my order');
+
+      expect(find.text('Being prepared'), findsOneWidget);
+      // Nothing known, nothing drawn: no "Arriving in: —".
+      expect(find.text('Arriving in'), findsNothing);
+      expect(find.text('Delivery partner'), findsNothing);
+    });
+
+    testWidgets('an old fix greys the rider distance',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = _RecordingSupport()
+        ..orderCard = (int id) => SupportOrderCard(
+              orderId: id,
+              statusLabel: 'On the way',
+              distanceMetres: 1800,
+              riderName: 'Suresh Kumar',
+              trackingStale: true,
+            );
+      await openChatAbout(tester, support);
+      await _askSupport(tester, 'where is my order');
+
+      final Text distance =
+          tester.widget<Text>(find.text('Suresh is 1.8 km away'));
+      final Text status = tester.widget<Text>(find.text('On the way'));
+      expect(distance.style?.color, isNot(status.style?.color));
+    });
+
+    testWidgets('a thread waiting for a person can start over',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = _RecordingSupport();
+      await openChatAbout(tester, support);
+      await tester.tap(find.byKey(const ValueKey<String>('support-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Talk to a person'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('support-handed-over')),
+        findsOneWidget,
+      );
+      expect(support.starts, 1);
+
+      // Nobody has answered: back to the assistant, on a fresh thread.
+      await tester.tap(
+        find.byKey(const ValueKey<String>('support-handed-over-new')),
+      );
+      await tester.pumpAndSettle();
+      expect(support.closes, 1);
+      expect(support.starts, 2);
+      expect(
+        find.byKey(const ValueKey<String>('support-handed-over')),
+        findsNothing,
+      );
+      expect(find.text('How can we help?'), findsOneWidget);
+    });
+
+    testWidgets('asked by voice: sent as a message, and the reply is read out',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = _RecordingSupport();
+      final _FakeVoice voice = _FakeVoice();
+      await openChatAbout(tester, support, voice: voice);
+
+      // An empty box offers the microphone rather than send.
+      expect(find.byKey(const ValueKey<String>('support-send')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey<String>('support-mic')));
+      await awaitReply(tester);
+
+      expect(voice.listenedIn, <String?>['en']);
+      expect(support.received, <String>['where is my order']);
+      expect(voice.spoken, hasLength(1));
+      expect(voice.spoken.single.$2, 'You can follow this order live on the map.');
+      expect(voice.spoken.single.$3, 'en');
+
+      // The reply's speaker is now a stop button, and stops it.
+      final String id = voice.spoken.single.$1;
+      final Finder control = find.byKey(ValueKey<String>('support-read-$id'));
+      expect(find.byTooltip('Stop'), findsOneWidget);
+      await tester.tap(control);
+      await tester.pump();
+      expect(voice.speaking.value, isNull);
+      expect(find.byTooltip('Stop'), findsNothing);
+    });
+
+    testWidgets('voice that hears nothing offers typing instead',
+        (WidgetTester tester) async {
+      final _RecordingSupport support = _RecordingSupport();
+      final _FakeVoice voice = _FakeVoice()..nextHeard = '';
+      await openChatAbout(tester, support, voice: voice);
+
+      await tester.tap(find.byKey(const ValueKey<String>('support-mic')));
+      await tester.pump();
+
+      expect(support.received, isEmpty);
+      expect(
+        find.text("Couldn't catch that. Try again, or type your message."),
+        findsOneWidget,
+      );
+      final EditableText box = tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('support-composer')),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(box.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets("the thread's language follows the server, not the opening",
+        (WidgetTester tester) async {
+      final _RecordingSupport support = _RecordingSupport();
+      final _FakeVoice voice = _FakeVoice()..nextHeard = null;
+      await openChatAbout(tester, support, voice: voice);
+      expect(support.startedInLanguage, 'en');
+
+      // Written in Tamil script: the server switches the thread to Tamil.
+      await _askSupport(tester, 'என் ஆர்டர் எங்கே');
+      await tester.tap(find.byKey(const ValueKey<String>('support-mic')));
+      await tester.pump();
+      expect(voice.listenedIn.last, 'ta');
     });
 
     testWidgets('"Need help?" on an order opens the chat about that order',
@@ -7436,6 +7741,8 @@ void main() {
           find.byKey(const ValueKey<String>('support-composer')),
           text,
         );
+        // The mic becomes send once there is text, on the next frame.
+        await tester.pump();
         await tester.tap(find.byKey(const ValueKey<String>('support-send')));
         await tester.pump();
       }

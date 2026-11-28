@@ -2089,6 +2089,30 @@ class AppLocalizationsBrx extends AppLocalizations {
   String get supportHandedOverNote => 'दलनि मोनसे सदस्यआ फिननाय होगोन';
 
   @override
+  String get supportVoiceSpeak => 'बाथ्रा बुं';
+
+  @override
+  String get supportVoiceListening => 'खोनासंनो दङ…';
+
+  @override
+  String get supportVoiceHint =>
+      'नोंथांनि सोंथिखौ सों। नोंथाङ बाथ्रा बुंनाय बन्द खालामब्ला बेयो दैथाय होनाय जागोन।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'मोजाङै खोनानो हायाखै। फिन नाजा, एबा मेसेज लिर।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'जोंजों बाथ्रा बुंनो माइक्रफननि गनायथि हो। नोंथाङ टाइप खालामनोबो हागोन।';
+
+  @override
+  String get supportVoiceReadAloud => 'फरायनानै खोनाहो';
+
+  @override
+  String get supportVoiceStop => 'बन्द खालाम';
+
+  @override
   String get restaurantNew => 'गोदान';
 
   @override

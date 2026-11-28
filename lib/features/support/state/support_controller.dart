@@ -193,6 +193,44 @@ class SupportController extends ChangeNotifier {
     }
   }
 
+  /// The thread's language as the server has it now. Read fresh from every
+  /// response rather than fixed when the chat opened: writing in Tamil script
+  /// switches the thread to Tamil on the server.
+  String? get language => _thread?.language;
+
+  void _takeLanguage(String? language) {
+    final SupportConversation? thread = _thread;
+    if (language == null || thread == null || thread.language == language) {
+      return;
+    }
+    _thread = thread.copyWith(language: language);
+    _persist();
+    notifyListeners();
+  }
+
+  /// Leaves a thread that is waiting for a person and goes back to the
+  /// assistant. A handed-over thread is reused every time the chat opens, so
+  /// without this a customer nobody answers has no way back.
+  ///
+  /// Closes it on the server first; if that fails because it is already
+  /// closed, or at all, a fresh one is started anyway: the customer asked
+  /// for a new chat, and the old one is out of their hands either way.
+  Future<void> startOverFromHandover({int? orderId, String? language}) async {
+    final SupportRepository? repository = _repository;
+    final SupportConversation? thread = _thread;
+    if (repository == null || thread == null || _busy) return;
+    _busy = true;
+    notifyListeners();
+    try {
+      await repository.close(thread.id);
+    } on ApiException {
+      // Already closed (409) or unreachable: start fresh regardless.
+    } finally {
+      _busy = false;
+    }
+    await startNew(orderId: orderId, language: language);
+  }
+
   /// A new thread once the last one was closed.
   Future<void> startNew({int? orderId, String? language}) async {
     _stopWaiting();
@@ -245,6 +283,7 @@ class SupportController extends ChangeNotifier {
         local.clientId,
         sent.message.copyWith(state: DeliveryState.sent),
       );
+      _takeLanguage(sent.language);
       _offline = false;
       _notice = null;
       if (_problem == SupportProblem.slowDown) _problem = null;
@@ -329,6 +368,7 @@ class SupportController extends ChangeNotifier {
         try {
           final SupportPoll poll =
               await repository.selectOrder(thread.id, orderId);
+          _takeLanguage(poll.language);
           if (poll.messages.isNotEmpty) _merge(poll.messages);
           _offline = false;
           if (poll.pendingReply != false) _startWaiting();
@@ -450,6 +490,7 @@ class SupportController extends ChangeNotifier {
           content: message.content,
           createdAt: message.createdAt,
           actions: message.actions,
+          card: message.card,
           feedback: before,
         ),
       );
@@ -520,6 +561,7 @@ class SupportController extends ChangeNotifier {
       final SupportPoll poll =
           await repository.messagesAfter(thread.id, afterId: _lastServerId());
       final List<SupportMessage> arrived = poll.messages;
+      _takeLanguage(poll.language);
       _offline = false;
       if (arrived.isNotEmpty) _merge(arrived);
       final bool replied = arrived.any((SupportMessage m) => !m.isMine);

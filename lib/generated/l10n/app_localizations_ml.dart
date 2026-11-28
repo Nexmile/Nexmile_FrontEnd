@@ -2100,6 +2100,30 @@ class AppLocalizationsMl extends AppLocalizations {
   String get supportHandedOverNote => 'ടീമിലെ ഒരാൾ മറുപടി നൽകും';
 
   @override
+  String get supportVoiceSpeak => 'സംസാരിക്കുക';
+
+  @override
+  String get supportVoiceListening => 'കേൾക്കുന്നു…';
+
+  @override
+  String get supportVoiceHint =>
+      'നിങ്ങളുടെ ചോദ്യം ചോദിക്കൂ. സംസാരിച്ചു നിർത്തുമ്പോൾ അത് അയയ്ക്കും.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ശരിയായി കേട്ടില്ല. വീണ്ടും ശ്രമിക്കുക, അല്ലെങ്കിൽ മെസേജ് ടൈപ്പ് ചെയ്യുക.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'ഞങ്ങളുമായി സംസാരിക്കാൻ മൈക്രോഫോൺ അനുവദിക്കുക. നിങ്ങൾക്ക് ഇപ്പോഴും ടൈപ്പ് ചെയ്യാം.';
+
+  @override
+  String get supportVoiceReadAloud => 'ഉറക്കെ വായിക്കുക';
+
+  @override
+  String get supportVoiceStop => 'നിർത്തുക';
+
+  @override
   String get restaurantNew => 'പുതിയത്';
 
   @override

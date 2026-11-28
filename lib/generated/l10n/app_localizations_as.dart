@@ -2089,6 +2089,30 @@ class AppLocalizationsAs extends AppLocalizations {
   String get supportHandedOverNote => 'দলৰ এজন সদস্যই উত্তৰ দিব';
 
   @override
+  String get supportVoiceSpeak => 'কওক';
+
+  @override
+  String get supportVoiceListening => 'শুনি আছোঁ…';
+
+  @override
+  String get supportVoiceHint =>
+      'আপোনাৰ প্ৰশ্নটো সোধক। কথা কোৱা বন্ধ কৰিলেই এইটো পঠিওৱা হ\'ব।';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'ভালদৰে শুনা নগ\'ল। পুনৰ চেষ্টা কৰক, বা মেছেজ লিখক।';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'আমাৰ সৈতে কথা পাতিবলৈ মাইক্ৰʼফোনৰ অনুমতি দিয়ক। আপুনি এতিয়াও টাইপ কৰিব পাৰে।';
+
+  @override
+  String get supportVoiceReadAloud => 'পঢ়ি শুনাওক';
+
+  @override
+  String get supportVoiceStop => 'বন্ধ কৰক';
+
+  @override
   String get restaurantNew => 'নতুন';
 
   @override

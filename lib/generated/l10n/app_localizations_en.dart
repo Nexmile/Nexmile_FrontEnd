@@ -2088,6 +2088,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportHandedOverNote => 'A member of the team will reply';
 
   @override
+  String get supportVoiceSpeak => 'Speak';
+
+  @override
+  String get supportVoiceListening => 'Listening…';
+
+  @override
+  String get supportVoiceHint =>
+      'Ask your question. It\'s sent when you stop talking.';
+
+  @override
+  String get supportVoiceNotHeard =>
+      'Couldn\'t catch that. Try again, or type your message.';
+
+  @override
+  String get supportVoiceMicDenied =>
+      'Allow the microphone to talk to us. You can still type.';
+
+  @override
+  String get supportVoiceReadAloud => 'Read aloud';
+
+  @override
+  String get supportVoiceStop => 'Stop';
+
+  @override
   String get restaurantNew => 'New';
 
   @override
