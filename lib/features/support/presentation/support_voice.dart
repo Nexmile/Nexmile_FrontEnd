@@ -70,6 +70,7 @@ class DeviceSupportVoice implements SupportVoice {
     final FlutterTts tts = _engine;
     try {
       await tts.stop();
+      await _throughSpeaker(tts);
       final String tag = speechLocale(language);
       // Indian English when this phone has no voice for the language, so a
       // reply is read in some voice rather than silently not at all.
@@ -80,6 +81,23 @@ class DeviceSupportVoice implements SupportVoice {
     } catch (_) {
       _done();
     }
+  }
+
+  /// On an iPhone, reads through the speaker even with the ring switch on
+  /// silent, as a navigation prompt does, and lowers any music meanwhile.
+  /// Without this iOS stays in its default audio mode, which the silent
+  /// switch mutes. Set before every reply, because listening for a question
+  /// switches the phone's audio over to recording.
+  Future<void> _throughSpeaker(FlutterTts tts) async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    await tts.setSharedInstance(true);
+    await tts.setIosAudioCategory(
+      IosTextToSpeechAudioCategory.playback,
+      <IosTextToSpeechAudioCategoryOptions>[
+        IosTextToSpeechAudioCategoryOptions.duckOthers,
+      ],
+      IosTextToSpeechAudioMode.voicePrompt,
+    );
   }
 
   @override

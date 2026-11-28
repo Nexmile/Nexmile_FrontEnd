@@ -66,9 +66,9 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Nexmile lets you pick a photo of your door or building, which helps your delivery partner find you.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Nexmile uses the microphone so you can search for restaurants and dishes by voice.</string>
+	<string>Nexmile uses the microphone so you can search for restaurants and dishes, or ask our support assistant a question, by voice.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Nexmile turns your voice into search text so you can find restaurants and dishes hands-free.</string>
+	<string>Nexmile turns your voice into text so you can search for restaurants and dishes, or talk to our support assistant, hands-free.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
